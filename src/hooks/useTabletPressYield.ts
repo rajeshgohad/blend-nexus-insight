@@ -6,6 +6,7 @@ import type {
   OutcomePrediction,
   YieldRecommendation,
   YieldHistoryPoint,
+  ParameterTrendPoint,
 } from '@/types/tablet-press-yield';
 
 const generateId = () => Math.random().toString(36).substr(2, 9);
@@ -67,6 +68,7 @@ export function useTabletPressYield(isActive: boolean, isPaused: boolean) {
   const [recommendations, setRecommendations] = useState<YieldRecommendation[]>([]);
   const [yieldHistory, setYieldHistory] = useState<YieldHistoryPoint[]>([]);
   const [learningProgress, setLearningProgress] = useState({ episodes: 15847, reward: 0.91 });
+  const [parameterTrend, setParameterTrend] = useState<ParameterTrendPoint[]>([]);
 
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const weightHistoryRef = useRef<number[]>([]);
@@ -190,17 +192,33 @@ export function useTabletPressYield(isActive: boolean, isPaused: boolean) {
       // Update signals with realistic noise
       setSignals(prev => {
         const newWeight = addNoise(prev.weight, 3);
+        const newThickness = addNoise(prev.thickness, 0.05);
+        const newHardness = addNoise(prev.hardness, 0.5);
+        const newFeederSpeed = addNoise(prev.feederSpeed, 0.2);
+        const newTurretSpeed = addNoise(prev.turretSpeed, 0.3);
+
         weightHistoryRef.current.push(newWeight);
         if (weightHistoryRef.current.length > 100) {
           weightHistoryRef.current.shift();
         }
 
+        // Track parameter trend for charts
+        const trendPoint: ParameterTrendPoint = {
+          timestamp: new Date(),
+          weight: newWeight,
+          thickness: newThickness,
+          hardness: newHardness,
+          feederSpeed: newFeederSpeed,
+          turretSpeed: newTurretSpeed,
+        };
+        setParameterTrend(prevTrend => [...prevTrend.slice(-59), trendPoint]);
+
         return {
           weight: newWeight,
-          thickness: addNoise(prev.thickness, 0.05),
-          hardness: addNoise(prev.hardness, 0.5),
-          feederSpeed: addNoise(prev.feederSpeed, 0.2),
-          turretSpeed: addNoise(prev.turretSpeed, 0.3),
+          thickness: newThickness,
+          hardness: newHardness,
+          feederSpeed: newFeederSpeed,
+          turretSpeed: newTurretSpeed,
           vacuum: addNoise(prev.vacuum, 10),
           preCompressionForce: addNoise(prev.preCompressionForce, 0.1),
           mainCompressionForce: addNoise(prev.mainCompressionForce, 0.2),
@@ -299,6 +317,7 @@ export function useTabletPressYield(isActive: boolean, isPaused: boolean) {
       tabletsProducedRef.current = 0;
       weightHistoryRef.current = [];
       setDriftDetections([]);
+      setParameterTrend([]);
       setBatchProfile(prev => ({ ...prev, tabletsProduced: 0 }));
     }
   }, [isActive]);
@@ -311,6 +330,7 @@ export function useTabletPressYield(isActive: boolean, isPaused: boolean) {
     recommendations,
     yieldHistory,
     learningProgress,
+    parameterTrend,
     approveRecommendation,
   };
 }

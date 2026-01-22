@@ -52,6 +52,7 @@ const Index = () => {
     recommendations: yieldRecommendations,
     yieldHistory,
     learningProgress,
+    parameterTrend,
     approveRecommendation: approveYieldRecommendation,
   } = useTabletPressYield(isTabletPressActive, simulation.isPaused);
 
@@ -122,6 +123,7 @@ const Index = () => {
           yieldHistory={yieldHistory}
           learningProgress={learningProgress}
           isTabletPressActive={isTabletPressActive}
+          parameterTrend={parameterTrend}
           onApproveRecommendation={approveYieldRecommendation}
         />
       ),
