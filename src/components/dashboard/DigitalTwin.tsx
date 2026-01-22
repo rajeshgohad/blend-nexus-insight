@@ -297,139 +297,135 @@ export function DigitalTwin({
 
       {/* Right Column - Batch Details & Sequence */}
       <div className="flex-1 flex flex-col gap-4 overflow-hidden">
-        {/* Batch Info Header */}
-        <div className="bg-muted/50 rounded-lg p-4 space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            {/* Left side batch info */}
-            <div className="space-y-2.5">
-              <div className="flex items-center gap-3">
-                <span className="text-sm text-muted-foreground w-24">Batch #:</span>
-                <Badge variant="outline" className="text-sm font-mono px-2 py-0.5">{batch.batchNumber}</Badge>
-              </div>
-              <div className="flex items-center gap-3">
-                <span className="text-sm text-muted-foreground w-24">Product ID:</span>
-                <span className="text-sm font-mono text-foreground">{batch.productId}</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <User className="w-4 h-4 text-muted-foreground" />
-                <span className="text-sm text-muted-foreground">Operator:</span>
-                <span className="text-sm font-medium text-foreground">{batch.operator.id} - {batch.operator.name}</span>
-              </div>
-            </div>
-
-            {/* Right side time info */}
-            <div className="space-y-2.5">
-              <div className="flex items-center gap-3">
-                <Clock className="w-4 h-4 text-muted-foreground" />
-                <span className="text-sm text-muted-foreground">Start:</span>
-                <span className="text-sm font-mono text-foreground">
-                  {batch.startTime ? format(batch.startTime, 'yyyy-MM-dd HH:mm:ss') : '--'}
-                </span>
-              </div>
-              <div className="flex items-center gap-3">
-                <Clock className="w-4 h-4 text-muted-foreground" />
-                <span className="text-sm text-muted-foreground">End:</span>
-                <span className="text-sm font-mono text-foreground">
-                  {batch.endTime ? format(batch.endTime, 'yyyy-MM-dd HH:mm:ss') : '--'}
-                </span>
-              </div>
-              <div className="flex items-center gap-3">
-                <span className="text-sm text-muted-foreground">State:</span>
-                <Badge 
-                  className={`text-xs px-2 py-0.5 ${
-                    batch.state === 'blending' ? 'bg-success/20 text-success' :
-                    batch.state === 'emergency-stop' ? 'bg-destructive/20 text-destructive' :
-                    batch.state === 'loading' ? 'bg-primary/20 text-primary' :
-                    batch.state === 'complete' ? 'bg-success/20 text-success' :
-                    'bg-muted text-muted-foreground'
-                  }`}
-                >
-                  {batch.state.toUpperCase()}
-                </Badge>
-              </div>
-            </div>
-          </div>
-
-          {/* Recipe Selector */}
-          <div className="flex items-center gap-3">
-            <span className="text-sm text-muted-foreground">Recipe:</span>
-            <Select 
-              value={batch.recipeId} 
-              onValueChange={onSelectRecipe}
-              disabled={!isIdle}
-            >
-              <SelectTrigger className="flex-1 h-9 text-sm bg-background">
-                <SelectValue placeholder="Select recipe" />
-              </SelectTrigger>
-              <SelectContent className="bg-popover border-border z-50">
-                {availableRecipes.map(recipe => (
-                  <SelectItem key={recipe.id} value={recipe.id} className="text-sm">
-                    {recipe.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Ingredients */}
-          <div className="flex flex-wrap gap-1.5">
-            {batch.recipe.map((item, idx) => (
-              <Badge 
-                key={idx} 
-                variant={item.added ? "default" : "outline"}
-                className="text-xs px-2 py-0.5"
-              >
-                {item.ingredient.split(' ')[0]} ({item.quantity}{item.unit})
-              </Badge>
-            ))}
-          </div>
-        </div>
-
-        {/* Progress Bar */}
-        {batch.state !== 'idle' && (
-          <div className="space-y-1.5">
-            <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Overall Progress</span>
-              <span className="font-mono font-semibold text-primary">{progressPercent.toFixed(1)}%</span>
-            </div>
-            <Progress value={progressPercent} className="h-3" />
-          </div>
-        )}
-
-        {/* Bottom section: Table + Tablet Press */}
+        {/* Main content: Left side (Batch + Table) + Right side (Tablet Press) */}
         <div className="flex-1 flex gap-4 overflow-hidden">
-          {/* Blending Sequence Table */}
-          <div className="flex-1 flex flex-col overflow-hidden">
-            <div className="text-sm font-semibold text-foreground mb-2">Blending Sequence Status</div>
-            <div className="border rounded-lg overflow-auto flex-1">
-              <Table>
-                <TableHeader>
-                  <TableRow className="bg-muted/50">
-                    <TableHead className="text-sm py-3 h-10 font-semibold">Step</TableHead>
-                    <TableHead className="text-sm py-3 h-10 text-center font-semibold">Set Point (min)</TableHead>
-                    <TableHead className="text-sm py-3 h-10 text-center font-semibold">Actual (min)</TableHead>
-                    <TableHead className="text-sm py-3 h-10 text-center font-semibold">Status</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {batch.blendingSequence.map((seq, idx) => (
-                    <TableRow key={seq.step} className={seq.status === 'in-progress' ? 'bg-primary/5' : ''}>
-                      <TableCell className="text-sm py-3 font-medium">
-                        <span className="text-muted-foreground mr-2">{idx + 1}.</span>
-                        {seq.label}
-                      </TableCell>
-                      <TableCell className="text-sm py-3 text-center font-mono">{seq.setPointMinutes}</TableCell>
-                      <TableCell className={`text-sm py-3 text-center font-mono font-semibold ${
-                        seq.status === 'in-progress' ? 'text-primary' : 
-                        seq.status === 'completed' ? 'text-success' : ''
-                      }`}>
-                        {seq.actualMinutes.toFixed(1)}
-                      </TableCell>
-                      <TableCell className="text-sm py-3 text-center">{getSequenceStatusBadge(seq.status)}</TableCell>
-                    </TableRow>
+          {/* Left side: Batch Details above Blending Sequence */}
+          <div className="flex-1 flex flex-col gap-3 overflow-hidden">
+            {/* Batch Info Header - Compact */}
+            <div className="bg-muted/50 rounded-lg p-3 border">
+              <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-sm">
+                <div className="flex items-center gap-2">
+                  <span className="text-muted-foreground">Batch:</span>
+                  <Badge variant="outline" className="text-xs font-mono px-1.5 py-0">{batch.batchNumber}</Badge>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-muted-foreground">Product:</span>
+                  <span className="font-mono text-foreground text-xs">{batch.productId}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <User className="w-3.5 h-3.5 text-muted-foreground" />
+                  <span className="text-foreground text-xs">{batch.operator.id} - {batch.operator.name}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-muted-foreground">State:</span>
+                  <Badge 
+                    className={`text-xs px-1.5 py-0 ${
+                      batch.state === 'blending' ? 'bg-success/20 text-success' :
+                      batch.state === 'emergency-stop' ? 'bg-destructive/20 text-destructive' :
+                      batch.state === 'loading' ? 'bg-primary/20 text-primary' :
+                      batch.state === 'complete' ? 'bg-success/20 text-success' :
+                      'bg-muted text-muted-foreground'
+                    }`}
+                  >
+                    {batch.state.toUpperCase()}
+                  </Badge>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Clock className="w-3.5 h-3.5 text-muted-foreground" />
+                  <span className="text-xs text-muted-foreground">Start:</span>
+                  <span className="font-mono text-foreground text-xs">
+                    {batch.startTime ? format(batch.startTime, 'HH:mm:ss') : '--'}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Clock className="w-3.5 h-3.5 text-muted-foreground" />
+                  <span className="text-xs text-muted-foreground">End:</span>
+                  <span className="font-mono text-foreground text-xs">
+                    {batch.endTime ? format(batch.endTime, 'HH:mm:ss') : '--'}
+                  </span>
+                </div>
+              </div>
+              
+              {/* Recipe & Ingredients Row */}
+              <div className="flex items-center gap-2 mt-2 pt-2 border-t border-border/50">
+                <span className="text-xs text-muted-foreground">Recipe:</span>
+                <Select 
+                  value={batch.recipeId} 
+                  onValueChange={onSelectRecipe}
+                  disabled={!isIdle}
+                >
+                  <SelectTrigger className="h-7 text-xs bg-background w-40">
+                    <SelectValue placeholder="Select recipe" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-popover border-border z-50">
+                    {availableRecipes.map(recipe => (
+                      <SelectItem key={recipe.id} value={recipe.id} className="text-xs">
+                        {recipe.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <div className="flex flex-wrap gap-1 ml-2">
+                  {batch.recipe.slice(0, 4).map((item, idx) => (
+                    <Badge 
+                      key={idx} 
+                      variant={item.added ? "default" : "outline"}
+                      className="text-xs px-1.5 py-0"
+                    >
+                      {item.ingredient.split(' ')[0]}
+                    </Badge>
                   ))}
-                </TableBody>
-              </Table>
+                  {batch.recipe.length > 4 && (
+                    <Badge variant="outline" className="text-xs px-1.5 py-0">+{batch.recipe.length - 4}</Badge>
+                  )}
+                </div>
+              </div>
+
+              {/* Progress Bar */}
+              {batch.state !== 'idle' && (
+                <div className="mt-2 pt-2 border-t border-border/50">
+                  <div className="flex justify-between text-xs mb-1">
+                    <span className="text-muted-foreground">Progress</span>
+                    <span className="font-mono font-semibold text-primary">{progressPercent.toFixed(1)}%</span>
+                  </div>
+                  <Progress value={progressPercent} className="h-2" />
+                </div>
+              )}
+            </div>
+
+            {/* Blending Sequence Table */}
+            <div className="flex-1 flex flex-col overflow-hidden">
+              <div className="text-sm font-semibold text-foreground mb-2">Blending Sequence Status</div>
+              <div className="border rounded-lg overflow-auto flex-1">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-muted/50">
+                      <TableHead className="text-sm py-3 h-10 font-semibold">Step</TableHead>
+                      <TableHead className="text-sm py-3 h-10 text-center font-semibold">Set Point (min)</TableHead>
+                      <TableHead className="text-sm py-3 h-10 text-center font-semibold">Actual (min)</TableHead>
+                      <TableHead className="text-sm py-3 h-10 text-center font-semibold">Status</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {batch.blendingSequence.map((seq, idx) => (
+                      <TableRow key={seq.step} className={seq.status === 'in-progress' ? 'bg-primary/5' : ''}>
+                        <TableCell className="text-sm py-3 font-medium">
+                          <span className="text-muted-foreground mr-2">{idx + 1}.</span>
+                          {seq.label}
+                        </TableCell>
+                        <TableCell className="text-sm py-3 text-center font-mono">{seq.setPointMinutes}</TableCell>
+                        <TableCell className={`text-sm py-3 text-center font-mono font-semibold ${
+                          seq.status === 'in-progress' ? 'text-primary' : 
+                          seq.status === 'completed' ? 'text-success' : ''
+                        }`}>
+                          {seq.actualMinutes.toFixed(1)}
+                        </TableCell>
+                        <TableCell className="text-sm py-3 text-center">{getSequenceStatusBadge(seq.status)}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
             </div>
           </div>
 
