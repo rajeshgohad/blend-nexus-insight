@@ -275,7 +275,7 @@ export function TabletPressVisualization({ isActive, parameters }: TabletPressVi
   );
 
   return (
-    <div className="h-full flex flex-col gap-2 bg-muted/30 rounded-lg p-3">
+    <div className="h-full flex flex-col gap-3 bg-muted/30 rounded-lg p-3">
       {/* Header */}
       <div className="flex items-center justify-between">
         <span className="text-sm font-semibold text-foreground">Tablet Press</span>
