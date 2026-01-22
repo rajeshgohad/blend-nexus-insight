@@ -1,16 +1,19 @@
-import { Brain, TrendingUp, TrendingDown, CheckCircle, AlertTriangle, Zap, Target, Activity, Scale, Gauge, Wind, ArrowRight, ShieldCheck, Clock } from 'lucide-react';
+import { useState } from 'react';
+import { Brain, TrendingUp, TrendingDown, CheckCircle, AlertTriangle, Zap, Target, Activity, Scale, Gauge, Wind, ArrowRight, ShieldCheck, Clock, LineChart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Card } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { DriftTrendDialog } from './DriftTrendDialog';
 import type { 
   TabletPressSignals, 
   BatchProfile, 
   DriftDetection, 
   OutcomePrediction, 
   YieldRecommendation,
-  YieldHistoryPoint 
+  YieldHistoryPoint,
+  ParameterTrendPoint,
 } from '@/types/tablet-press-yield';
 
 interface YieldOptimizationProps {
@@ -22,6 +25,7 @@ interface YieldOptimizationProps {
   yieldHistory: YieldHistoryPoint[];
   learningProgress: { episodes: number; reward: number };
   isTabletPressActive: boolean;
+  parameterTrend: ParameterTrendPoint[];
   onApproveRecommendation: (id: string) => void;
 }
 
@@ -85,7 +89,7 @@ function MiniYieldChart({ data }: { data: YieldHistoryPoint[] }) {
   );
 }
 
-function DriftAlert({ drift }: { drift: DriftDetection }) {
+function DriftAlert({ drift, onSeeTrend }: { drift: DriftDetection; onSeeTrend: () => void }) {
   const severityColors = {
     low: 'bg-muted text-muted-foreground',
     medium: 'bg-warning/20 text-warning border-warning/30',
@@ -94,16 +98,27 @@ function DriftAlert({ drift }: { drift: DriftDetection }) {
 
   return (
     <div className={`p-3 rounded-lg border ${severityColors[drift.severity]}`}>
-      <div className="flex items-center gap-2">
-        {drift.direction === 'increasing' ? (
-          <TrendingUp className="w-4 h-4" />
-        ) : (
-          <TrendingDown className="w-4 h-4" />
-        )}
-        <span className="text-sm font-medium capitalize">{drift.parameter}</span>
-        <Badge variant="outline" className="text-xs px-1.5 py-0.5">
-          {drift.direction} {drift.magnitude.toFixed(1)}%
-        </Badge>
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2 flex-1">
+          {drift.direction === 'increasing' ? (
+            <TrendingUp className="w-4 h-4" />
+          ) : (
+            <TrendingDown className="w-4 h-4" />
+          )}
+          <span className="text-sm font-medium capitalize">{drift.parameter}</span>
+          <Badge variant="outline" className="text-xs px-1.5 py-0.5">
+            {drift.direction} {drift.magnitude.toFixed(1)}%
+          </Badge>
+        </div>
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          className="h-7 px-2 text-xs gap-1 hover:bg-primary/10"
+          onClick={onSeeTrend}
+        >
+          <LineChart className="w-3.5 h-3.5" />
+          See Trend
+        </Button>
       </div>
       <p className="text-xs mt-1.5 opacity-80">{drift.description}</p>
     </div>
@@ -182,8 +197,16 @@ export function YieldOptimization({
   yieldHistory,
   learningProgress,
   isTabletPressActive,
+  parameterTrend,
   onApproveRecommendation 
 }: YieldOptimizationProps) {
+  const [selectedDrift, setSelectedDrift] = useState<DriftDetection | null>(null);
+  const [trendDialogOpen, setTrendDialogOpen] = useState(false);
+
+  const handleSeeTrend = (drift: DriftDetection) => {
+    setSelectedDrift(drift);
+    setTrendDialogOpen(true);
+  };
   
   if (!isTabletPressActive) {
     return (
@@ -313,9 +336,13 @@ export function YieldOptimization({
                 {driftDetections.length} active
               </Badge>
             </div>
-            <div className="grid gap-2">
+          <div className="grid gap-2">
               {driftDetections.slice(0, 3).map((drift) => (
-                <DriftAlert key={drift.id} drift={drift} />
+                <DriftAlert 
+                  key={drift.id} 
+                  drift={drift} 
+                  onSeeTrend={() => handleSeeTrend(drift)}
+                />
               ))}
             </div>
           </div>
@@ -388,6 +415,14 @@ export function YieldOptimization({
           <span>Receiving real-time data from Tablet Press</span>
         </div>
       </div>
+
+      {/* Drift Trend Dialog */}
+      <DriftTrendDialog
+        open={trendDialogOpen}
+        onOpenChange={setTrendDialogOpen}
+        drift={selectedDrift}
+        trendData={parameterTrend}
+      />
     </ScrollArea>
   );
 }

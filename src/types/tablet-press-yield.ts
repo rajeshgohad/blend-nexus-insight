@@ -57,6 +57,15 @@ export interface YieldRecommendation {
   appliedAt: Date | null;
 }
 
+export interface ParameterTrendPoint {
+  timestamp: Date;
+  weight: number;
+  thickness: number;
+  hardness: number;
+  feederSpeed: number;
+  turretSpeed: number;
+}
+
 export interface YieldHistoryPoint {
   batchNumber: string;
   timestamp: Date;
