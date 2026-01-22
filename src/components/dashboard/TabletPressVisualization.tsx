@@ -14,7 +14,7 @@ interface TabletPressVisualizationProps {
   parameters: TabletPressParameters;
 }
 
-function ParameterGauge({ 
+function Gauge({ 
   label, 
   value, 
   unit, 
@@ -37,14 +37,14 @@ function ParameterGauge({
   };
 
   return (
-    <div className="flex flex-col gap-1">
-      <div className="flex justify-between text-xs">
+    <div className="flex flex-col gap-1.5">
+      <div className="flex justify-between text-sm">
         <span className="text-muted-foreground">{label}</span>
         <span className={`font-mono font-semibold ${statusColors[status]}`}>
           {value.toFixed(1)} {unit}
         </span>
       </div>
-      <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+      <div className="h-2.5 bg-muted rounded-full overflow-hidden">
         <div 
           className={`h-full transition-all duration-500 ${
             status === 'normal' ? 'bg-success' : 
@@ -52,6 +52,10 @@ function ParameterGauge({
           }`}
           style={{ width: `${Math.min(100, Math.max(0, percentage))}%` }}
         />
+      </div>
+      <div className="flex justify-between text-xs text-muted-foreground">
+        <span>{min}</span>
+        <span>{max}</span>
       </div>
     </div>
   );
@@ -151,9 +155,9 @@ export function TabletPressVisualization({ isActive, parameters }: TabletPressVi
         </svg>
       </div>
 
-      {/* Parameters */}
-      <div className="flex flex-col gap-2 flex-1">
-        <ParameterGauge 
+      {/* Parameters - Same style as Blender gauges */}
+      <div className="grid grid-cols-2 gap-3 flex-1">
+        <Gauge 
           label="Turret Speed" 
           value={parameters.turretSpeed} 
           unit="RPM"
@@ -161,30 +165,30 @@ export function TabletPressVisualization({ isActive, parameters }: TabletPressVi
           max={80}
           status={parameters.turretSpeed > 70 ? 'warning' : 'normal'}
         />
-        <ParameterGauge 
-          label="Pre-Compression" 
+        <Gauge 
+          label="Pre-Compress" 
           value={parameters.preCompressionForce} 
           unit="kN"
           min={1}
           max={10}
         />
-        <ParameterGauge 
-          label="Main Compression" 
+        <Gauge 
+          label="Main Compress" 
           value={parameters.mainCompressionForce} 
           unit="kN"
           min={5}
           max={40}
           status={parameters.mainCompressionForce > 35 ? 'warning' : 'normal'}
         />
-        <ParameterGauge 
-          label="Vacuum Level" 
+        <Gauge 
+          label="Vacuum" 
           value={parameters.vacuumLevel} 
           unit="mbar"
           min={-100}
           max={0}
         />
-        <ParameterGauge 
-          label="Punch Lubrication" 
+        <Gauge 
+          label="Lubrication" 
           value={parameters.punchLubrication} 
           unit="%"
           min={0}
