@@ -10,6 +10,7 @@ import { ControlPanel } from '@/components/dashboard/ControlPanel';
 import { AlertFeed } from '@/components/dashboard/AlertFeed';
 import { useSimulation } from '@/hooks/useSimulation';
 import { useMaintenanceWorkflow } from '@/hooks/useMaintenanceWorkflow';
+import { useTabletPressYield } from '@/hooks/useTabletPressYield';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const Index = () => {
@@ -19,14 +20,11 @@ const Index = () => {
     batch,
     components,
     anomalies,
-    yieldHistory,
-    recommendations,
     detections,
     schedule,
     resources,
     alerts,
     rftPercentage,
-    learningProgress,
     availableRecipes,
     parameterHistory,
     actions,
@@ -41,6 +39,21 @@ const Index = () => {
     maintenanceLogs,
     processMaintenanceDecision,
   } = useMaintenanceWorkflow(components, schedule, anomalies);
+
+  // Check if tablet press is active (discharge completed)
+  const dischargeStep = batch.blendingSequence.find(s => s.step === 'discharge');
+  const isTabletPressActive = dischargeStep?.status === 'completed';
+
+  const {
+    signals: yieldSignals,
+    batchProfile,
+    driftDetections,
+    prediction,
+    recommendations: yieldRecommendations,
+    yieldHistory,
+    learningProgress,
+    approveRecommendation: approveYieldRecommendation,
+  } = useTabletPressYield(isTabletPressActive, simulation.isPaused);
 
   const isRunning = batch.state === 'blending' || batch.state === 'loading';
 
@@ -97,16 +110,19 @@ const Index = () => {
       label: 'Yield',
       icon: <TrendingUp className="w-4 h-4" />,
       title: 'Yield Optimization',
-      subtitle: 'Reinforcement Learning Engine',
-      status: isRunning ? 'active' : 'idle',
+      subtitle: 'Tablet Compression AI',
+      status: isTabletPressActive ? (driftDetections.length > 0 ? 'warning' : 'active') : 'idle',
       content: (
         <YieldOptimization
+          signals={yieldSignals}
+          batchProfile={batchProfile}
+          driftDetections={driftDetections}
+          prediction={prediction}
+          recommendations={yieldRecommendations}
           yieldHistory={yieldHistory}
-          recommendations={recommendations}
           learningProgress={learningProgress}
-          currentYield={parameters.blendUniformity > 0 ? 92 + (parameters.blendUniformity / 100) * 6 : 0}
-          targetYield={95}
-          onApproveRecommendation={actions.approveRecommendation}
+          isTabletPressActive={isTabletPressActive}
+          onApproveRecommendation={approveYieldRecommendation}
         />
       ),
     },
