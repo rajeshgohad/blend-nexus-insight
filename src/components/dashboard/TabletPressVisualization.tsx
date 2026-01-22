@@ -278,61 +278,66 @@ export function TabletPressVisualization({ isActive, parameters }: TabletPressVi
         />
       </div>
 
-      {/* Trend Chart */}
-      <div className="flex flex-col gap-1.5 flex-1 min-h-[100px]">
-        <div className="flex items-center justify-between">
-          <Select value={selectedTrend} onValueChange={(v) => setSelectedTrend(v as TrendParameter)}>
-            <SelectTrigger className="h-6 w-[110px] text-xs bg-background">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="turretSpeed">Turret Speed</SelectItem>
-              <SelectItem value="mainCompressionForce">Main Compress</SelectItem>
-            </SelectContent>
-          </Select>
-          <span className="text-[10px] text-muted-foreground">Last 6 hours</span>
-        </div>
+      {/* Trend Chart - Same style as Temperature chart */}
+      <div className="flex-1 min-h-0 bg-background/50 rounded-lg p-2 flex flex-col gap-2">
+        <Select value={selectedTrend} onValueChange={(v) => setSelectedTrend(v as TrendParameter)}>
+          <SelectTrigger className="w-full h-8 text-sm bg-background">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent className="bg-popover border-border z-50">
+            <SelectItem value="turretSpeed">Turret Speed</SelectItem>
+            <SelectItem value="mainCompressionForce">Main Compression</SelectItem>
+          </SelectContent>
+        </Select>
         <div className="flex-1 min-h-[80px]">
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={chartData} margin={{ top: 5, right: 5, left: -15, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.5} />
-              <XAxis 
-                dataKey="time" 
-                stroke="hsl(var(--muted-foreground))"
-                tick={{ fontSize: 9 }}
-                tickLine={false}
-                axisLine={false}
-                interval="preserveStartEnd"
-              />
-              <YAxis 
-                domain={[config.min, config.max]}
-                stroke="hsl(var(--muted-foreground))"
-                tick={{ fontSize: 9 }}
-                tickLine={false}
-                axisLine={false}
-                width={30}
-              />
-              <Tooltip 
-                contentStyle={{ 
-                  backgroundColor: 'hsl(var(--card))', 
-                  border: '1px solid hsl(var(--border))',
-                  borderRadius: '8px',
-                  fontSize: '11px',
-                }}
-                labelStyle={{ color: 'hsl(var(--foreground))' }}
-                formatter={(value: number) => [`${value.toFixed(1)} ${config.unit}`, config.label]}
-              />
-              <Line 
-                type="monotone" 
-                dataKey="value" 
-                name={config.label}
-                stroke={config.color}
-                strokeWidth={2}
-                dot={false}
-                activeDot={{ r: 3, strokeWidth: 2 }}
-              />
-            </LineChart>
-          </ResponsiveContainer>
+          <div className="flex flex-col gap-2 h-full">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-semibold text-foreground">{config.label} ({config.unit})</span>
+              <span className="text-xs text-muted-foreground">Last 6 hours</span>
+            </div>
+            <div className="flex-1 min-h-[60px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={chartData} margin={{ top: 5, right: 10, left: -10, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.5} />
+                  <XAxis 
+                    dataKey="time" 
+                    stroke="hsl(var(--muted-foreground))"
+                    tick={{ fontSize: 10 }}
+                    tickLine={false}
+                    axisLine={false}
+                    interval="preserveStartEnd"
+                  />
+                  <YAxis 
+                    domain={[config.min, config.max]}
+                    stroke="hsl(var(--muted-foreground))"
+                    tick={{ fontSize: 10 }}
+                    tickLine={false}
+                    axisLine={false}
+                    width={35}
+                  />
+                  <Tooltip 
+                    contentStyle={{ 
+                      backgroundColor: 'hsl(var(--card))', 
+                      border: '1px solid hsl(var(--border))',
+                      borderRadius: '8px',
+                      fontSize: '12px',
+                    }}
+                    labelStyle={{ color: 'hsl(var(--foreground))' }}
+                    formatter={(value: number) => [`${value.toFixed(1)} ${config.unit}`, config.label]}
+                  />
+                  <Line 
+                    type="monotone" 
+                    dataKey="value" 
+                    name={config.label}
+                    stroke={config.color}
+                    strokeWidth={2}
+                    dot={false}
+                    activeDot={{ r: 4, strokeWidth: 2 }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
         </div>
       </div>
     </div>
