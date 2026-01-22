@@ -1,10 +1,11 @@
+import { useState } from 'react';
 import { Play, Pause, Square, AlertTriangle, RotateCcw, Zap, User, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { TrendChart } from './TrendChart';
+import { TrendChart, type TrendParameter } from './TrendChart';
 import type { BlenderParameters, BatchInfo, Recipe, ParameterHistoryPoint } from '@/types/manufacturing';
 import { format } from 'date-fns';
 
@@ -142,6 +143,8 @@ export function DigitalTwin({
   onEmergencyReset,
   onSelectRecipe,
 }: DigitalTwinProps) {
+  const [selectedTrendParameter, setSelectedTrendParameter] = useState<TrendParameter>('temperature');
+  
   const isRunning = batch.state === 'blending' || batch.state === 'loading';
   const isEmergency = batch.state === 'emergency-stop';
   const isIdle = batch.state === 'idle';
@@ -256,6 +259,25 @@ export function DigitalTwin({
               )}
             </>
           )}
+        </div>
+
+        {/* Trend Chart with Parameter Selector */}
+        <div className="flex-1 min-h-0 bg-muted/30 rounded-lg p-3 flex flex-col gap-2">
+          <Select 
+            value={selectedTrendParameter} 
+            onValueChange={(value: TrendParameter) => setSelectedTrendParameter(value)}
+          >
+            <SelectTrigger className="w-full h-8 text-sm bg-background">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent className="bg-popover border-border z-50">
+              <SelectItem value="temperature">Temperature</SelectItem>
+              <SelectItem value="blenderSpeed">Rotation Speed</SelectItem>
+            </SelectContent>
+          </Select>
+          <div className="flex-1 min-h-0">
+            <TrendChart parameterHistory={parameterHistory} selectedParameter={selectedTrendParameter} />
+          </div>
         </div>
       </div>
 
@@ -402,10 +424,6 @@ export function DigitalTwin({
         </div>
       </div>
 
-      {/* Right Column - Trend Chart */}
-      <div className="w-[380px] shrink-0 bg-muted/30 rounded-lg p-4">
-        <TrendChart parameterHistory={parameterHistory} />
-      </div>
     </div>
   );
 }
