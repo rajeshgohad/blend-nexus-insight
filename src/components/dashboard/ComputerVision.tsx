@@ -10,6 +10,17 @@ import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import type { QualityDetection } from '@/types/manufacturing';
 
+// Import camera feed images
+import cam01EntryGate from '@/assets/camera-feeds/cam-01-entry-gate.jpg';
+import cam02NoCap from '@/assets/camera-feeds/cam-02-no-cap.jpg';
+import cam03CeilingPaint from '@/assets/camera-feeds/cam-03-ceiling-paint.jpg';
+import cam04Cleanroom from '@/assets/camera-feeds/cam-04-cleanroom.jpg';
+import cam05NoVest from '@/assets/camera-feeds/cam-05-no-vest.jpg';
+import cam06CeilingCrack from '@/assets/camera-feeds/cam-06-ceiling-crack.jpg';
+import cam07NoHelmet from '@/assets/camera-feeds/cam-07-no-helmet.jpg';
+import cam08LabGloves from '@/assets/camera-feeds/cam-08-lab-gloves.jpg';
+import cam09FloorDamage from '@/assets/camera-feeds/cam-09-floor-damage.jpg';
+
 interface ComputerVisionProps {
   detections: QualityDetection[];
   rftPercentage: number;
@@ -56,15 +67,15 @@ const integrations = [
 
 // Compliance use case scenarios for camera tiles
 const cameraScenarios = [
-  { id: 'CAM-01', label: 'Entry Gate', scenario: 'PPE Check', status: 'clear', icon: Shield },
-  { id: 'CAM-02', label: 'Production Floor', scenario: 'No Cap Detected', status: 'violation', icon: AlertTriangle },
-  { id: 'CAM-03', label: 'Ceiling Zone A', scenario: 'Paint Peeling', status: 'warning', icon: AlertTriangle },
-  { id: 'CAM-04', label: 'Clean Room', scenario: 'Gowning Check', status: 'clear', icon: CheckCircle },
-  { id: 'CAM-05', label: 'Warehouse', scenario: 'No Safety Vest', status: 'violation', icon: XCircle },
-  { id: 'CAM-06', label: 'Ceiling Zone B', scenario: 'Crack Detected', status: 'warning', icon: AlertTriangle },
-  { id: 'CAM-07', label: 'Loading Dock', scenario: 'Helmet Missing', status: 'violation', icon: Shield },
-  { id: 'CAM-08', label: 'Lab Area', scenario: 'Gloves Check', status: 'clear', icon: CheckCircle },
-  { id: 'CAM-09', label: 'Epoxy Floor', scenario: 'Surface Damage', status: 'warning', icon: AlertTriangle },
+  { id: 'CAM-01', label: 'Entry Gate', scenario: 'PPE Check', status: 'clear', icon: Shield, image: cam01EntryGate },
+  { id: 'CAM-02', label: 'Production Floor', scenario: 'No Cap Detected', status: 'violation', icon: AlertTriangle, image: cam02NoCap },
+  { id: 'CAM-03', label: 'Ceiling Zone A', scenario: 'Paint Peeling', status: 'warning', icon: AlertTriangle, image: cam03CeilingPaint },
+  { id: 'CAM-04', label: 'Clean Room', scenario: 'Gowning Check', status: 'clear', icon: CheckCircle, image: cam04Cleanroom },
+  { id: 'CAM-05', label: 'Warehouse', scenario: 'No Safety Vest', status: 'violation', icon: XCircle, image: cam05NoVest },
+  { id: 'CAM-06', label: 'Ceiling Zone B', scenario: 'Crack Detected', status: 'warning', icon: AlertTriangle, image: cam06CeilingCrack },
+  { id: 'CAM-07', label: 'Loading Dock', scenario: 'Helmet Missing', status: 'violation', icon: Shield, image: cam07NoHelmet },
+  { id: 'CAM-08', label: 'Lab Area', scenario: 'Gloves Check', status: 'clear', icon: CheckCircle, image: cam08LabGloves },
+  { id: 'CAM-09', label: 'Epoxy Floor', scenario: 'Surface Damage', status: 'warning', icon: AlertTriangle, image: cam09FloorDamage },
 ];
 
 function CameraTile({ camera, isSelected, onClick }: { 
@@ -93,13 +104,18 @@ function CameraTile({ camera, isSelected, onClick }: {
       } ${statusColors[camera.status as keyof typeof statusColors]}`}
       onClick={onClick}
     >
-      {/* Simulated video feed background */}
-      <div className="aspect-video bg-muted/30 relative">
-        <div className="absolute inset-0 bg-gradient-to-br from-transparent via-primary/3 to-transparent" />
+      {/* Camera feed image */}
+      <div className="aspect-video bg-muted/30 relative overflow-hidden">
+        <img 
+          src={camera.image} 
+          alt={camera.label} 
+          className="absolute inset-0 w-full h-full object-cover"
+        />
         
-        {/* Scan line effect */}
-        <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute w-full h-0.5 bg-primary/20 animate-pulse" style={{ top: '30%' }} />
+        {/* Scan line overlay effect */}
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/30" />
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute w-full h-0.5 bg-primary/30 animate-pulse" style={{ top: '30%' }} />
         </div>
 
         {/* Status indicator */}
