@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Play, Pause, Square, AlertTriangle, RotateCcw, Zap, User, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { TrendChart, type TrendParameter } from './TrendChart';
+import { TabletPressVisualization } from './TabletPressVisualization';
 import type { BlenderParameters, BatchInfo, Recipe, ParameterHistoryPoint } from '@/types/manufacturing';
 import { format } from 'date-fns';
 
@@ -172,6 +173,19 @@ export function DigitalTwin({
   const totalSetPoint = batch.blendingSequence.reduce((acc, s) => acc + s.setPointMinutes, 0);
   const totalActual = batch.blendingSequence.reduce((acc, s) => acc + s.actualMinutes, 0);
   const progressPercent = totalSetPoint > 0 ? (totalActual / totalSetPoint) * 100 : 0;
+
+  // Check if discharge step (step 7) is in progress or completed
+  const dischargeStep = batch.blendingSequence.find(s => s.step === 'discharge');
+  const isTabletPressActive = dischargeStep?.status === 'in-progress' || dischargeStep?.status === 'completed';
+
+  // Generate tablet press parameters with some variance
+  const tabletPressParams = useMemo(() => ({
+    turretSpeed: 45 + Math.random() * 10,
+    preCompressionForce: 3 + Math.random() * 2,
+    mainCompressionForce: 18 + Math.random() * 8,
+    vacuumLevel: -60 + Math.random() * 20,
+    punchLubrication: 65 + Math.random() * 20,
+  }), [isTabletPressActive]);
 
   return (
     <div className="h-full flex gap-4 overflow-hidden">
@@ -382,38 +396,49 @@ export function DigitalTwin({
           </div>
         )}
 
-        {/* Blending Sequence Table */}
-        <div className="flex-1 overflow-auto">
-          <div className="text-sm font-semibold text-foreground mb-2">Blending Sequence Status</div>
-          <div className="border rounded-lg overflow-hidden">
-            <Table>
-              <TableHeader>
-                <TableRow className="bg-muted/50">
-                  <TableHead className="text-sm py-3 h-10 font-semibold">Step</TableHead>
-                  <TableHead className="text-sm py-3 h-10 text-center font-semibold">Set Point (min)</TableHead>
-                  <TableHead className="text-sm py-3 h-10 text-center font-semibold">Actual (min)</TableHead>
-                  <TableHead className="text-sm py-3 h-10 text-center font-semibold">Status</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {batch.blendingSequence.map((seq, idx) => (
-                  <TableRow key={seq.step} className={seq.status === 'in-progress' ? 'bg-primary/5' : ''}>
-                    <TableCell className="text-sm py-3 font-medium">
-                      <span className="text-muted-foreground mr-2">{idx + 1}.</span>
-                      {seq.label}
-                    </TableCell>
-                    <TableCell className="text-sm py-3 text-center font-mono">{seq.setPointMinutes}</TableCell>
-                    <TableCell className={`text-sm py-3 text-center font-mono font-semibold ${
-                      seq.status === 'in-progress' ? 'text-primary' : 
-                      seq.status === 'completed' ? 'text-success' : ''
-                    }`}>
-                      {seq.actualMinutes.toFixed(1)}
-                    </TableCell>
-                    <TableCell className="text-sm py-3 text-center">{getSequenceStatusBadge(seq.status)}</TableCell>
+        {/* Bottom section: Table + Tablet Press */}
+        <div className="flex-1 flex gap-4 overflow-hidden">
+          {/* Blending Sequence Table */}
+          <div className="flex-1 flex flex-col overflow-hidden">
+            <div className="text-sm font-semibold text-foreground mb-2">Blending Sequence Status</div>
+            <div className="border rounded-lg overflow-auto flex-1">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-muted/50">
+                    <TableHead className="text-sm py-3 h-10 font-semibold">Step</TableHead>
+                    <TableHead className="text-sm py-3 h-10 text-center font-semibold">Set Point (min)</TableHead>
+                    <TableHead className="text-sm py-3 h-10 text-center font-semibold">Actual (min)</TableHead>
+                    <TableHead className="text-sm py-3 h-10 text-center font-semibold">Status</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {batch.blendingSequence.map((seq, idx) => (
+                    <TableRow key={seq.step} className={seq.status === 'in-progress' ? 'bg-primary/5' : ''}>
+                      <TableCell className="text-sm py-3 font-medium">
+                        <span className="text-muted-foreground mr-2">{idx + 1}.</span>
+                        {seq.label}
+                      </TableCell>
+                      <TableCell className="text-sm py-3 text-center font-mono">{seq.setPointMinutes}</TableCell>
+                      <TableCell className={`text-sm py-3 text-center font-mono font-semibold ${
+                        seq.status === 'in-progress' ? 'text-primary' : 
+                        seq.status === 'completed' ? 'text-success' : ''
+                      }`}>
+                        {seq.actualMinutes.toFixed(1)}
+                      </TableCell>
+                      <TableCell className="text-sm py-3 text-center">{getSequenceStatusBadge(seq.status)}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </div>
+
+          {/* Tablet Press Visualization */}
+          <div className="w-[220px] shrink-0">
+            <TabletPressVisualization 
+              isActive={isTabletPressActive} 
+              parameters={tabletPressParams} 
+            />
           </div>
         </div>
 
