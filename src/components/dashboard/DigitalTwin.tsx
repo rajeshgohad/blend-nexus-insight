@@ -300,7 +300,7 @@ export function DigitalTwin({
         {/* Main content: Left side (Batch + Table) + Right side (Tablet Press) */}
         <div className="flex-1 flex gap-4 overflow-hidden">
           {/* Left side: Batch Details above Blending Sequence */}
-          <div className="flex-1 flex flex-col gap-3 overflow-hidden">
+          <div className="w-[380px] shrink-0 flex flex-col gap-3 overflow-hidden">
             {/* Batch Info Header - Compact */}
             <div className="bg-muted/50 rounded-lg p-3 border">
               <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-sm">
@@ -430,7 +430,7 @@ export function DigitalTwin({
           </div>
 
           {/* Tablet Press Visualization */}
-          <div className="w-[320px] shrink-0">
+          <div className="flex-1 min-w-[340px]">
             <TabletPressVisualization 
               isActive={isTabletPressActive} 
               parameters={tabletPressParams} 
