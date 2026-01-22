@@ -4,7 +4,6 @@ import { Progress } from '@/components/ui/progress';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { AnomalyTrendChart } from './AnomalyTrendChart';
 import type { 
   ComponentHealth, 
   Anomaly, 
@@ -363,13 +362,6 @@ export function PredictiveMaintenance({
                   ))}
                 </div>
               </div>
-
-              {/* Anomaly Trend Chart - Below Component Health Grid */}
-              <AnomalyTrendChart 
-                anomalies={anomalies}
-                temperature={temperature}
-                motorLoad={motorLoad}
-              />
 
               {/* Anomaly Detection - Only HIGH severity */}
               <div>
