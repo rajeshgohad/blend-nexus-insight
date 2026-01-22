@@ -146,3 +146,10 @@ export interface SimulationState {
   currentTime: Date;
   elapsedSeconds: number;
 }
+
+export interface ParameterHistoryPoint {
+  timestamp: Date;
+  motorLoad: number;
+  temperature: number;
+  blenderSpeed: number;
+}
