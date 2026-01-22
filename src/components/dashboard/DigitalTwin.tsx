@@ -174,9 +174,9 @@ export function DigitalTwin({
   const totalActual = batch.blendingSequence.reduce((acc, s) => acc + s.actualMinutes, 0);
   const progressPercent = totalSetPoint > 0 ? (totalActual / totalSetPoint) * 100 : 0;
 
-  // Check if discharge step (step 7) is in progress or completed
+  // Check if discharge step is completed - only then activate tablet press
   const dischargeStep = batch.blendingSequence.find(s => s.step === 'discharge');
-  const isTabletPressActive = dischargeStep?.status === 'in-progress' || dischargeStep?.status === 'completed';
+  const isTabletPressActive = dischargeStep?.status === 'completed';
 
   // Tablet press parameters state - simulates dynamically when active
   const [tabletPressParams, setTabletPressParams] = useState({
