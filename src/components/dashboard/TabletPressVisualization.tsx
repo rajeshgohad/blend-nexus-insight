@@ -137,17 +137,14 @@ export function TabletPressVisualization({ isActive, parameters }: TabletPressVi
     return () => clearInterval(interval);
   }, [isActive, parameters, history.length]);
 
-  if (!isActive) {
-    return (
-      <div className="h-full flex flex-col items-center justify-center bg-muted/30 rounded-lg p-4">
-        <div className="text-muted-foreground text-sm text-center">
-          Tablet Press
-          <br />
-          <span className="text-xs">Awaiting discharge...</span>
-        </div>
-      </div>
-    );
-  }
+  // Use zero values when inactive
+  const displayParams = isActive ? parameters : {
+    turretSpeed: 0,
+    preCompressionForce: 0,
+    mainCompressionForce: 0,
+    vacuumLevel: 0,
+    punchLubrication: 0,
+  };
 
   const config = trendConfigs[selectedTrend];
   const chartData = history.map(point => ({
@@ -155,126 +152,188 @@ export function TabletPressVisualization({ isActive, parameters }: TabletPressVi
     value: point[selectedTrend],
   }));
 
+  // Static SVG for inactive state
+  const StaticTabletPress = () => (
+    <svg viewBox="0 0 200 120" className="w-full h-full max-w-[140px]">
+      <defs>
+        <linearGradient id="pressGradientStatic" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="hsl(var(--muted-foreground))" stopOpacity="0.3" />
+          <stop offset="100%" stopColor="hsl(var(--muted-foreground))" stopOpacity="0.1" />
+        </linearGradient>
+      </defs>
+      
+      {/* Machine Base */}
+      <rect x="30" y="85" width="140" height="25" rx="4" 
+        fill="hsl(var(--muted))" stroke="hsl(var(--border))" strokeWidth="1.5" />
+      
+      {/* Turret (static) */}
+      <g>
+        <circle cx="100" cy="70" r="35" 
+          fill="url(#pressGradientStatic)" 
+          stroke="hsl(var(--muted-foreground))" 
+          strokeWidth="2"
+          opacity="0.5"
+        />
+        {/* Die cavities */}
+        {[0, 45, 90, 135, 180, 225, 270, 315].map((angle, i) => (
+          <circle 
+            key={i}
+            cx={100 + 25 * Math.cos((angle * Math.PI) / 180)}
+            cy={70 + 25 * Math.sin((angle * Math.PI) / 180)}
+            r="5"
+            fill="hsl(var(--background))"
+            stroke="hsl(var(--border))"
+            strokeWidth="1"
+            opacity="0.5"
+          />
+        ))}
+      </g>
+      
+      {/* Upper Punch (static) */}
+      <g>
+        <rect x="90" y="15" width="20" height="30" rx="2" 
+          fill="hsl(var(--muted-foreground))" opacity="0.4" />
+        <rect x="85" y="10" width="30" height="8" rx="2" 
+          fill="hsl(var(--muted-foreground))" opacity="0.3" />
+      </g>
+      
+      {/* Lower Punch */}
+      <rect x="90" y="90" width="20" height="15" rx="2" 
+        fill="hsl(var(--muted-foreground))" opacity="0.3" />
+      
+      {/* Status indicator (inactive) */}
+      <circle cx="45" cy="95" r="5" fill="hsl(var(--muted-foreground))" opacity="0.4" />
+    </svg>
+  );
+
+  // Animated SVG for active state
+  const AnimatedTabletPress = () => (
+    <svg viewBox="0 0 200 120" className="w-full h-full max-w-[140px]">
+      <defs>
+        <linearGradient id="pressGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity="0.4" />
+          <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity="0.15" />
+        </linearGradient>
+        <filter id="pressGlow">
+          <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+          <feMerge>
+            <feMergeNode in="coloredBlur"/>
+            <feMergeNode in="SourceGraphic"/>
+          </feMerge>
+        </filter>
+      </defs>
+      
+      {/* Machine Base */}
+      <rect x="30" y="85" width="140" height="25" rx="4" 
+        fill="hsl(var(--muted))" stroke="hsl(var(--border))" strokeWidth="1.5" />
+      
+      {/* Turret (rotating) */}
+      <g className="animate-spin" style={{ transformOrigin: '100px 70px', animationDuration: '3s' }}>
+        <circle cx="100" cy="70" r="35" 
+          fill="url(#pressGradient)" 
+          stroke="hsl(var(--primary))" 
+          strokeWidth="2"
+          filter="url(#pressGlow)"
+        />
+        {/* Die cavities */}
+        {[0, 45, 90, 135, 180, 225, 270, 315].map((angle, i) => (
+          <circle 
+            key={i}
+            cx={100 + 25 * Math.cos((angle * Math.PI) / 180)}
+            cy={70 + 25 * Math.sin((angle * Math.PI) / 180)}
+            r="5"
+            fill="hsl(var(--background))"
+            stroke="hsl(var(--border))"
+            strokeWidth="1"
+          />
+        ))}
+      </g>
+      
+      {/* Upper Punch (pressing animation) */}
+      <g className="animate-bounce" style={{ animationDuration: '0.8s' }}>
+        <rect x="90" y="15" width="20" height="30" rx="2" 
+          fill="hsl(var(--primary))" opacity="0.8" />
+        <rect x="85" y="10" width="30" height="8" rx="2" 
+          fill="hsl(var(--muted-foreground))" />
+      </g>
+      
+      {/* Lower Punch */}
+      <rect x="90" y="90" width="20" height="15" rx="2" 
+        fill="hsl(var(--primary))" opacity="0.6" />
+      
+      {/* Output tablets */}
+      <g>
+        <ellipse cx="160" cy="95" rx="8" ry="4" fill="hsl(var(--success))" opacity="0.8">
+          <animate attributeName="cx" values="160;175;160" dur="2s" repeatCount="indefinite" />
+        </ellipse>
+        <ellipse cx="145" cy="95" rx="8" ry="4" fill="hsl(var(--success))" opacity="0.6" />
+      </g>
+      
+      {/* Status indicator */}
+      <circle cx="45" cy="95" r="5" fill="hsl(var(--success))" className="animate-pulse" />
+    </svg>
+  );
+
   return (
-    <div className="h-full flex flex-col gap-2 bg-muted/30 rounded-lg p-3 animate-fade-in">
+    <div className="h-full flex flex-col gap-2 bg-muted/30 rounded-lg p-3">
       {/* Header */}
       <div className="flex items-center justify-between">
         <span className="text-sm font-semibold text-foreground">Tablet Press</span>
-        <Badge className="bg-success/20 text-success border-success/30 text-xs animate-pulse">
-          ACTIVE
-        </Badge>
+        {isActive ? (
+          <Badge className="bg-success/20 text-success border-success/30 text-xs animate-pulse">
+            ACTIVE
+          </Badge>
+        ) : (
+          <Badge variant="outline" className="text-xs text-muted-foreground">
+            STANDBY
+          </Badge>
+        )}
       </div>
 
-      {/* Animated Tablet Press SVG */}
+      {/* Tablet Press SVG - Static or Animated based on state */}
       <div className="relative flex items-center justify-center h-24">
-        <svg 
-          viewBox="0 0 200 120" 
-          className="w-full h-full max-w-[140px]"
-        >
-          <defs>
-            <linearGradient id="pressGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity="0.4" />
-              <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity="0.15" />
-            </linearGradient>
-            <filter id="pressGlow">
-              <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
-              <feMerge>
-                <feMergeNode in="coloredBlur"/>
-                <feMergeNode in="SourceGraphic"/>
-              </feMerge>
-            </filter>
-          </defs>
-          
-          {/* Machine Base */}
-          <rect x="30" y="85" width="140" height="25" rx="4" 
-            fill="hsl(var(--muted))" stroke="hsl(var(--border))" strokeWidth="1.5" />
-          
-          {/* Turret (rotating) */}
-          <g className="animate-spin" style={{ transformOrigin: '100px 70px', animationDuration: '3s' }}>
-            <circle cx="100" cy="70" r="35" 
-              fill="url(#pressGradient)" 
-              stroke="hsl(var(--primary))" 
-              strokeWidth="2"
-              filter="url(#pressGlow)"
-            />
-            {/* Die cavities */}
-            {[0, 45, 90, 135, 180, 225, 270, 315].map((angle, i) => (
-              <circle 
-                key={i}
-                cx={100 + 25 * Math.cos((angle * Math.PI) / 180)}
-                cy={70 + 25 * Math.sin((angle * Math.PI) / 180)}
-                r="5"
-                fill="hsl(var(--background))"
-                stroke="hsl(var(--border))"
-                strokeWidth="1"
-              />
-            ))}
-          </g>
-          
-          {/* Upper Punch (pressing animation) */}
-          <g className="animate-bounce" style={{ animationDuration: '0.8s' }}>
-            <rect x="90" y="15" width="20" height="30" rx="2" 
-              fill="hsl(var(--primary))" opacity="0.8" />
-            <rect x="85" y="10" width="30" height="8" rx="2" 
-              fill="hsl(var(--muted-foreground))" />
-          </g>
-          
-          {/* Lower Punch */}
-          <rect x="90" y="90" width="20" height="15" rx="2" 
-            fill="hsl(var(--primary))" opacity="0.6" />
-          
-          {/* Output tablets */}
-          <g>
-            <ellipse cx="160" cy="95" rx="8" ry="4" fill="hsl(var(--success))" opacity="0.8">
-              <animate attributeName="cx" values="160;175;160" dur="2s" repeatCount="indefinite" />
-            </ellipse>
-            <ellipse cx="145" cy="95" rx="8" ry="4" fill="hsl(var(--success))" opacity="0.6" />
-          </g>
-          
-          {/* Status indicator */}
-          <circle cx="45" cy="95" r="5" fill="hsl(var(--success))" className="animate-pulse" />
-        </svg>
+        {isActive ? <AnimatedTabletPress /> : <StaticTabletPress />}
       </div>
 
       {/* Parameters - Compact grid with abbreviations */}
       <div className="grid grid-cols-2 gap-x-2 gap-y-1.5">
         <Gauge 
           label="TS" 
-          value={parameters.turretSpeed} 
+          value={displayParams.turretSpeed} 
           unit="RPM"
-          min={20}
+          min={0}
           max={80}
-          status={parameters.turretSpeed > 70 ? 'warning' : 'normal'}
+          status={isActive && displayParams.turretSpeed > 70 ? 'warning' : 'normal'}
         />
         <Gauge 
           label="PCF" 
-          value={parameters.preCompressionForce} 
+          value={displayParams.preCompressionForce} 
           unit="kN"
-          min={1}
+          min={0}
           max={10}
         />
         <Gauge 
           label="MCF" 
-          value={parameters.mainCompressionForce} 
+          value={displayParams.mainCompressionForce} 
           unit="kN"
-          min={5}
+          min={0}
           max={40}
-          status={parameters.mainCompressionForce > 35 ? 'warning' : 'normal'}
+          status={isActive && displayParams.mainCompressionForce > 35 ? 'warning' : 'normal'}
         />
         <Gauge 
           label="VAC" 
-          value={parameters.vacuumLevel} 
+          value={displayParams.vacuumLevel} 
           unit="mbar"
           min={-100}
           max={0}
         />
         <Gauge 
           label="LUB" 
-          value={parameters.punchLubrication} 
+          value={displayParams.punchLubrication} 
           unit="%"
           min={0}
           max={100}
-          status={parameters.punchLubrication < 20 ? 'warning' : 'normal'}
+          status={isActive && displayParams.punchLubrication < 20 ? 'warning' : 'normal'}
         />
       </div>
 
