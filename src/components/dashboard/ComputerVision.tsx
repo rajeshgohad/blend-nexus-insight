@@ -54,44 +54,137 @@ const integrations = [
   { system: 'Incident Mgmt', status: 'connected', lastSync: '3s' },
 ];
 
-function CameraFeed({ isActive }: { isActive: boolean }) {
+// Compliance use case scenarios for camera tiles
+const cameraScenarios = [
+  { id: 'CAM-01', label: 'Entry Gate', scenario: 'PPE Check', status: 'clear', icon: Shield },
+  { id: 'CAM-02', label: 'Production Floor', scenario: 'No Cap Detected', status: 'violation', icon: AlertTriangle },
+  { id: 'CAM-03', label: 'Ceiling Zone A', scenario: 'Paint Peeling', status: 'warning', icon: AlertTriangle },
+  { id: 'CAM-04', label: 'Clean Room', scenario: 'Gowning Check', status: 'clear', icon: CheckCircle },
+  { id: 'CAM-05', label: 'Warehouse', scenario: 'No Safety Vest', status: 'violation', icon: XCircle },
+  { id: 'CAM-06', label: 'Ceiling Zone B', scenario: 'Crack Detected', status: 'warning', icon: AlertTriangle },
+  { id: 'CAM-07', label: 'Loading Dock', scenario: 'Helmet Missing', status: 'violation', icon: Shield },
+  { id: 'CAM-08', label: 'Lab Area', scenario: 'Gloves Check', status: 'clear', icon: CheckCircle },
+  { id: 'CAM-09', label: 'Epoxy Floor', scenario: 'Surface Damage', status: 'warning', icon: AlertTriangle },
+];
+
+function CameraTile({ camera, isSelected, onClick }: { 
+  camera: typeof cameraScenarios[0]; 
+  isSelected: boolean;
+  onClick: () => void;
+}) {
+  const statusColors = {
+    clear: 'border-success/50 bg-success/5',
+    warning: 'border-warning/50 bg-warning/5',
+    violation: 'border-destructive/50 bg-destructive/5',
+  };
+
+  const statusDot = {
+    clear: 'bg-success',
+    warning: 'bg-warning animate-pulse',
+    violation: 'bg-destructive animate-pulse',
+  };
+
+  const IconComponent = camera.icon;
+
   return (
-    <div className="relative aspect-[16/9] bg-muted/50 rounded-lg overflow-hidden border border-border">
-      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-primary/5 to-transparent animate-pulse" />
+    <div 
+      className={`relative rounded-md overflow-hidden border-2 cursor-pointer transition-all ${
+        isSelected ? 'ring-2 ring-primary ring-offset-1' : ''
+      } ${statusColors[camera.status as keyof typeof statusColors]}`}
+      onClick={onClick}
+    >
+      {/* Simulated video feed background */}
+      <div className="aspect-video bg-muted/30 relative">
+        <div className="absolute inset-0 bg-gradient-to-br from-transparent via-primary/3 to-transparent" />
+        
+        {/* Scan line effect */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute w-full h-0.5 bg-primary/20 animate-pulse" style={{ top: '30%' }} />
+        </div>
+
+        {/* Status indicator */}
+        <div className="absolute top-1 left-1 flex items-center gap-1 bg-background/90 rounded px-1 py-0.5">
+          <div className={`w-1.5 h-1.5 rounded-full ${statusDot[camera.status as keyof typeof statusDot]}`} />
+          <span className="text-[10px] font-mono font-medium">{camera.id}</span>
+        </div>
+
+        {/* Detection overlay for violations/warnings */}
+        {camera.status !== 'clear' && (
+          <div className="absolute inset-2 border border-dashed border-current rounded opacity-60">
+            <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 ${
+              camera.status === 'violation' ? 'text-destructive' : 'text-warning'
+            }`}>
+              <IconComponent className="w-6 h-6" />
+            </div>
+          </div>
+        )}
+
+        {/* AI active indicator */}
+        <div className="absolute bottom-1 right-1">
+          <Eye className="w-3 h-3 text-primary animate-pulse" />
+        </div>
+      </div>
+
+      {/* Label */}
+      <div className="bg-background/95 px-1.5 py-1">
+        <div className="text-[10px] font-medium truncate">{camera.label}</div>
+        <div className={`text-[9px] truncate ${
+          camera.status === 'violation' ? 'text-destructive font-medium' : 
+          camera.status === 'warning' ? 'text-warning' : 'text-success'
+        }`}>
+          {camera.scenario}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function CameraGrid({ onSelectCamera, selectedCamera }: { 
+  onSelectCamera: (id: string) => void;
+  selectedCamera: string;
+}) {
+  return (
+    <div className="bg-muted/30 rounded-lg border border-border p-2">
+      <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center gap-2">
+          <Camera className="w-4 h-4 text-primary" />
+          <span className="text-sm font-medium">Live Compliance Monitoring</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <Badge variant="outline" className="text-[10px] text-destructive border-destructive">
+            3 Violations
+          </Badge>
+          <Badge variant="outline" className="text-[10px] text-warning border-warning">
+            3 Warnings
+          </Badge>
+        </div>
+      </div>
       
-      <div className="absolute inset-0 grid grid-cols-3 grid-rows-3">
-        {Array.from({ length: 9 }).map((_, i) => (
-          <div key={i} className="border border-primary/10" />
+      <div className="grid grid-cols-3 gap-1.5">
+        {cameraScenarios.map((camera) => (
+          <CameraTile 
+            key={camera.id} 
+            camera={camera} 
+            isSelected={selectedCamera === camera.id}
+            onClick={() => onSelectCamera(camera.id)}
+          />
         ))}
       </div>
-      
-      <div className="absolute top-2 left-2 flex items-center gap-2 bg-background/90 rounded px-2 py-1">
-        <div className={`w-2.5 h-2.5 rounded-full ${isActive ? 'bg-success animate-pulse' : 'bg-muted-foreground'}`} />
-        <span className="text-sm font-mono font-medium">CAM-01</span>
-      </div>
-      
-      <div className="absolute bottom-2 right-2 bg-background/90 rounded px-2 py-1">
-        <span className="text-sm font-mono">
-          {new Date().toLocaleTimeString('en-US', { hour12: false })}
-        </span>
-      </div>
-      
-      <div className="absolute top-1/4 left-1/4 right-1/4 bottom-1/4 border-2 border-dashed border-primary/40 rounded">
-        <span className="absolute -top-5 left-0 text-xs text-primary bg-background px-1.5 py-0.5 rounded">
-          AI Detection Zone
-        </span>
-      </div>
-      
-      {isActive && (
-        <div className="absolute bottom-2 left-2 flex items-center gap-2 bg-background/90 rounded px-2 py-1">
-          <Eye className="w-4 h-4 text-primary animate-pulse" />
-          <span className="text-sm text-primary font-medium">AI Active</span>
-        </div>
-      )}
 
-      <div className="absolute top-2 right-2 flex items-center gap-1.5 bg-primary/20 rounded px-2 py-1">
-        <Brain className="w-4 h-4 text-primary" />
-        <span className="text-xs text-primary font-medium">Baseline Learned</span>
+      {/* Legend */}
+      <div className="flex items-center justify-center gap-4 mt-2 text-[10px] text-muted-foreground">
+        <div className="flex items-center gap-1">
+          <div className="w-2 h-2 rounded-full bg-success" />
+          <span>Clear</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <div className="w-2 h-2 rounded-full bg-warning" />
+          <span>Warning</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <div className="w-2 h-2 rounded-full bg-destructive" />
+          <span>Violation</span>
+        </div>
       </div>
     </div>
   );
@@ -194,6 +287,7 @@ function BaselineCard({ label, value, status }: { label: string; value: number; 
 }
 
 export function ComputerVision({ detections, rftPercentage }: ComputerVisionProps) {
+  const [selectedCamera, setSelectedCamera] = useState('CAM-02');
   const totalDetections = detections.length;
   const criticalCount = detections.filter(d => d.severity === 'critical').length;
   const unresolvedCount = detections.filter(d => d.status !== 'resolved').length;
@@ -206,8 +300,8 @@ export function ComputerVision({ detections, rftPercentage }: ComputerVisionProp
     <div className="h-full flex gap-4">
       {/* Left Column - Camera & Detections */}
       <div className="flex-1 flex flex-col gap-4 min-w-0">
-        {/* Camera Feed */}
-        <CameraFeed isActive={true} />
+        {/* Camera Grid */}
+        <CameraGrid onSelectCamera={setSelectedCamera} selectedCamera={selectedCamera} />
 
         {/* Quick Stats Row */}
         <div className="grid grid-cols-4 gap-3">
