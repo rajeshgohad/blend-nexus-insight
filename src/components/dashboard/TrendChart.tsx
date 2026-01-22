@@ -2,27 +2,56 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import type { ParameterHistoryPoint } from '@/types/manufacturing';
 import { format } from 'date-fns';
 
+export type TrendParameter = 'temperature' | 'blenderSpeed';
+
 interface TrendChartProps {
   parameterHistory: ParameterHistoryPoint[];
+  selectedParameter: TrendParameter;
 }
 
-interface SingleChartProps {
-  data: { time: string; value: number }[];
+interface ChartConfig {
   label: string;
   unit: string;
   color: string;
   min: number;
   max: number;
+  dataKey: keyof ParameterHistoryPoint;
 }
 
-function SingleTrendChart({ data, label, unit, color, min, max }: SingleChartProps) {
+const parameterConfigs: Record<TrendParameter, ChartConfig> = {
+  temperature: {
+    label: 'Temperature',
+    unit: '°C',
+    color: 'hsl(var(--warning))',
+    min: 18,
+    max: 28,
+    dataKey: 'temperature',
+  },
+  blenderSpeed: {
+    label: 'Rotation Speed',
+    unit: 'RPM',
+    color: 'hsl(var(--success))',
+    min: 0,
+    max: 30,
+    dataKey: 'blenderSpeed',
+  },
+};
+
+export function TrendChart({ parameterHistory, selectedParameter }: TrendChartProps) {
+  const config = parameterConfigs[selectedParameter];
+  
+  const data = parameterHistory.map(point => ({
+    time: format(point.timestamp, 'HH:mm'),
+    value: point[config.dataKey] as number,
+  }));
+
   return (
-    <div className="flex flex-col gap-2 flex-1">
+    <div className="flex flex-col gap-2 h-full">
       <div className="flex items-center justify-between">
-        <span className="text-sm font-semibold text-foreground">{label}</span>
+        <span className="text-sm font-semibold text-foreground">{config.label} ({config.unit})</span>
         <span className="text-xs text-muted-foreground">Last 6 hours</span>
       </div>
-      <div className="flex-1 min-h-[120px]">
+      <div className="flex-1 min-h-[100px]">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={data} margin={{ top: 5, right: 10, left: -10, bottom: 0 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.5} />
@@ -35,7 +64,7 @@ function SingleTrendChart({ data, label, unit, color, min, max }: SingleChartPro
               interval="preserveStartEnd"
             />
             <YAxis 
-              domain={[min, max]}
+              domain={[config.min, config.max]}
               stroke="hsl(var(--muted-foreground))"
               tick={{ fontSize: 10 }}
               tickLine={false}
@@ -50,13 +79,13 @@ function SingleTrendChart({ data, label, unit, color, min, max }: SingleChartPro
                 fontSize: '12px',
               }}
               labelStyle={{ color: 'hsl(var(--foreground))' }}
-              formatter={(value: number) => [`${value.toFixed(1)} ${unit}`, label]}
+              formatter={(value: number) => [`${value.toFixed(1)} ${config.unit}`, config.label]}
             />
             <Line 
               type="monotone" 
               dataKey="value" 
-              name={label}
-              stroke={color}
+              name={config.label}
+              stroke={config.color}
               strokeWidth={2}
               dot={false}
               activeDot={{ r: 4, strokeWidth: 2 }}
@@ -64,39 +93,6 @@ function SingleTrendChart({ data, label, unit, color, min, max }: SingleChartPro
           </LineChart>
         </ResponsiveContainer>
       </div>
-    </div>
-  );
-}
-
-export function TrendChart({ parameterHistory }: TrendChartProps) {
-  const temperatureData = parameterHistory.map(point => ({
-    time: format(point.timestamp, 'HH:mm'),
-    value: point.temperature,
-  }));
-
-  const speedData = parameterHistory.map(point => ({
-    time: format(point.timestamp, 'HH:mm'),
-    value: point.blenderSpeed,
-  }));
-
-  return (
-    <div className="flex flex-col gap-4 h-full">
-      <SingleTrendChart 
-        data={temperatureData}
-        label="Temperature (°C)"
-        unit="°C"
-        color="hsl(var(--warning))"
-        min={18}
-        max={28}
-      />
-      <SingleTrendChart 
-        data={speedData}
-        label="Rotation Speed (RPM)"
-        unit="RPM"
-        color="hsl(var(--success))"
-        min={0}
-        max={30}
-      />
     </div>
   );
 }
