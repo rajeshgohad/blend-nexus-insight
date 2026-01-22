@@ -236,10 +236,10 @@ export function TabletPressVisualization({ isActive, parameters }: TabletPressVi
         </svg>
       </div>
 
-      {/* Parameters - Compact grid */}
-      <div className="grid grid-cols-2 gap-x-3 gap-y-2">
+      {/* Parameters - Compact grid with abbreviations */}
+      <div className="grid grid-cols-2 gap-x-2 gap-y-1.5">
         <Gauge 
-          label="Turret Speed" 
+          label="TS" 
           value={parameters.turretSpeed} 
           unit="RPM"
           min={20}
@@ -247,14 +247,14 @@ export function TabletPressVisualization({ isActive, parameters }: TabletPressVi
           status={parameters.turretSpeed > 70 ? 'warning' : 'normal'}
         />
         <Gauge 
-          label="Pre-Compress" 
+          label="PCF" 
           value={parameters.preCompressionForce} 
           unit="kN"
           min={1}
           max={10}
         />
         <Gauge 
-          label="Main Compress" 
+          label="MCF" 
           value={parameters.mainCompressionForce} 
           unit="kN"
           min={5}
@@ -262,14 +262,14 @@ export function TabletPressVisualization({ isActive, parameters }: TabletPressVi
           status={parameters.mainCompressionForce > 35 ? 'warning' : 'normal'}
         />
         <Gauge 
-          label="Vacuum" 
+          label="VAC" 
           value={parameters.vacuumLevel} 
           unit="mbar"
           min={-100}
           max={0}
         />
         <Gauge 
-          label="Lubrication" 
+          label="LUB" 
           value={parameters.punchLubrication} 
           unit="%"
           min={0}
@@ -282,12 +282,12 @@ export function TabletPressVisualization({ isActive, parameters }: TabletPressVi
       <div className="flex flex-col gap-1.5 flex-1 min-h-[100px]">
         <div className="flex items-center justify-between">
           <Select value={selectedTrend} onValueChange={(v) => setSelectedTrend(v as TrendParameter)}>
-            <SelectTrigger className="h-7 w-[140px] text-xs bg-background">
+            <SelectTrigger className="h-6 w-[110px] text-xs bg-background">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="turretSpeed">Turret Speed</SelectItem>
-              <SelectItem value="mainCompressionForce">Main Compression</SelectItem>
+              <SelectItem value="mainCompressionForce">Main Compress</SelectItem>
             </SelectContent>
           </Select>
           <span className="text-[10px] text-muted-foreground">Last 6 hours</span>
