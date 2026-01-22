@@ -323,21 +323,21 @@ export function PredictiveMaintenance({
 
       {/* Tabbed Content */}
       <Tabs defaultValue="health" className="flex-1 flex flex-col min-h-0">
-        <TabsList className="grid grid-cols-5 h-7">
-          <TabsTrigger value="health" className="text-[10px] px-1">
-            <Wrench className="w-3 h-3" />
+        <TabsList className="grid grid-cols-5 h-10">
+          <TabsTrigger value="health" className="px-2">
+            <Wrench className="w-5 h-5" />
           </TabsTrigger>
-          <TabsTrigger value="workorders" className="text-[10px] px-1">
-            <ClipboardList className="w-3 h-3" />
+          <TabsTrigger value="workorders" className="px-2">
+            <ClipboardList className="w-5 h-5" />
           </TabsTrigger>
-          <TabsTrigger value="resources" className="text-[10px] px-1">
-            <User className="w-3 h-3" />
+          <TabsTrigger value="resources" className="px-2">
+            <User className="w-5 h-5" />
           </TabsTrigger>
-          <TabsTrigger value="spares" className="text-[10px] px-1">
-            <Package className="w-3 h-3" />
+          <TabsTrigger value="spares" className="px-2">
+            <Package className="w-5 h-5" />
           </TabsTrigger>
-          <TabsTrigger value="logs" className="text-[10px] px-1">
-            <FileText className="w-3 h-3" />
+          <TabsTrigger value="logs" className="px-2">
+            <FileText className="w-5 h-5" />
           </TabsTrigger>
         </TabsList>
 
