@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import type {
-  BatchState,
   BlenderParameters,
   BatchInfo,
   ComponentHealth,
@@ -13,6 +12,8 @@ import type {
   Resource,
   Alert,
   SimulationState,
+  Recipe,
+  BlendingSequenceItem,
 } from '@/types/manufacturing';
 
 const generateId = () => Math.random().toString(36).substr(2, 9);
@@ -21,20 +22,67 @@ const addNoise = (value: number, variance: number) => {
   return value + (Math.random() - 0.5) * 2 * variance;
 };
 
+const availableRecipes: Recipe[] = [
+  {
+    id: 'RCP-001',
+    name: 'Metformin HCl 500mg Standard',
+    productId: 'PRD-MET-500',
+    ingredients: [
+      { ingredient: 'Metformin HCl', quantity: 250, unit: 'kg', added: false },
+      { ingredient: 'Microcrystalline Cellulose', quantity: 150, unit: 'kg', added: false },
+      { ingredient: 'Povidone K30', quantity: 50, unit: 'kg', added: false },
+      { ingredient: 'Magnesium Stearate', quantity: 25, unit: 'kg', added: false },
+      { ingredient: 'Colloidal Silicon Dioxide', quantity: 25, unit: 'kg', added: false },
+    ],
+  },
+  {
+    id: 'RCP-002',
+    name: 'Lisinopril 10mg Tablet',
+    productId: 'PRD-LIS-010',
+    ingredients: [
+      { ingredient: 'Lisinopril Dihydrate', quantity: 50, unit: 'kg', added: false },
+      { ingredient: 'Calcium Phosphate', quantity: 200, unit: 'kg', added: false },
+      { ingredient: 'Mannitol', quantity: 100, unit: 'kg', added: false },
+      { ingredient: 'Magnesium Stearate', quantity: 15, unit: 'kg', added: false },
+    ],
+  },
+  {
+    id: 'RCP-003',
+    name: 'Omeprazole 20mg Capsule',
+    productId: 'PRD-OME-020',
+    ingredients: [
+      { ingredient: 'Omeprazole', quantity: 100, unit: 'kg', added: false },
+      { ingredient: 'Lactose Monohydrate', quantity: 180, unit: 'kg', added: false },
+      { ingredient: 'Sodium Lauryl Sulfate', quantity: 20, unit: 'kg', added: false },
+      { ingredient: 'Hypromellose', quantity: 50, unit: 'kg', added: false },
+    ],
+  },
+];
+
+const createInitialBlendingSequence = (): BlendingSequenceItem[] => [
+  { step: 'start-delay', label: 'Start Delay', setPointMinutes: 2, actualMinutes: 0, status: 'pending' },
+  { step: 'charging', label: 'Charging', setPointMinutes: 5, actualMinutes: 0, status: 'pending' },
+  { step: 'pre-blend', label: 'Pre-Blend', setPointMinutes: 8, actualMinutes: 0, status: 'pending' },
+  { step: 'main-blend', label: 'Main Blend', setPointMinutes: 10, actualMinutes: 0, status: 'pending' },
+  { step: 'lube-pause', label: 'Lube Pause', setPointMinutes: 2, actualMinutes: 0, status: 'pending' },
+  { step: 'lube-blend', label: 'Lube Blend', setPointMinutes: 3, actualMinutes: 0, status: 'pending' },
+  { step: 'discharge', label: 'Discharge', setPointMinutes: 5, actualMinutes: 0, status: 'pending' },
+];
+
 const initialBatch: BatchInfo = {
   id: generateId(),
   productName: 'Metformin HCl 500mg',
+  productId: 'PRD-MET-500',
   batchNumber: 'BN-2024-0847',
-  startTime: new Date(),
+  startTime: null,
+  endTime: null,
   targetQuantity: 500,
-  recipe: [
-    { ingredient: 'Metformin HCl', quantity: 250, unit: 'kg', added: false },
-    { ingredient: 'Microcrystalline Cellulose', quantity: 150, unit: 'kg', added: false },
-    { ingredient: 'Povidone K30', quantity: 50, unit: 'kg', added: false },
-    { ingredient: 'Magnesium Stearate', quantity: 25, unit: 'kg', added: false },
-    { ingredient: 'Colloidal Silicon Dioxide', quantity: 25, unit: 'kg', added: false },
-  ],
+  recipe: availableRecipes[0].ingredients.map(i => ({ ...i })),
+  recipeId: 'RCP-001',
+  recipeName: 'Metformin HCl 500mg Standard',
   state: 'idle',
+  operator: { id: 'OP-001', name: 'John Smith' },
+  blendingSequence: createInitialBlendingSequence(),
 };
 
 const initialComponents: ComponentHealth[] = [
@@ -106,15 +154,36 @@ export function useSimulation() {
   }, []);
 
   const startBatch = useCallback(() => {
-    setBatch(prev => ({ ...prev, state: 'loading', startTime: new Date() }));
+    setBatch(prev => ({ 
+      ...prev, 
+      state: 'loading', 
+      startTime: new Date(),
+      endTime: null,
+      blendingSequence: createInitialBlendingSequence(),
+    }));
     setParameters(prev => ({ ...prev, blendTime: 0, blendUniformity: 0 }));
     addAlert('Digital Twin', 'info', `Batch ${batch.batchNumber} started - Loading materials`);
   }, [batch.batchNumber, addAlert]);
 
   const stopBatch = useCallback(() => {
-    setBatch(prev => ({ ...prev, state: 'idle' }));
+    setBatch(prev => ({ ...prev, state: 'idle', endTime: new Date() }));
     setParameters(prev => ({ ...prev, rotationSpeed: 0, vibration: 0.3 }));
     addAlert('Digital Twin', 'info', 'Batch stopped');
+  }, [addAlert]);
+
+  const selectRecipe = useCallback((recipeId: string) => {
+    const recipe = availableRecipes.find(r => r.id === recipeId);
+    if (recipe) {
+      setBatch(prev => ({
+        ...prev,
+        recipeId: recipe.id,
+        recipeName: recipe.name,
+        productId: recipe.productId,
+        productName: recipe.name.split(' ').slice(0, -1).join(' '),
+        recipe: recipe.ingredients.map(i => ({ ...i })),
+      }));
+      addAlert('Digital Twin', 'info', `Recipe changed to: ${recipe.name}`);
+    }
   }, [addAlert]);
 
   const suspendBatch = useCallback(() => {
@@ -345,6 +414,7 @@ export function useSimulation() {
     alerts,
     rftPercentage,
     learningProgress,
+    availableRecipes,
     actions: {
       startBatch,
       stopBatch,
@@ -357,6 +427,7 @@ export function useSimulation() {
       resetSimulation,
       approveRecommendation,
       injectScenario,
+      selectRecipe,
     },
   };
 }
