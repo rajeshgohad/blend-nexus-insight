@@ -87,11 +87,11 @@ const initialBatch: BatchInfo = {
 };
 
 const initialComponents: ComponentHealth[] = [
-  { name: 'Drive Motor', health: 92, rul: 2400, trend: 'stable', lastMaintenance: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) },
-  { name: 'Main Bearings', health: 85, rul: 1800, trend: 'declining', lastMaintenance: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000) },
-  { name: 'Seal Assembly', health: 78, rul: 1200, trend: 'declining', lastMaintenance: new Date(Date.now() - 21 * 24 * 60 * 60 * 1000) },
-  { name: 'Gear Box', health: 95, rul: 3600, trend: 'stable', lastMaintenance: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000) },
-  { name: 'Vibration Dampers', health: 88, rul: 2000, trend: 'stable', lastMaintenance: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000) },
+  { name: 'Drive Motor', health: 92, rul: 2400, trend: 'stable', lastMaintenance: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), failureProbability: 0.03, predictedFailureDate: new Date(Date.now() + 100 * 24 * 60 * 60 * 1000) },
+  { name: 'Main Bearings', health: 85, rul: 1800, trend: 'declining', lastMaintenance: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000), failureProbability: 0.12, predictedFailureDate: new Date(Date.now() + 75 * 24 * 60 * 60 * 1000) },
+  { name: 'Seal Assembly', health: 78, rul: 1200, trend: 'declining', lastMaintenance: new Date(Date.now() - 21 * 24 * 60 * 60 * 1000), failureProbability: 0.18, predictedFailureDate: new Date(Date.now() + 50 * 24 * 60 * 60 * 1000) },
+  { name: 'Gear Box', health: 95, rul: 3600, trend: 'stable', lastMaintenance: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000), failureProbability: 0.02, predictedFailureDate: new Date(Date.now() + 150 * 24 * 60 * 60 * 1000) },
+  { name: 'Vibration Dampers', health: 88, rul: 2000, trend: 'stable', lastMaintenance: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000), failureProbability: 0.08, predictedFailureDate: new Date(Date.now() + 83 * 24 * 60 * 60 * 1000) },
 ];
 
 const initialSchedule: ScheduledBatch[] = [

@@ -60,6 +60,8 @@ export interface ComponentHealth {
   rul: number;
   trend: 'stable' | 'declining' | 'critical';
   lastMaintenance: Date;
+  failureProbability: number;
+  predictedFailureDate: Date | null;
 }
 
 export interface MaintenanceEvent {
@@ -78,6 +80,77 @@ export interface Anomaly {
   severity: 'low' | 'medium' | 'high';
   description: string;
   acknowledged: boolean;
+}
+
+export interface Technician {
+  id: string;
+  name: string;
+  skill: 'junior' | 'senior' | 'specialist';
+  available: boolean;
+  currentTask: string | null;
+  nextAvailable: Date | null;
+}
+
+export interface SparePart {
+  id: string;
+  name: string;
+  partNumber: string;
+  quantity: number;
+  minStock: number;
+  leadTimeDays: number;
+  vendor: string;
+  unitCost: number;
+}
+
+export interface WorkOrder {
+  id: string;
+  component: string;
+  type: 'general' | 'spare_replacement';
+  status: 'pending' | 'scheduled' | 'in-progress' | 'completed' | 'waiting-spares';
+  priority: 'low' | 'medium' | 'high' | 'critical';
+  assignedTechnician: Technician | null;
+  scheduledTime: Date | null;
+  sparesRequired: { part: SparePart; quantity: number }[];
+  estimatedDuration: number; // hours
+  createdAt: Date;
+  instructions: string;
+  notificationsSent: NotificationRecord[];
+}
+
+export interface PurchaseOrder {
+  id: string;
+  sparePart: SparePart;
+  quantity: number;
+  vendor: string;
+  status: 'pending' | 'approved' | 'ordered' | 'shipped' | 'received';
+  createdAt: Date;
+  expectedDelivery: Date;
+  workOrderId: string;
+}
+
+export interface NotificationRecord {
+  id: string;
+  recipient: 'maintenance_team' | 'production_supervisor' | 'operator' | 'stores';
+  message: string;
+  sentAt: Date;
+  acknowledged: boolean;
+}
+
+export interface MaintenanceDecision {
+  componentName: string;
+  requiresMaintenance: boolean;
+  maintenanceType: 'general' | 'spare_replacement' | null;
+  reasoning: string;
+  suggestedTime: Date | null;
+  machineIdleWindow: { start: Date; end: Date } | null;
+}
+
+export interface MaintenanceLog {
+  id: string;
+  timestamp: Date;
+  action: string;
+  details: string;
+  actor: string;
 }
 
 export interface YieldData {
