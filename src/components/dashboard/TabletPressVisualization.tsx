@@ -1,5 +1,8 @@
+import { useState, useEffect, useRef } from 'react';
 import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { format } from 'date-fns';
 
 interface TabletPressParameters {
   turretSpeed: number;
@@ -13,6 +16,31 @@ interface TabletPressVisualizationProps {
   isActive: boolean;
   parameters: TabletPressParameters;
 }
+
+type TrendParameter = 'turretSpeed' | 'mainCompressionForce';
+
+interface HistoryPoint {
+  timestamp: Date;
+  turretSpeed: number;
+  mainCompressionForce: number;
+}
+
+const trendConfigs: Record<TrendParameter, { label: string; unit: string; color: string; min: number; max: number }> = {
+  turretSpeed: {
+    label: 'Turret Speed',
+    unit: 'RPM',
+    color: 'hsl(var(--primary))',
+    min: 20,
+    max: 80,
+  },
+  mainCompressionForce: {
+    label: 'Main Compression',
+    unit: 'kN',
+    color: 'hsl(var(--warning))',
+    min: 5,
+    max: 40,
+  },
+};
 
 function Gauge({ 
   label, 
@@ -37,14 +65,14 @@ function Gauge({
   };
 
   return (
-    <div className="flex flex-col gap-1.5">
+    <div className="flex flex-col gap-1">
       <div className="flex justify-between text-sm">
         <span className="text-muted-foreground">{label}</span>
         <span className={`font-mono font-semibold ${statusColors[status]}`}>
           {value.toFixed(1)} {unit}
         </span>
       </div>
-      <div className="h-2.5 bg-muted rounded-full overflow-hidden">
+      <div className="h-2 bg-muted rounded-full overflow-hidden">
         <div 
           className={`h-full transition-all duration-500 ${
             status === 'normal' ? 'bg-success' : 
@@ -53,7 +81,7 @@ function Gauge({
           style={{ width: `${Math.min(100, Math.max(0, percentage))}%` }}
         />
       </div>
-      <div className="flex justify-between text-xs text-muted-foreground">
+      <div className="flex justify-between text-[10px] text-muted-foreground">
         <span>{min}</span>
         <span>{max}</span>
       </div>
@@ -62,6 +90,53 @@ function Gauge({
 }
 
 export function TabletPressVisualization({ isActive, parameters }: TabletPressVisualizationProps) {
+  const [selectedTrend, setSelectedTrend] = useState<TrendParameter>('turretSpeed');
+  const [history, setHistory] = useState<HistoryPoint[]>([]);
+  const lastUpdateRef = useRef<Date>(new Date());
+
+  // Build history when active
+  useEffect(() => {
+    if (!isActive) {
+      setHistory([]);
+      return;
+    }
+
+    // Initialize with some seed data
+    if (history.length === 0) {
+      const now = new Date();
+      const seedData: HistoryPoint[] = [];
+      for (let i = 35; i >= 0; i--) {
+        seedData.push({
+          timestamp: new Date(now.getTime() - i * 10 * 60 * 1000),
+          turretSpeed: 45 + Math.random() * 10 - 5,
+          mainCompressionForce: 22 + Math.random() * 6 - 3,
+        });
+      }
+      setHistory(seedData);
+      return;
+    }
+
+    // Add new data points periodically
+    const interval = setInterval(() => {
+      const now = new Date();
+      if (now.getTime() - lastUpdateRef.current.getTime() >= 10000) {
+        lastUpdateRef.current = now;
+        setHistory(prev => {
+          const newPoint: HistoryPoint = {
+            timestamp: now,
+            turretSpeed: parameters.turretSpeed,
+            mainCompressionForce: parameters.mainCompressionForce,
+          };
+          const updated = [...prev, newPoint];
+          // Keep last 36 points (6 hours at 10-min intervals)
+          return updated.slice(-36);
+        });
+      }
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [isActive, parameters, history.length]);
+
   if (!isActive) {
     return (
       <div className="h-full flex flex-col items-center justify-center bg-muted/30 rounded-lg p-4">
@@ -74,8 +149,14 @@ export function TabletPressVisualization({ isActive, parameters }: TabletPressVi
     );
   }
 
+  const config = trendConfigs[selectedTrend];
+  const chartData = history.map(point => ({
+    time: format(point.timestamp, 'HH:mm'),
+    value: point[selectedTrend],
+  }));
+
   return (
-    <div className="h-full flex flex-col gap-3 bg-muted/30 rounded-lg p-3 animate-fade-in">
+    <div className="h-full flex flex-col gap-2 bg-muted/30 rounded-lg p-3 animate-fade-in">
       {/* Header */}
       <div className="flex items-center justify-between">
         <span className="text-sm font-semibold text-foreground">Tablet Press</span>
@@ -85,10 +166,10 @@ export function TabletPressVisualization({ isActive, parameters }: TabletPressVi
       </div>
 
       {/* Animated Tablet Press SVG */}
-      <div className="relative flex items-center justify-center h-28">
+      <div className="relative flex items-center justify-center h-24">
         <svg 
           viewBox="0 0 200 120" 
-          className="w-full h-full max-w-[160px]"
+          className="w-full h-full max-w-[140px]"
         >
           <defs>
             <linearGradient id="pressGradient" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -155,8 +236,8 @@ export function TabletPressVisualization({ isActive, parameters }: TabletPressVi
         </svg>
       </div>
 
-      {/* Parameters - Same style as Blender gauges */}
-      <div className="grid grid-cols-2 gap-3 flex-1">
+      {/* Parameters - Compact grid */}
+      <div className="grid grid-cols-2 gap-x-3 gap-y-2">
         <Gauge 
           label="Turret Speed" 
           value={parameters.turretSpeed} 
@@ -195,6 +276,64 @@ export function TabletPressVisualization({ isActive, parameters }: TabletPressVi
           max={100}
           status={parameters.punchLubrication < 20 ? 'warning' : 'normal'}
         />
+      </div>
+
+      {/* Trend Chart */}
+      <div className="flex flex-col gap-1.5 flex-1 min-h-[100px]">
+        <div className="flex items-center justify-between">
+          <Select value={selectedTrend} onValueChange={(v) => setSelectedTrend(v as TrendParameter)}>
+            <SelectTrigger className="h-7 w-[140px] text-xs bg-background">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="turretSpeed">Turret Speed</SelectItem>
+              <SelectItem value="mainCompressionForce">Main Compression</SelectItem>
+            </SelectContent>
+          </Select>
+          <span className="text-[10px] text-muted-foreground">Last 6 hours</span>
+        </div>
+        <div className="flex-1 min-h-[80px]">
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={chartData} margin={{ top: 5, right: 5, left: -15, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.5} />
+              <XAxis 
+                dataKey="time" 
+                stroke="hsl(var(--muted-foreground))"
+                tick={{ fontSize: 9 }}
+                tickLine={false}
+                axisLine={false}
+                interval="preserveStartEnd"
+              />
+              <YAxis 
+                domain={[config.min, config.max]}
+                stroke="hsl(var(--muted-foreground))"
+                tick={{ fontSize: 9 }}
+                tickLine={false}
+                axisLine={false}
+                width={30}
+              />
+              <Tooltip 
+                contentStyle={{ 
+                  backgroundColor: 'hsl(var(--card))', 
+                  border: '1px solid hsl(var(--border))',
+                  borderRadius: '8px',
+                  fontSize: '11px',
+                }}
+                labelStyle={{ color: 'hsl(var(--foreground))' }}
+                formatter={(value: number) => [`${value.toFixed(1)} ${config.unit}`, config.label]}
+              />
+              <Line 
+                type="monotone" 
+                dataKey="value" 
+                name={config.label}
+                stroke={config.color}
+                strokeWidth={2}
+                dot={false}
+                activeDot={{ r: 3, strokeWidth: 2 }}
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
       </div>
     </div>
   );
