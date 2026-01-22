@@ -39,12 +39,12 @@ function SignalCard({ label, value, unit, icon: Icon, status = 'normal' }: {
   };
 
   return (
-    <div className="bg-muted/30 rounded-lg p-2 flex items-center gap-2">
-      <Icon className={`w-4 h-4 ${statusColors[status]}`} />
+    <div className="bg-muted/30 rounded-lg p-3 flex items-center gap-3">
+      <Icon className={`w-5 h-5 ${statusColors[status]}`} />
       <div className="flex-1 min-w-0">
-        <div className="text-[10px] text-muted-foreground truncate">{label}</div>
-        <div className={`text-sm font-bold ${statusColors[status]}`}>
-          {value.toFixed(1)} <span className="text-[10px] font-normal">{unit}</span>
+        <div className="text-xs text-muted-foreground truncate">{label}</div>
+        <div className={`text-lg font-bold ${statusColors[status]}`}>
+          {value.toFixed(1)} <span className="text-xs font-normal">{unit}</span>
         </div>
       </div>
     </div>
@@ -59,7 +59,7 @@ function MiniYieldChart({ data }: { data: YieldHistoryPoint[] }) {
   const range = maxYield - minYield || 1;
 
   return (
-    <div className="h-16 flex items-end gap-0.5">
+    <div className="h-20 flex items-end gap-1">
       {data.slice(-12).map((d, idx) => {
         const actualHeight = ((d.actualYield - minYield) / range) * 100;
         const predictedHeight = ((d.predictedYield - minYield) / range) * 100;
@@ -74,7 +74,7 @@ function MiniYieldChart({ data }: { data: YieldHistoryPoint[] }) {
               className="relative w-full bg-primary rounded-t transition-all hover:bg-primary/80"
               style={{ height: `${actualHeight}%` }}
             />
-            <div className="absolute bottom-full mb-1 left-1/2 -translate-x-1/2 bg-popover border border-border rounded px-1.5 py-0.5 text-[10px] opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10 pointer-events-none">
+            <div className="absolute bottom-full mb-1 left-1/2 -translate-x-1/2 bg-popover border border-border rounded px-2 py-1 text-xs opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10 pointer-events-none">
               <div>Actual: {d.actualYield.toFixed(1)}%</div>
               <div>Target: {d.target}%</div>
             </div>
@@ -93,19 +93,19 @@ function DriftAlert({ drift }: { drift: DriftDetection }) {
   };
 
   return (
-    <div className={`p-2 rounded border ${severityColors[drift.severity]}`}>
+    <div className={`p-3 rounded-lg border ${severityColors[drift.severity]}`}>
       <div className="flex items-center gap-2">
         {drift.direction === 'increasing' ? (
-          <TrendingUp className="w-3 h-3" />
+          <TrendingUp className="w-4 h-4" />
         ) : (
-          <TrendingDown className="w-3 h-3" />
+          <TrendingDown className="w-4 h-4" />
         )}
-        <span className="text-xs font-medium capitalize">{drift.parameter}</span>
-        <Badge variant="outline" className="text-[9px] px-1 py-0">
+        <span className="text-sm font-medium capitalize">{drift.parameter}</span>
+        <Badge variant="outline" className="text-xs px-1.5 py-0.5">
           {drift.direction} {drift.magnitude.toFixed(1)}%
         </Badge>
       </div>
-      <p className="text-[10px] mt-1 opacity-80">{drift.description}</p>
+      <p className="text-xs mt-1.5 opacity-80">{drift.description}</p>
     </div>
   );
 }
@@ -118,29 +118,29 @@ function RecommendationCard({
   onApprove: () => void;
 }) {
   return (
-    <div className={`p-2.5 rounded-lg border transition-all ${
+    <div className={`p-3 rounded-lg border transition-all ${
       rec.approved 
         ? 'border-success/30 bg-success/10' 
         : 'border-primary/30 bg-primary/5 hover:bg-primary/10'
     }`}>
-      <div className="flex justify-between items-start gap-2 mb-1.5">
-        <div className="flex items-center gap-1.5">
-          <Badge variant={rec.riskLevel === 'low' ? 'secondary' : 'outline'} className="text-[9px] px-1.5 py-0">
-            {rec.riskLevel === 'low' ? <ShieldCheck className="w-2.5 h-2.5 mr-0.5" /> : null}
+      <div className="flex justify-between items-start gap-2 mb-2">
+        <div className="flex items-center gap-2">
+          <Badge variant={rec.riskLevel === 'low' ? 'secondary' : 'outline'} className="text-xs px-2 py-0.5">
+            {rec.riskLevel === 'low' ? <ShieldCheck className="w-3 h-3 mr-1" /> : null}
             {rec.riskLevel} risk
           </Badge>
-          <span className="text-xs font-medium">{rec.parameter}</span>
+          <span className="text-sm font-medium">{rec.parameter}</span>
         </div>
         {rec.approved ? (
-          <div className="flex items-center gap-1 text-success">
-            <CheckCircle className="w-4 h-4" />
-            <span className="text-[10px]">Applied</span>
+          <div className="flex items-center gap-1.5 text-success">
+            <CheckCircle className="w-5 h-5" />
+            <span className="text-sm">Applied</span>
           </div>
         ) : (
           <Button 
             size="sm" 
             variant="default" 
-            className="h-6 px-2 text-[10px]"
+            className="h-8 px-4 text-sm"
             onClick={onApprove}
           >
             Approve
@@ -148,25 +148,25 @@ function RecommendationCard({
         )}
       </div>
       
-      <div className="flex items-center gap-2 text-xs mb-1">
+      <div className="flex items-center gap-3 text-sm mb-2">
         <span className="text-muted-foreground font-mono">{rec.currentValue.toFixed(1)}</span>
-        <ArrowRight className="w-3 h-3 text-primary" />
-        <span className="font-bold text-primary font-mono">{rec.recommendedValue.toFixed(1)}</span>
+        <ArrowRight className="w-4 h-4 text-primary" />
+        <span className="font-bold text-primary font-mono text-base">{rec.recommendedValue.toFixed(1)}</span>
         <span className="text-muted-foreground">{rec.unit}</span>
-        <Badge variant="outline" className="text-[9px] px-1 py-0 text-success">
+        <Badge variant="outline" className="text-xs px-2 py-0.5 text-success">
           {rec.adjustment}
         </Badge>
       </div>
       
       <div className="flex items-center justify-between">
-        <p className="text-[10px] text-muted-foreground flex-1">{rec.reasoning}</p>
-        <div className="flex items-center gap-1 ml-2">
-          <TrendingUp className="w-3 h-3 text-success" />
-          <span className="text-[10px] font-medium text-success">+{rec.expectedImprovement.toFixed(2)}%</span>
+        <p className="text-xs text-muted-foreground flex-1">{rec.reasoning}</p>
+        <div className="flex items-center gap-1.5 ml-3">
+          <TrendingUp className="w-4 h-4 text-success" />
+          <span className="text-sm font-medium text-success">+{rec.expectedImprovement.toFixed(2)}%</span>
         </div>
       </div>
       
-      <div className="flex items-center gap-1 mt-1 text-[9px] text-muted-foreground">
+      <div className="flex items-center gap-1 mt-2 text-xs text-muted-foreground">
         <span>SOP range: {rec.sopMin} - {rec.sopMax} {rec.unit}</span>
       </div>
     </div>
@@ -188,15 +188,15 @@ export function YieldOptimization({
   if (!isTabletPressActive) {
     return (
       <div className="h-full flex flex-col items-center justify-center text-center p-8">
-        <div className="w-16 h-16 rounded-full bg-muted/50 flex items-center justify-center mb-4">
-          <Activity className="w-8 h-8 text-muted-foreground" />
+        <div className="w-20 h-20 rounded-full bg-muted/50 flex items-center justify-center mb-4">
+          <Activity className="w-10 h-10 text-muted-foreground" />
         </div>
-        <h3 className="text-lg font-semibold mb-2">Tablet Press Standby</h3>
-        <p className="text-sm text-muted-foreground max-w-md">
+        <h3 className="text-xl font-semibold mb-2">Tablet Press Standby</h3>
+        <p className="text-base text-muted-foreground max-w-md">
           Yield optimization will activate once the blending discharge step is complete and the tablet press begins operation.
         </p>
-        <div className="flex items-center gap-2 mt-4 text-xs text-muted-foreground">
-          <Clock className="w-4 h-4" />
+        <div className="flex items-center gap-2 mt-4 text-sm text-muted-foreground">
+          <Clock className="w-5 h-5" />
           <span>Waiting for tablet press activation...</span>
         </div>
       </div>
@@ -211,11 +211,11 @@ export function YieldOptimization({
       <div className="space-y-4 pr-4">
         {/* Real-time Signals Grid */}
         <div>
-          <div className="flex items-center gap-2 mb-2">
-            <Activity className="w-4 h-4 text-primary" />
-            <span className="text-xs font-medium">Real-time Tablet Press Signals</span>
+          <div className="flex items-center gap-2 mb-3">
+            <Activity className="w-5 h-5 text-primary" />
+            <span className="text-sm font-medium">Real-time Tablet Press Signals</span>
           </div>
-          <div className="grid grid-cols-4 gap-2">
+          <div className="grid grid-cols-4 gap-3">
             <SignalCard label="Weight" value={signals.weight} unit="mg" icon={Scale} />
             <SignalCard label="Thickness" value={signals.thickness} unit="mm" icon={Gauge} />
             <SignalCard label="Hardness" value={signals.hardness} unit="kP" icon={Zap} />
@@ -228,74 +228,74 @@ export function YieldOptimization({
         </div>
 
         {/* Batch Profile */}
-        <div className="grid grid-cols-2 gap-3">
-          <Card className="p-3 bg-muted/30 border-0">
-            <div className="flex items-center gap-2 mb-2">
-              <Target className="w-4 h-4 text-primary" />
-              <span className="text-xs font-medium">Current Batch Profile</span>
+        <div className="grid grid-cols-2 gap-4">
+          <Card className="p-4 bg-muted/30 border-0">
+            <div className="flex items-center gap-2 mb-3">
+              <Target className="w-5 h-5 text-primary" />
+              <span className="text-sm font-medium">Current Batch Profile</span>
             </div>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-2 gap-3">
               <div>
-                <div className="text-[10px] text-muted-foreground">Avg Weight</div>
-                <div className="text-sm font-bold">{batchProfile.avgWeight.toFixed(1)} mg</div>
+                <div className="text-xs text-muted-foreground">Avg Weight</div>
+                <div className="text-lg font-bold">{batchProfile.avgWeight.toFixed(1)} mg</div>
               </div>
               <div>
-                <div className="text-[10px] text-muted-foreground">Weight %RSD</div>
-                <div className={`text-sm font-bold ${batchProfile.weightRSD > 2 ? 'text-warning' : 'text-success'}`}>
+                <div className="text-xs text-muted-foreground">Weight %RSD</div>
+                <div className={`text-lg font-bold ${batchProfile.weightRSD > 2 ? 'text-warning' : 'text-success'}`}>
                   {batchProfile.weightRSD.toFixed(2)}%
                 </div>
               </div>
               <div>
-                <div className="text-[10px] text-muted-foreground">In-Spec Rate</div>
-                <div className={`text-sm font-bold ${batchProfile.inSpecPercentage < 98 ? 'text-warning' : 'text-success'}`}>
+                <div className="text-xs text-muted-foreground">In-Spec Rate</div>
+                <div className={`text-lg font-bold ${batchProfile.inSpecPercentage < 98 ? 'text-warning' : 'text-success'}`}>
                   {batchProfile.inSpecPercentage.toFixed(1)}%
                 </div>
               </div>
               <div>
-                <div className="text-[10px] text-muted-foreground">Rejects/min</div>
-                <div className={`text-sm font-bold ${batchProfile.rejectRate > 5 ? 'text-destructive' : batchProfile.rejectRate > 2 ? 'text-warning' : 'text-foreground'}`}>
+                <div className="text-xs text-muted-foreground">Rejects/min</div>
+                <div className={`text-lg font-bold ${batchProfile.rejectRate > 5 ? 'text-destructive' : batchProfile.rejectRate > 2 ? 'text-warning' : 'text-foreground'}`}>
                   {batchProfile.rejectRate.toFixed(1)}
                 </div>
               </div>
             </div>
-            <div className="mt-2 pt-2 border-t border-border">
-              <div className="flex justify-between text-[10px]">
+            <div className="mt-3 pt-3 border-t border-border">
+              <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Tablets Produced</span>
-                <span className="font-mono">{batchProfile.tabletsProduced.toLocaleString()}</span>
+                <span className="font-mono font-medium">{batchProfile.tabletsProduced.toLocaleString()}</span>
               </div>
-              <div className="flex justify-between text-[10px]">
+              <div className="flex justify-between text-sm mt-1">
                 <span className="text-muted-foreground">Rate</span>
-                <span className="font-mono">{batchProfile.tabletsPerMinute.toLocaleString()}/min</span>
+                <span className="font-mono font-medium">{batchProfile.tabletsPerMinute.toLocaleString()}/min</span>
               </div>
             </div>
           </Card>
 
           {/* Outcome Prediction */}
-          <Card className="p-3 bg-primary/5 border-primary/20">
-            <div className="flex items-center gap-2 mb-2">
-              <Brain className="w-4 h-4 text-primary" />
-              <span className="text-xs font-medium">AI Outcome Prediction</span>
-              <Badge variant="outline" className="text-[9px] px-1 ml-auto">
+          <Card className="p-4 bg-primary/5 border-primary/20">
+            <div className="flex items-center gap-2 mb-3">
+              <Brain className="w-5 h-5 text-primary" />
+              <span className="text-sm font-medium">AI Outcome Prediction</span>
+              <Badge variant="outline" className="text-xs px-2 py-0.5 ml-auto">
                 {(prediction.confidenceLevel * 100).toFixed(0)}% conf
               </Badge>
             </div>
-            <div className="space-y-2">
+            <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <span className="text-[10px] text-muted-foreground">Current trajectory</span>
-                <span className={`text-sm font-bold ${prediction.currentYield < 95 ? 'text-warning' : ''}`}>
+                <span className="text-sm text-muted-foreground">Current trajectory</span>
+                <span className={`text-xl font-bold ${prediction.currentYield < 95 ? 'text-warning' : ''}`}>
                   {prediction.currentYield.toFixed(1)}% yield
                 </span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-[10px] text-muted-foreground">With corrections</span>
-                <span className="text-sm font-bold text-success">
+                <span className="text-sm text-muted-foreground">With corrections</span>
+                <span className="text-xl font-bold text-success">
                   {prediction.correctedYield.toFixed(1)}% yield
                 </span>
               </div>
-              <div className="h-px bg-border my-1" />
-              <div className="flex items-center justify-between text-[10px]">
+              <div className="h-px bg-border my-2" />
+              <div className="flex items-center justify-between text-sm">
                 <span className="text-muted-foreground">Potential improvement</span>
-                <Badge variant="secondary" className="text-success">
+                <Badge variant="secondary" className="text-success text-sm px-2 py-0.5">
                   +{(prediction.correctedYield - prediction.currentYield).toFixed(2)}%
                 </Badge>
               </div>
@@ -306,10 +306,10 @@ export function YieldOptimization({
         {/* Drift Detection */}
         {driftDetections.length > 0 && (
           <div>
-            <div className="flex items-center gap-2 mb-2">
-              <AlertTriangle className="w-4 h-4 text-warning" />
-              <span className="text-xs font-medium">Early Drift Detection</span>
-              <Badge variant="outline" className="text-[9px] px-1">
+            <div className="flex items-center gap-2 mb-3">
+              <AlertTriangle className="w-5 h-5 text-warning" />
+              <span className="text-sm font-medium">Early Drift Detection</span>
+              <Badge variant="outline" className="text-xs px-2 py-0.5">
                 {driftDetections.length} active
               </Badge>
             </div>
@@ -323,20 +323,20 @@ export function YieldOptimization({
 
         {/* AI Recommendations */}
         <div>
-          <div className="flex items-center gap-2 mb-2">
-            <Zap className="w-4 h-4 text-primary" />
-            <span className="text-xs font-medium">AI Micro-Adjustments</span>
+          <div className="flex items-center gap-2 mb-3">
+            <Zap className="w-5 h-5 text-primary" />
+            <span className="text-sm font-medium">AI Micro-Adjustments</span>
             {pendingRecommendations.length > 0 && (
-              <Badge variant="default" className="text-[9px] px-1.5">
+              <Badge variant="default" className="text-xs px-2 py-0.5">
                 {pendingRecommendations.length} pending
               </Badge>
             )}
           </div>
-          <div className="grid gap-2">
+          <div className="grid gap-3">
             {recommendations.slice(0, 4).map((rec) => (
               <RecommendationCard 
                 key={rec.id} 
-                rec={rec} 
+                rec={rec}
                 onApprove={() => onApproveRecommendation(rec.id)}
               />
             ))}
@@ -345,16 +345,16 @@ export function YieldOptimization({
 
         {/* Yield History */}
         <div>
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs text-muted-foreground">Yield Trend (Last 12 Batches)</span>
-            <div className="flex items-center gap-2">
-              <div className="flex items-center gap-1">
-                <div className="w-2 h-2 bg-primary rounded" />
-                <span className="text-[10px] text-muted-foreground">Actual</span>
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-sm text-muted-foreground">Yield Trend (Last 12 Batches)</span>
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-1.5">
+                <div className="w-3 h-3 bg-primary rounded" />
+                <span className="text-xs text-muted-foreground">Actual</span>
               </div>
-              <div className="flex items-center gap-1">
-                <div className="w-2 h-2 bg-primary/30 rounded" />
-                <span className="text-[10px] text-muted-foreground">Predicted</span>
+              <div className="flex items-center gap-1.5">
+                <div className="w-3 h-3 bg-primary/30 rounded" />
+                <span className="text-xs text-muted-foreground">Predicted</span>
               </div>
             </div>
           </div>
@@ -362,29 +362,29 @@ export function YieldOptimization({
         </div>
 
         {/* RL Model Status */}
-        <Card className="p-3 bg-muted/30 border-0">
-          <div className="flex items-center gap-2 mb-2">
-            <Brain className="w-4 h-4 text-primary" />
-            <span className="text-xs font-medium">RL Model Status</span>
+        <Card className="p-4 bg-muted/30 border-0">
+          <div className="flex items-center gap-2 mb-3">
+            <Brain className="w-5 h-5 text-primary" />
+            <span className="text-sm font-medium">RL Model Status</span>
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <div className="text-[10px] text-muted-foreground">Training Episodes</div>
-              <div className="text-sm font-mono">{learningProgress.episodes.toLocaleString()}</div>
+              <div className="text-xs text-muted-foreground">Training Episodes</div>
+              <div className="text-base font-mono">{learningProgress.episodes.toLocaleString()}</div>
             </div>
             <div>
-              <div className="text-[10px] text-muted-foreground">Reward Score</div>
+              <div className="text-xs text-muted-foreground">Reward Score</div>
               <div className="flex items-center gap-2">
-                <Progress value={learningProgress.reward * 100} className="h-1.5 flex-1" />
-                <span className="text-[10px] font-mono">{(learningProgress.reward * 100).toFixed(0)}%</span>
+                <Progress value={learningProgress.reward * 100} className="h-2 flex-1" />
+                <span className="text-sm font-mono">{(learningProgress.reward * 100).toFixed(0)}%</span>
               </div>
             </div>
           </div>
         </Card>
 
         {/* Data input indicator */}
-        <div className="flex items-center justify-center gap-2 text-[10px] text-muted-foreground pb-2">
-          <div className="w-2 h-2 rounded-full bg-success animate-pulse" />
+        <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground pb-4">
+          <div className="w-2.5 h-2.5 rounded-full bg-success animate-pulse" />
           <span>Receiving real-time data from Tablet Press</span>
         </div>
       </div>
