@@ -174,7 +174,7 @@ export function DigitalTwin({
         <BlenderVisualization isRunning={isRunning} speed={parameters.rotationSpeed} />
 
         {/* Parameter Gauges */}
-        <div className="grid grid-cols-2 gap-3 flex-1">
+        <div className="grid grid-cols-2 gap-3">
           <Gauge 
             label="Rotation" 
             value={parameters.rotationSpeed} 
