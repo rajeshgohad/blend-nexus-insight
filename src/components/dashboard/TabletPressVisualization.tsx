@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
+import { Square, Play } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { format } from 'date-fns';
@@ -92,11 +94,43 @@ function Gauge({
 export function TabletPressVisualization({ isActive, parameters }: TabletPressVisualizationProps) {
   const [selectedTrend, setSelectedTrend] = useState<TrendParameter>('turretSpeed');
   const [history, setHistory] = useState<HistoryPoint[]>([]);
+  const [isStopped, setIsStopped] = useState(false);
+  const [lastParams, setLastParams] = useState<TabletPressParameters>({
+    turretSpeed: 0,
+    preCompressionForce: 0,
+    mainCompressionForce: 0,
+    vacuumLevel: 0,
+    punchLubrication: 0,
+  });
   const lastUpdateRef = useRef<Date>(new Date());
 
-  // Build history when active
+  // Reset stopped state when tablet press becomes inactive
   useEffect(() => {
     if (!isActive) {
+      setIsStopped(false);
+      setLastParams({
+        turretSpeed: 0,
+        preCompressionForce: 0,
+        mainCompressionForce: 0,
+        vacuumLevel: 0,
+        punchLubrication: 0,
+      });
+    }
+  }, [isActive]);
+
+  // Store last params when running
+  useEffect(() => {
+    if (isActive && !isStopped) {
+      setLastParams(parameters);
+    }
+  }, [isActive, isStopped, parameters]);
+
+  // Determine if running (active and not stopped)
+  const isRunning = isActive && !isStopped;
+
+  // Build history when running
+  useEffect(() => {
+    if (!isRunning) {
       setHistory([]);
       return;
     }
@@ -135,16 +169,20 @@ export function TabletPressVisualization({ isActive, parameters }: TabletPressVi
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [isActive, parameters, history.length]);
+  }, [isRunning, parameters, history.length]);
 
-  // Use zero values when inactive
-  const displayParams = isActive ? parameters : {
-    turretSpeed: 0,
-    preCompressionForce: 0,
-    mainCompressionForce: 0,
-    vacuumLevel: 0,
-    punchLubrication: 0,
-  };
+  // Use current values when running, last values when stopped, zero when inactive
+  const displayParams = isRunning 
+    ? parameters 
+    : isStopped 
+      ? lastParams 
+      : {
+          turretSpeed: 0,
+          preCompressionForce: 0,
+          mainCompressionForce: 0,
+          vacuumLevel: 0,
+          punchLubrication: 0,
+        };
 
   const config = trendConfigs[selectedTrend];
   const chartData = history.map(point => ({
@@ -279,9 +317,13 @@ export function TabletPressVisualization({ isActive, parameters }: TabletPressVi
       {/* Header */}
       <div className="flex items-center justify-between">
         <span className="text-sm font-semibold text-foreground">Tablet Press</span>
-        {isActive ? (
+        {isRunning ? (
           <Badge className="bg-success/20 text-success border-success/30 text-xs animate-pulse">
-            ACTIVE
+            RUNNING
+          </Badge>
+        ) : isActive && isStopped ? (
+          <Badge className="bg-warning/20 text-warning border-warning/30 text-xs">
+            STOPPED
           </Badge>
         ) : (
           <Badge variant="outline" className="text-xs text-muted-foreground">
@@ -292,7 +334,7 @@ export function TabletPressVisualization({ isActive, parameters }: TabletPressVi
 
       {/* Tablet Press SVG - Static or Animated based on state */}
       <div className="relative flex items-center justify-center h-24">
-        {isActive ? <AnimatedTabletPress /> : <StaticTabletPress />}
+        {isRunning ? <AnimatedTabletPress /> : <StaticTabletPress />}
       </div>
 
       {/* Parameters - Compact grid with abbreviations */}
@@ -303,7 +345,7 @@ export function TabletPressVisualization({ isActive, parameters }: TabletPressVi
           unit="RPM"
           min={0}
           max={80}
-          status={isActive && displayParams.turretSpeed > 70 ? 'warning' : 'normal'}
+          status={isRunning && displayParams.turretSpeed > 70 ? 'warning' : 'normal'}
         />
         <Gauge 
           label="PCF" 
@@ -318,7 +360,7 @@ export function TabletPressVisualization({ isActive, parameters }: TabletPressVi
           unit="kN"
           min={0}
           max={40}
-          status={isActive && displayParams.mainCompressionForce > 35 ? 'warning' : 'normal'}
+          status={isRunning && displayParams.mainCompressionForce > 35 ? 'warning' : 'normal'}
         />
         <Gauge 
           label="VAC" 
@@ -333,9 +375,29 @@ export function TabletPressVisualization({ isActive, parameters }: TabletPressVi
           unit="%"
           min={0}
           max={100}
-          status={isActive && displayParams.punchLubrication < 20 ? 'warning' : 'normal'}
+          status={isRunning && displayParams.punchLubrication < 20 ? 'warning' : 'normal'}
         />
       </div>
+
+      {/* Stop/Start Button */}
+      {isActive && (
+        <Button 
+          size="sm" 
+          variant={isStopped ? "default" : "destructive"}
+          onClick={() => setIsStopped(!isStopped)}
+          className="w-full"
+        >
+          {isStopped ? (
+            <>
+              <Play className="w-4 h-4 mr-2" /> Start
+            </>
+          ) : (
+            <>
+              <Square className="w-4 h-4 mr-2" /> Stop
+            </>
+          )}
+        </Button>
+      )}
 
       {/* Trend Chart - Same style as Temperature chart */}
       <div className="flex-1 min-h-0 bg-background/50 rounded-lg p-2 flex flex-col gap-2">
