@@ -1,45 +1,82 @@
-import { Brain, TrendingUp, CheckCircle, XCircle, Zap, Target } from 'lucide-react';
+import { Brain, TrendingUp, TrendingDown, CheckCircle, AlertTriangle, Zap, Target, Activity, Scale, Gauge, Wind, ArrowRight, ShieldCheck, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import type { YieldData, ParameterRecommendation } from '@/types/manufacturing';
+import { Card } from '@/components/ui/card';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import type { 
+  TabletPressSignals, 
+  BatchProfile, 
+  DriftDetection, 
+  OutcomePrediction, 
+  YieldRecommendation,
+  YieldHistoryPoint 
+} from '@/types/tablet-press-yield';
 
 interface YieldOptimizationProps {
-  yieldHistory: YieldData[];
-  recommendations: ParameterRecommendation[];
+  signals: TabletPressSignals;
+  batchProfile: BatchProfile;
+  driftDetections: DriftDetection[];
+  prediction: OutcomePrediction;
+  recommendations: YieldRecommendation[];
+  yieldHistory: YieldHistoryPoint[];
   learningProgress: { episodes: number; reward: number };
-  currentYield: number;
-  targetYield: number;
-  onApproveRecommendation: (parameter: string) => void;
+  isTabletPressActive: boolean;
+  onApproveRecommendation: (id: string) => void;
 }
 
-function MiniChart({ data }: { data: YieldData[] }) {
+function SignalCard({ label, value, unit, icon: Icon, status = 'normal' }: {
+  label: string;
+  value: number;
+  unit: string;
+  icon: React.ElementType;
+  status?: 'normal' | 'warning' | 'critical';
+}) {
+  const statusColors = {
+    normal: 'text-primary',
+    warning: 'text-warning',
+    critical: 'text-destructive',
+  };
+
+  return (
+    <div className="bg-muted/30 rounded-lg p-2 flex items-center gap-2">
+      <Icon className={`w-4 h-4 ${statusColors[status]}`} />
+      <div className="flex-1 min-w-0">
+        <div className="text-[10px] text-muted-foreground truncate">{label}</div>
+        <div className={`text-sm font-bold ${statusColors[status]}`}>
+          {value.toFixed(1)} <span className="text-[10px] font-normal">{unit}</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function MiniYieldChart({ data }: { data: YieldHistoryPoint[] }) {
+  if (data.length === 0) return null;
+  
   const maxYield = Math.max(...data.map(d => Math.max(d.actualYield, d.predictedYield)));
   const minYield = Math.min(...data.map(d => Math.min(d.actualYield, d.predictedYield)));
   const range = maxYield - minYield || 1;
 
   return (
-    <div className="h-24 flex items-end gap-0.5">
-      {data.slice(-15).map((d, idx) => {
+    <div className="h-16 flex items-end gap-0.5">
+      {data.slice(-12).map((d, idx) => {
         const actualHeight = ((d.actualYield - minYield) / range) * 100;
         const predictedHeight = ((d.predictedYield - minYield) / range) * 100;
         
         return (
           <div key={idx} className="flex-1 flex flex-col items-center gap-0.5 relative group">
-            {/* Predicted (background) */}
             <div 
               className="absolute bottom-0 w-full bg-primary/20 rounded-t"
               style={{ height: `${predictedHeight}%` }}
             />
-            {/* Actual (foreground) */}
             <div 
               className="relative w-full bg-primary rounded-t transition-all hover:bg-primary/80"
               style={{ height: `${actualHeight}%` }}
             />
-            {/* Tooltip */}
             <div className="absolute bottom-full mb-1 left-1/2 -translate-x-1/2 bg-popover border border-border rounded px-1.5 py-0.5 text-[10px] opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10 pointer-events-none">
               <div>Actual: {d.actualYield.toFixed(1)}%</div>
-              <div>Predicted: {d.predictedYield.toFixed(1)}%</div>
+              <div>Target: {d.target}%</div>
             </div>
           </div>
         );
@@ -48,23 +85,61 @@ function MiniChart({ data }: { data: YieldData[] }) {
   );
 }
 
+function DriftAlert({ drift }: { drift: DriftDetection }) {
+  const severityColors = {
+    low: 'bg-muted text-muted-foreground',
+    medium: 'bg-warning/20 text-warning border-warning/30',
+    high: 'bg-destructive/20 text-destructive border-destructive/30',
+  };
+
+  return (
+    <div className={`p-2 rounded border ${severityColors[drift.severity]}`}>
+      <div className="flex items-center gap-2">
+        {drift.direction === 'increasing' ? (
+          <TrendingUp className="w-3 h-3" />
+        ) : (
+          <TrendingDown className="w-3 h-3" />
+        )}
+        <span className="text-xs font-medium capitalize">{drift.parameter}</span>
+        <Badge variant="outline" className="text-[9px] px-1 py-0">
+          {drift.direction} {drift.magnitude.toFixed(1)}%
+        </Badge>
+      </div>
+      <p className="text-[10px] mt-1 opacity-80">{drift.description}</p>
+    </div>
+  );
+}
+
 function RecommendationCard({ 
   rec, 
   onApprove 
 }: { 
-  rec: ParameterRecommendation; 
+  rec: YieldRecommendation; 
   onApprove: () => void;
 }) {
   return (
-    <div className={`p-2 rounded border ${rec.approved ? 'border-success/30 bg-success/10' : 'border-border bg-muted/30'}`}>
-      <div className="flex justify-between items-start mb-1">
-        <span className="text-xs font-medium">{rec.parameter}</span>
+    <div className={`p-2.5 rounded-lg border transition-all ${
+      rec.approved 
+        ? 'border-success/30 bg-success/10' 
+        : 'border-primary/30 bg-primary/5 hover:bg-primary/10'
+    }`}>
+      <div className="flex justify-between items-start gap-2 mb-1.5">
+        <div className="flex items-center gap-1.5">
+          <Badge variant={rec.riskLevel === 'low' ? 'secondary' : 'outline'} className="text-[9px] px-1.5 py-0">
+            {rec.riskLevel === 'low' ? <ShieldCheck className="w-2.5 h-2.5 mr-0.5" /> : null}
+            {rec.riskLevel} risk
+          </Badge>
+          <span className="text-xs font-medium">{rec.parameter}</span>
+        </div>
         {rec.approved ? (
-          <CheckCircle className="w-4 h-4 text-success" />
+          <div className="flex items-center gap-1 text-success">
+            <CheckCircle className="w-4 h-4" />
+            <span className="text-[10px]">Applied</span>
+          </div>
         ) : (
           <Button 
             size="sm" 
-            variant="ghost" 
+            variant="default" 
             className="h-6 px-2 text-[10px]"
             onClick={onApprove}
           >
@@ -72,117 +147,247 @@ function RecommendationCard({
           </Button>
         )}
       </div>
-      <div className="flex items-center gap-2 text-[10px]">
-        <span className="text-muted-foreground">{rec.currentValue}</span>
-        <span className="text-primary">→</span>
-        <span className="font-medium text-primary">{rec.recommendedValue}</span>
+      
+      <div className="flex items-center gap-2 text-xs mb-1">
+        <span className="text-muted-foreground font-mono">{rec.currentValue.toFixed(1)}</span>
+        <ArrowRight className="w-3 h-3 text-primary" />
+        <span className="font-bold text-primary font-mono">{rec.recommendedValue.toFixed(1)}</span>
+        <span className="text-muted-foreground">{rec.unit}</span>
+        <Badge variant="outline" className="text-[9px] px-1 py-0 text-success">
+          {rec.adjustment}
+        </Badge>
       </div>
-      <div className="flex items-center gap-1 mt-1">
-        <TrendingUp className="w-3 h-3 text-success" />
-        <span className="text-[10px] text-success">+{rec.expectedImprovement.toFixed(1)}% yield</span>
+      
+      <div className="flex items-center justify-between">
+        <p className="text-[10px] text-muted-foreground flex-1">{rec.reasoning}</p>
+        <div className="flex items-center gap-1 ml-2">
+          <TrendingUp className="w-3 h-3 text-success" />
+          <span className="text-[10px] font-medium text-success">+{rec.expectedImprovement.toFixed(2)}%</span>
+        </div>
+      </div>
+      
+      <div className="flex items-center gap-1 mt-1 text-[9px] text-muted-foreground">
+        <span>SOP range: {rec.sopMin} - {rec.sopMax} {rec.unit}</span>
       </div>
     </div>
   );
 }
 
 export function YieldOptimization({ 
-  yieldHistory, 
-  recommendations, 
+  signals,
+  batchProfile,
+  driftDetections,
+  prediction,
+  recommendations,
+  yieldHistory,
   learningProgress,
-  currentYield,
-  targetYield,
+  isTabletPressActive,
   onApproveRecommendation 
 }: YieldOptimizationProps) {
-  const avgYield = yieldHistory.length > 0 
-    ? yieldHistory.reduce((acc, d) => acc + d.actualYield, 0) / yieldHistory.length 
-    : 0;
-  const yieldGap = targetYield - avgYield;
+  
+  if (!isTabletPressActive) {
+    return (
+      <div className="h-full flex flex-col items-center justify-center text-center p-8">
+        <div className="w-16 h-16 rounded-full bg-muted/50 flex items-center justify-center mb-4">
+          <Activity className="w-8 h-8 text-muted-foreground" />
+        </div>
+        <h3 className="text-lg font-semibold mb-2">Tablet Press Standby</h3>
+        <p className="text-sm text-muted-foreground max-w-md">
+          Yield optimization will activate once the blending discharge step is complete and the tablet press begins operation.
+        </p>
+        <div className="flex items-center gap-2 mt-4 text-xs text-muted-foreground">
+          <Clock className="w-4 h-4" />
+          <span>Waiting for tablet press activation...</span>
+        </div>
+      </div>
+    );
+  }
+
+  const pendingRecommendations = recommendations.filter(r => !r.approved);
+  const approvedRecommendations = recommendations.filter(r => r.approved);
 
   return (
-    <div className="h-full flex flex-col gap-3">
-      {/* Current Performance */}
-      <div className="grid grid-cols-2 gap-2">
-        <div className="bg-muted/30 rounded-lg p-2">
-          <div className="flex items-center gap-1 text-[10px] text-muted-foreground mb-1">
-            <Target className="w-3 h-3" />
-            Current Batch
+    <ScrollArea className="h-full">
+      <div className="space-y-4 pr-4">
+        {/* Real-time Signals Grid */}
+        <div>
+          <div className="flex items-center gap-2 mb-2">
+            <Activity className="w-4 h-4 text-primary" />
+            <span className="text-xs font-medium">Real-time Tablet Press Signals</span>
           </div>
-          <div className="text-xl font-bold text-primary">{currentYield.toFixed(1)}%</div>
-          <div className="text-[10px] text-muted-foreground">Target: {targetYield}%</div>
-        </div>
-        <div className="bg-muted/30 rounded-lg p-2">
-          <div className="flex items-center gap-1 text-[10px] text-muted-foreground mb-1">
-            <TrendingUp className="w-3 h-3" />
-            Avg (20 batches)
-          </div>
-          <div className="text-xl font-bold">{avgYield.toFixed(1)}%</div>
-          <div className={`text-[10px] ${yieldGap > 0 ? 'text-warning' : 'text-success'}`}>
-            {yieldGap > 0 ? `-${yieldGap.toFixed(1)}%` : `+${Math.abs(yieldGap).toFixed(1)}%`} from target
+          <div className="grid grid-cols-4 gap-2">
+            <SignalCard label="Weight" value={signals.weight} unit="mg" icon={Scale} />
+            <SignalCard label="Thickness" value={signals.thickness} unit="mm" icon={Gauge} />
+            <SignalCard label="Hardness" value={signals.hardness} unit="kP" icon={Zap} />
+            <SignalCard label="Turret" value={signals.turretSpeed} unit="rpm" icon={Activity} />
+            <SignalCard label="Feeder" value={signals.feederSpeed} unit="rpm" icon={Wind} />
+            <SignalCard label="Vacuum" value={signals.vacuum} unit="mbar" icon={Wind} />
+            <SignalCard label="Pre-Comp" value={signals.preCompressionForce} unit="kN" icon={Target} />
+            <SignalCard label="Main-Comp" value={signals.mainCompressionForce} unit="kN" icon={Target} />
           </div>
         </div>
-      </div>
 
-      {/* Yield History Chart */}
-      <div className="flex-1 min-h-0">
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-xs text-muted-foreground">Yield Trend (Last 15 Batches)</span>
-          <div className="flex items-center gap-2">
-            <div className="flex items-center gap-1">
-              <div className="w-2 h-2 bg-primary rounded" />
-              <span className="text-[10px] text-muted-foreground">Actual</span>
+        {/* Batch Profile */}
+        <div className="grid grid-cols-2 gap-3">
+          <Card className="p-3 bg-muted/30 border-0">
+            <div className="flex items-center gap-2 mb-2">
+              <Target className="w-4 h-4 text-primary" />
+              <span className="text-xs font-medium">Current Batch Profile</span>
             </div>
-            <div className="flex items-center gap-1">
-              <div className="w-2 h-2 bg-primary/30 rounded" />
-              <span className="text-[10px] text-muted-foreground">Predicted</span>
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <div className="text-[10px] text-muted-foreground">Avg Weight</div>
+                <div className="text-sm font-bold">{batchProfile.avgWeight.toFixed(1)} mg</div>
+              </div>
+              <div>
+                <div className="text-[10px] text-muted-foreground">Weight %RSD</div>
+                <div className={`text-sm font-bold ${batchProfile.weightRSD > 2 ? 'text-warning' : 'text-success'}`}>
+                  {batchProfile.weightRSD.toFixed(2)}%
+                </div>
+              </div>
+              <div>
+                <div className="text-[10px] text-muted-foreground">In-Spec Rate</div>
+                <div className={`text-sm font-bold ${batchProfile.inSpecPercentage < 98 ? 'text-warning' : 'text-success'}`}>
+                  {batchProfile.inSpecPercentage.toFixed(1)}%
+                </div>
+              </div>
+              <div>
+                <div className="text-[10px] text-muted-foreground">Rejects/min</div>
+                <div className={`text-sm font-bold ${batchProfile.rejectRate > 5 ? 'text-destructive' : batchProfile.rejectRate > 2 ? 'text-warning' : 'text-foreground'}`}>
+                  {batchProfile.rejectRate.toFixed(1)}
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
-        <MiniChart data={yieldHistory} />
-      </div>
+            <div className="mt-2 pt-2 border-t border-border">
+              <div className="flex justify-between text-[10px]">
+                <span className="text-muted-foreground">Tablets Produced</span>
+                <span className="font-mono">{batchProfile.tabletsProduced.toLocaleString()}</span>
+              </div>
+              <div className="flex justify-between text-[10px]">
+                <span className="text-muted-foreground">Rate</span>
+                <span className="font-mono">{batchProfile.tabletsPerMinute.toLocaleString()}/min</span>
+              </div>
+            </div>
+          </Card>
 
-      {/* RL Learning Progress */}
-      <div className="bg-primary/10 rounded-lg p-2">
-        <div className="flex items-center gap-2 mb-2">
-          <Brain className="w-4 h-4 text-primary" />
-          <span className="text-xs font-medium">RL Model Status</span>
+          {/* Outcome Prediction */}
+          <Card className="p-3 bg-primary/5 border-primary/20">
+            <div className="flex items-center gap-2 mb-2">
+              <Brain className="w-4 h-4 text-primary" />
+              <span className="text-xs font-medium">AI Outcome Prediction</span>
+              <Badge variant="outline" className="text-[9px] px-1 ml-auto">
+                {(prediction.confidenceLevel * 100).toFixed(0)}% conf
+              </Badge>
+            </div>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] text-muted-foreground">Current trajectory</span>
+                <span className={`text-sm font-bold ${prediction.currentYield < 95 ? 'text-warning' : ''}`}>
+                  {prediction.currentYield.toFixed(1)}% yield
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] text-muted-foreground">With corrections</span>
+                <span className="text-sm font-bold text-success">
+                  {prediction.correctedYield.toFixed(1)}% yield
+                </span>
+              </div>
+              <div className="h-px bg-border my-1" />
+              <div className="flex items-center justify-between text-[10px]">
+                <span className="text-muted-foreground">Potential improvement</span>
+                <Badge variant="secondary" className="text-success">
+                  +{(prediction.correctedYield - prediction.currentYield).toFixed(2)}%
+                </Badge>
+              </div>
+            </div>
+          </Card>
         </div>
-        <div className="grid grid-cols-2 gap-2">
+
+        {/* Drift Detection */}
+        {driftDetections.length > 0 && (
           <div>
-            <div className="text-[10px] text-muted-foreground">Episodes</div>
-            <div className="text-sm font-mono">{learningProgress.episodes.toLocaleString()}</div>
-          </div>
-          <div>
-            <div className="text-[10px] text-muted-foreground">Reward Score</div>
-            <div className="flex items-center gap-1">
-              <Progress value={learningProgress.reward * 100} className="h-1.5 flex-1" />
-              <span className="text-[10px] font-mono">{(learningProgress.reward * 100).toFixed(0)}%</span>
+            <div className="flex items-center gap-2 mb-2">
+              <AlertTriangle className="w-4 h-4 text-warning" />
+              <span className="text-xs font-medium">Early Drift Detection</span>
+              <Badge variant="outline" className="text-[9px] px-1">
+                {driftDetections.length} active
+              </Badge>
+            </div>
+            <div className="grid gap-2">
+              {driftDetections.slice(0, 3).map((drift) => (
+                <DriftAlert key={drift.id} drift={drift} />
+              ))}
             </div>
           </div>
-        </div>
-      </div>
+        )}
 
-      {/* Parameter Recommendations */}
-      <div>
-        <div className="flex items-center gap-2 mb-2">
-          <Zap className="w-4 h-4 text-warning" />
-          <span className="text-xs text-muted-foreground">AI Recommendations</span>
+        {/* AI Recommendations */}
+        <div>
+          <div className="flex items-center gap-2 mb-2">
+            <Zap className="w-4 h-4 text-primary" />
+            <span className="text-xs font-medium">AI Micro-Adjustments</span>
+            {pendingRecommendations.length > 0 && (
+              <Badge variant="default" className="text-[9px] px-1.5">
+                {pendingRecommendations.length} pending
+              </Badge>
+            )}
+          </div>
+          <div className="grid gap-2">
+            {recommendations.slice(0, 4).map((rec) => (
+              <RecommendationCard 
+                key={rec.id} 
+                rec={rec} 
+                onApprove={() => onApproveRecommendation(rec.id)}
+              />
+            ))}
+          </div>
         </div>
-        <div className="grid gap-2">
-          {recommendations.slice(0, 2).map((rec, idx) => (
-            <RecommendationCard 
-              key={idx} 
-              rec={rec} 
-              onApprove={() => onApproveRecommendation(rec.parameter)}
-            />
-          ))}
-        </div>
-      </div>
 
-      {/* Data input indicator */}
-      <div className="flex items-center justify-center gap-2 text-[10px] text-muted-foreground">
-        <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-        <span>Receiving real-time blend data from Digital Twin</span>
+        {/* Yield History */}
+        <div>
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs text-muted-foreground">Yield Trend (Last 12 Batches)</span>
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1">
+                <div className="w-2 h-2 bg-primary rounded" />
+                <span className="text-[10px] text-muted-foreground">Actual</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <div className="w-2 h-2 bg-primary/30 rounded" />
+                <span className="text-[10px] text-muted-foreground">Predicted</span>
+              </div>
+            </div>
+          </div>
+          <MiniYieldChart data={yieldHistory} />
+        </div>
+
+        {/* RL Model Status */}
+        <Card className="p-3 bg-muted/30 border-0">
+          <div className="flex items-center gap-2 mb-2">
+            <Brain className="w-4 h-4 text-primary" />
+            <span className="text-xs font-medium">RL Model Status</span>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <div className="text-[10px] text-muted-foreground">Training Episodes</div>
+              <div className="text-sm font-mono">{learningProgress.episodes.toLocaleString()}</div>
+            </div>
+            <div>
+              <div className="text-[10px] text-muted-foreground">Reward Score</div>
+              <div className="flex items-center gap-2">
+                <Progress value={learningProgress.reward * 100} className="h-1.5 flex-1" />
+                <span className="text-[10px] font-mono">{(learningProgress.reward * 100).toFixed(0)}%</span>
+              </div>
+            </div>
+          </div>
+        </Card>
+
+        {/* Data input indicator */}
+        <div className="flex items-center justify-center gap-2 text-[10px] text-muted-foreground pb-2">
+          <div className="w-2 h-2 rounded-full bg-success animate-pulse" />
+          <span>Receiving real-time data from Tablet Press</span>
+        </div>
       </div>
-    </div>
+    </ScrollArea>
   );
 }
