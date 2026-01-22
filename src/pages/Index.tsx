@@ -9,6 +9,7 @@ import { BatchScheduling } from '@/components/dashboard/BatchScheduling';
 import { ControlPanel } from '@/components/dashboard/ControlPanel';
 import { AlertFeed } from '@/components/dashboard/AlertFeed';
 import { useSimulation } from '@/hooks/useSimulation';
+import { useMaintenanceWorkflow } from '@/hooks/useMaintenanceWorkflow';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const Index = () => {
@@ -30,6 +31,16 @@ const Index = () => {
     parameterHistory,
     actions,
   } = useSimulation();
+
+  const {
+    technicians,
+    spares,
+    workOrders,
+    purchaseOrders,
+    maintenanceDecisions,
+    maintenanceLogs,
+    processMaintenanceDecision,
+  } = useMaintenanceWorkflow(components, schedule);
 
   const isRunning = batch.state === 'blending' || batch.state === 'loading';
 
@@ -71,6 +82,13 @@ const Index = () => {
           vibration={parameters.vibration}
           motorLoad={parameters.motorLoad}
           temperature={parameters.temperature}
+          technicians={technicians}
+          spares={spares}
+          workOrders={workOrders}
+          purchaseOrders={purchaseOrders}
+          maintenanceDecisions={maintenanceDecisions}
+          maintenanceLogs={maintenanceLogs}
+          onTriggerAnalysis={processMaintenanceDecision}
         />
       ),
     },
