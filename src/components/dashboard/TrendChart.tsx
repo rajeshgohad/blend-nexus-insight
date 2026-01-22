@@ -1,6 +1,4 @@
-import { useState } from 'react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import type { ParameterHistoryPoint } from '@/types/manufacturing';
 import { format } from 'date-fns';
 
@@ -8,88 +6,97 @@ interface TrendChartProps {
   parameterHistory: ParameterHistoryPoint[];
 }
 
-type ParameterType = 'motorLoad' | 'temperature' | 'blenderSpeed';
+interface SingleChartProps {
+  data: { time: string; value: number }[];
+  label: string;
+  unit: string;
+  color: string;
+  min: number;
+  max: number;
+}
 
-const parameterConfig: Record<ParameterType, { label: string; unit: string; color: string; min: number; max: number }> = {
-  motorLoad: { label: 'Motor Load', unit: '%', color: 'hsl(var(--primary))', min: 40, max: 85 },
-  temperature: { label: 'Temperature', unit: '°C', color: 'hsl(var(--warning))', min: 18, max: 28 },
-  blenderSpeed: { label: 'Blender Speed', unit: 'RPM', color: 'hsl(var(--success))', min: 0, max: 30 },
-};
-
-export function TrendChart({ parameterHistory }: TrendChartProps) {
-  const [selectedParameter, setSelectedParameter] = useState<ParameterType>('motorLoad');
-  
-  const config = parameterConfig[selectedParameter];
-  
-  const chartData = parameterHistory.map(point => ({
-    time: format(point.timestamp, 'HH:mm'),
-    value: point[selectedParameter],
-    timestamp: point.timestamp,
-  }));
-
+function SingleTrendChart({ data, label, unit, color, min, max }: SingleChartProps) {
   return (
-    <div className="flex flex-col gap-3 h-full">
-      <div className="flex items-center justify-between gap-4">
-        <span className="text-base font-semibold text-foreground">Parameter Trend (Last 6 Hours)</span>
-        <Select value={selectedParameter} onValueChange={(v) => setSelectedParameter(v as ParameterType)}>
-          <SelectTrigger className="w-48 h-10 text-sm bg-background">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent className="bg-popover border-border z-50">
-            <SelectItem value="motorLoad" className="text-sm">Motor Load (%)</SelectItem>
-            <SelectItem value="temperature" className="text-sm">Temperature (°C)</SelectItem>
-            <SelectItem value="blenderSpeed" className="text-sm">Blender Speed (RPM)</SelectItem>
-          </SelectContent>
-        </Select>
+    <div className="flex flex-col gap-2 flex-1">
+      <div className="flex items-center justify-between">
+        <span className="text-sm font-semibold text-foreground">{label}</span>
+        <span className="text-xs text-muted-foreground">Last 6 hours</span>
       </div>
-      
-      <div className="flex-1 min-h-[180px]">
+      <div className="flex-1 min-h-[120px]">
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={chartData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+          <LineChart data={data} margin={{ top: 5, right: 10, left: -10, bottom: 0 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.5} />
             <XAxis 
               dataKey="time" 
               stroke="hsl(var(--muted-foreground))"
-              tick={{ fontSize: 12 }}
+              tick={{ fontSize: 10 }}
               tickLine={false}
               axisLine={false}
+              interval="preserveStartEnd"
             />
             <YAxis 
-              domain={[config.min, config.max]}
+              domain={[min, max]}
               stroke="hsl(var(--muted-foreground))"
-              tick={{ fontSize: 12 }}
+              tick={{ fontSize: 10 }}
               tickLine={false}
               axisLine={false}
-              unit={config.unit}
-              width={50}
+              width={35}
             />
             <Tooltip 
               contentStyle={{ 
                 backgroundColor: 'hsl(var(--card))', 
                 border: '1px solid hsl(var(--border))',
                 borderRadius: '8px',
-                fontSize: '13px',
+                fontSize: '12px',
               }}
               labelStyle={{ color: 'hsl(var(--foreground))' }}
-              formatter={(value: number) => [`${value.toFixed(1)} ${config.unit}`, config.label]}
-            />
-            <Legend 
-              verticalAlign="top" 
-              height={24}
-              formatter={() => `${config.label} (${config.unit})`}
+              formatter={(value: number) => [`${value.toFixed(1)} ${unit}`, label]}
             />
             <Line 
               type="monotone" 
               dataKey="value" 
-              name={config.label}
-              stroke={config.color}
+              name={label}
+              stroke={color}
               strokeWidth={2}
               dot={false}
-              activeDot={{ r: 5, strokeWidth: 2 }}
+              activeDot={{ r: 4, strokeWidth: 2 }}
             />
           </LineChart>
         </ResponsiveContainer>
       </div>
+    </div>
+  );
+}
+
+export function TrendChart({ parameterHistory }: TrendChartProps) {
+  const temperatureData = parameterHistory.map(point => ({
+    time: format(point.timestamp, 'HH:mm'),
+    value: point.temperature,
+  }));
+
+  const speedData = parameterHistory.map(point => ({
+    time: format(point.timestamp, 'HH:mm'),
+    value: point.blenderSpeed,
+  }));
+
+  return (
+    <div className="flex flex-col gap-4 h-full">
+      <SingleTrendChart 
+        data={temperatureData}
+        label="Temperature (°C)"
+        unit="°C"
+        color="hsl(var(--warning))"
+        min={18}
+        max={28}
+      />
+      <SingleTrendChart 
+        data={speedData}
+        label="Rotation Speed (RPM)"
+        unit="RPM"
+        color="hsl(var(--success))"
+        min={0}
+        max={30}
+      />
     </div>
   );
 }
