@@ -306,6 +306,53 @@ export function useSimulation() {
           }
           return { ...prev, recipe: updatedRecipe };
         }
+        
+        // Update blending sequence when blending
+        if (prev.state === 'blending') {
+          const updatedSequence = [...prev.blendingSequence];
+          let totalElapsedMinutes = 0;
+          let currentStepFound = false;
+          
+          for (let i = 0; i < updatedSequence.length; i++) {
+            const step = updatedSequence[i];
+            
+            if (step.status === 'completed') {
+              totalElapsedMinutes += step.actualMinutes;
+              continue;
+            }
+            
+            if (!currentStepFound) {
+              currentStepFound = true;
+              const newActual = step.actualMinutes + (deltaTime / 60);
+              
+              if (newActual >= step.setPointMinutes) {
+                updatedSequence[i] = { ...step, actualMinutes: step.setPointMinutes, status: 'completed' };
+                addAlert('Digital Twin', 'info', `Blending step "${step.label}" completed`);
+                
+                // Start next step if exists
+                if (i + 1 < updatedSequence.length) {
+                  updatedSequence[i + 1] = { ...updatedSequence[i + 1], status: 'in-progress' };
+                }
+              } else {
+                updatedSequence[i] = { ...step, actualMinutes: newActual, status: 'in-progress' };
+              }
+            }
+          }
+          
+          // Check if all steps completed
+          if (updatedSequence.every(s => s.status === 'completed')) {
+            addAlert('Digital Twin', 'success', 'Blending sequence completed - Batch ready for discharge');
+            return { ...prev, blendingSequence: updatedSequence, state: 'complete', endTime: new Date() };
+          }
+          
+          // Start first step if none started
+          if (!updatedSequence.some(s => s.status === 'in-progress' || s.status === 'completed')) {
+            updatedSequence[0] = { ...updatedSequence[0], status: 'in-progress' };
+          }
+          
+          return { ...prev, blendingSequence: updatedSequence };
+        }
+        
         return prev;
       });
 
