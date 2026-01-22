@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { Play, Pause, Square, AlertTriangle, RotateCcw, Zap, User, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
@@ -178,14 +178,41 @@ export function DigitalTwin({
   const dischargeStep = batch.blendingSequence.find(s => s.step === 'discharge');
   const isTabletPressActive = dischargeStep?.status === 'in-progress' || dischargeStep?.status === 'completed';
 
-  // Generate tablet press parameters with some variance
-  const tabletPressParams = useMemo(() => ({
-    turretSpeed: 45 + Math.random() * 10,
-    preCompressionForce: 3 + Math.random() * 2,
-    mainCompressionForce: 18 + Math.random() * 8,
-    vacuumLevel: -60 + Math.random() * 20,
-    punchLubrication: 65 + Math.random() * 20,
-  }), [isTabletPressActive]);
+  // Tablet press parameters state - simulates dynamically when active
+  const [tabletPressParams, setTabletPressParams] = useState({
+    turretSpeed: 0,
+    preCompressionForce: 0,
+    mainCompressionForce: 0,
+    vacuumLevel: 0,
+    punchLubrication: 0,
+  });
+
+  // Simulate tablet press parameters when discharge is active
+  useEffect(() => {
+    if (!isTabletPressActive) {
+      setTabletPressParams({
+        turretSpeed: 0,
+        preCompressionForce: 0,
+        mainCompressionForce: 0,
+        vacuumLevel: 0,
+        punchLubrication: 0,
+      });
+      return;
+    }
+
+    // Update parameters periodically to simulate real-time changes
+    const interval = setInterval(() => {
+      setTabletPressParams({
+        turretSpeed: 45 + Math.random() * 10 - 5,
+        preCompressionForce: 4 + Math.random() * 2 - 1,
+        mainCompressionForce: 22 + Math.random() * 6 - 3,
+        vacuumLevel: -50 + Math.random() * 10 - 5,
+        punchLubrication: 75 + Math.random() * 10 - 5,
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [isTabletPressActive]);
 
   return (
     <div className="h-full flex gap-4 overflow-hidden">
