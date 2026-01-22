@@ -27,6 +27,7 @@ const Index = () => {
     rftPercentage,
     learningProgress,
     availableRecipes,
+    parameterHistory,
     actions,
   } = useSimulation();
 
@@ -45,6 +46,7 @@ const Index = () => {
           parameters={parameters}
           batch={batch}
           availableRecipes={availableRecipes}
+          parameterHistory={parameterHistory}
           onStart={actions.startBatch}
           onStop={actions.stopBatch}
           onSuspend={actions.suspendBatch}

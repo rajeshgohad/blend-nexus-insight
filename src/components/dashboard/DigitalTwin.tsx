@@ -4,13 +4,15 @@ import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import type { BlenderParameters, BatchInfo, Recipe } from '@/types/manufacturing';
+import { TrendChart } from './TrendChart';
+import type { BlenderParameters, BatchInfo, Recipe, ParameterHistoryPoint } from '@/types/manufacturing';
 import { format } from 'date-fns';
 
 interface DigitalTwinProps {
   parameters: BlenderParameters;
   batch: BatchInfo;
   availableRecipes: Recipe[];
+  parameterHistory: ParameterHistoryPoint[];
   onStart: () => void;
   onStop: () => void;
   onSuspend: () => void;
@@ -131,6 +133,7 @@ export function DigitalTwin({
   parameters, 
   batch,
   availableRecipes,
+  parameterHistory,
   onStart, 
   onStop, 
   onSuspend, 
@@ -168,9 +171,9 @@ export function DigitalTwin({
   const progressPercent = totalSetPoint > 0 ? (totalActual / totalSetPoint) * 100 : 0;
 
   return (
-    <div className="h-full flex gap-6 overflow-hidden">
+    <div className="h-full flex gap-4 overflow-hidden">
       {/* Left Column - Blender Visualization & Parameters */}
-      <div className="w-[320px] flex flex-col gap-4 shrink-0">
+      <div className="w-[280px] flex flex-col gap-4 shrink-0">
         <BlenderVisualization isRunning={isRunning} speed={parameters.rotationSpeed} />
 
         {/* Parameter Gauges */}
@@ -397,6 +400,11 @@ export function DigitalTwin({
           <Zap className="w-4 h-4 text-primary animate-pulse" />
           <span>Syncing to Maintenance, QC, Yield, Scheduling</span>
         </div>
+      </div>
+
+      {/* Right Column - Trend Chart */}
+      <div className="w-[380px] shrink-0 bg-muted/30 rounded-lg p-4">
+        <TrendChart parameterHistory={parameterHistory} />
       </div>
     </div>
   );
