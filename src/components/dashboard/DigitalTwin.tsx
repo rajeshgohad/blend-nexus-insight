@@ -36,14 +36,14 @@ function Gauge({ label, value, min, max, unit, status }: {
   };
 
   return (
-    <div className="flex flex-col gap-1">
-      <div className="flex justify-between text-xs">
+    <div className="flex flex-col gap-1.5">
+      <div className="flex justify-between text-sm">
         <span className="text-muted-foreground">{label}</span>
-        <span className={`font-mono font-medium ${statusColors[status]}`}>
+        <span className={`font-mono font-semibold ${statusColors[status]}`}>
           {value.toFixed(1)} {unit}
         </span>
       </div>
-      <div className="h-2 bg-muted rounded-full overflow-hidden">
+      <div className="h-2.5 bg-muted rounded-full overflow-hidden">
         <div 
           className={`h-full transition-all duration-500 ${
             status === 'normal' ? 'bg-success' : 
@@ -52,7 +52,7 @@ function Gauge({ label, value, min, max, unit, status }: {
           style={{ width: `${Math.min(100, Math.max(0, percentage))}%` }}
         />
       </div>
-      <div className="flex justify-between text-[10px] text-muted-foreground">
+      <div className="flex justify-between text-xs text-muted-foreground">
         <span>{min}</span>
         <span>{max}</span>
       </div>
@@ -62,10 +62,10 @@ function Gauge({ label, value, min, max, unit, status }: {
 
 function BlenderVisualization({ isRunning, speed }: { isRunning: boolean; speed: number }) {
   return (
-    <div className="relative w-full h-32 flex items-center justify-center">
+    <div className="relative w-full h-36 flex items-center justify-center">
       <svg 
         viewBox="0 0 200 150" 
-        className="w-full h-full max-w-[160px]"
+        className="w-full h-full max-w-[180px]"
         style={{ transform: isRunning ? undefined : 'none' }}
       >
         <defs>
@@ -111,16 +111,16 @@ function BlenderVisualization({ isRunning, speed }: { isRunning: boolean; speed:
         <rect x="90" y="5" width="20" height="20" rx="3" fill="hsl(var(--muted))" stroke="hsl(var(--border))" />
         
         {isRunning && (
-          <text x="100" y="145" textAnchor="middle" className="fill-primary text-xs font-mono">
+          <text x="100" y="145" textAnchor="middle" className="fill-primary text-sm font-mono font-semibold">
             {speed.toFixed(1)} RPM
           </text>
         )}
       </svg>
       
       {isRunning && (
-        <div className="absolute top-2 right-2 flex items-center gap-1">
-          <div className="w-2 h-2 rounded-full bg-success animate-pulse" />
-          <span className="text-xs text-success">ACTIVE</span>
+        <div className="absolute top-2 right-2 flex items-center gap-1.5">
+          <div className="w-2.5 h-2.5 rounded-full bg-success animate-pulse" />
+          <span className="text-sm font-medium text-success">ACTIVE</span>
         </div>
       )}
     </div>
@@ -154,22 +154,27 @@ export function DigitalTwin({
   const getSequenceStatusBadge = (status: 'pending' | 'in-progress' | 'completed') => {
     switch (status) {
       case 'completed':
-        return <Badge className="bg-success/20 text-success border-success/30 text-[10px]">Done</Badge>;
+        return <Badge className="bg-success/20 text-success border-success/30 text-xs px-2 py-0.5">Done</Badge>;
       case 'in-progress':
-        return <Badge className="bg-primary/20 text-primary border-primary/30 text-[10px] animate-pulse">Active</Badge>;
+        return <Badge className="bg-primary/20 text-primary border-primary/30 text-xs px-2 py-0.5 animate-pulse">Active</Badge>;
       default:
-        return <Badge variant="outline" className="text-[10px]">Pending</Badge>;
+        return <Badge variant="outline" className="text-xs px-2 py-0.5">Pending</Badge>;
     }
   };
 
+  // Calculate total progress
+  const totalSetPoint = batch.blendingSequence.reduce((acc, s) => acc + s.setPointMinutes, 0);
+  const totalActual = batch.blendingSequence.reduce((acc, s) => acc + s.actualMinutes, 0);
+  const progressPercent = totalSetPoint > 0 ? (totalActual / totalSetPoint) * 100 : 0;
+
   return (
-    <div className="h-full flex gap-4 overflow-hidden">
+    <div className="h-full flex gap-6 overflow-hidden">
       {/* Left Column - Blender Visualization & Parameters */}
-      <div className="w-1/3 flex flex-col gap-3 min-w-[240px]">
+      <div className="w-[320px] flex flex-col gap-4 shrink-0">
         <BlenderVisualization isRunning={isRunning} speed={parameters.rotationSpeed} />
 
         {/* Parameter Gauges */}
-        <div className="grid grid-cols-2 gap-2 flex-1">
+        <div className="grid grid-cols-2 gap-3 flex-1">
           <Gauge 
             label="Rotation" 
             value={parameters.rotationSpeed} 
@@ -205,44 +210,44 @@ export function DigitalTwin({
             unit="mm/s"
             status={getStatus(parameters.vibration, 0.1, 2.5)}
           />
-          <div className="flex flex-col gap-1">
-            <div className="flex justify-between text-xs">
+          <div className="flex flex-col gap-1.5">
+            <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">Uniformity</span>
-              <span className="font-mono font-medium text-success">
+              <span className="font-mono font-semibold text-success">
                 {parameters.blendUniformity.toFixed(1)}%
               </span>
             </div>
-            <Progress value={parameters.blendUniformity} className="h-2" />
-            <div className="text-[10px] text-muted-foreground">RSD Target: ≤5%</div>
+            <Progress value={parameters.blendUniformity} className="h-2.5" />
+            <div className="text-xs text-muted-foreground">RSD Target: ≤5%</div>
           </div>
         </div>
 
         {/* Control Buttons */}
         <div className="grid grid-cols-3 gap-2">
           {batch.state === 'idle' ? (
-            <Button size="sm" onClick={onStart} className="col-span-3 bg-success hover:bg-success/90">
-              <Play className="w-4 h-4 mr-1" /> Start Batch
+            <Button size="default" onClick={onStart} className="col-span-3 bg-success hover:bg-success/90 text-base">
+              <Play className="w-5 h-5 mr-2" /> Start Batch
             </Button>
           ) : (
             <>
-              <Button size="sm" variant="outline" onClick={onStop}>
+              <Button size="default" variant="outline" onClick={onStop}>
                 <Square className="w-4 h-4 mr-1" /> Stop
               </Button>
               {isRunning ? (
-                <Button size="sm" variant="outline" onClick={onSuspend}>
+                <Button size="default" variant="outline" onClick={onSuspend}>
                   <Pause className="w-4 h-4 mr-1" /> Suspend
                 </Button>
               ) : (
-                <Button size="sm" variant="outline" onClick={onResume}>
+                <Button size="default" variant="outline" onClick={onResume}>
                   <Play className="w-4 h-4 mr-1" /> Resume
                 </Button>
               )}
               {isEmergency ? (
-                <Button size="sm" variant="outline" onClick={onEmergencyReset}>
+                <Button size="default" variant="outline" onClick={onEmergencyReset}>
                   <RotateCcw className="w-4 h-4 mr-1" /> Reset
                 </Button>
               ) : (
-                <Button size="sm" variant="destructive" onClick={onEmergencyStop}>
+                <Button size="default" variant="destructive" onClick={onEmergencyStop}>
                   <AlertTriangle className="w-4 h-4 mr-1" /> E-Stop
                 </Button>
               )}
@@ -252,50 +257,51 @@ export function DigitalTwin({
       </div>
 
       {/* Right Column - Batch Details & Sequence */}
-      <div className="flex-1 flex flex-col gap-3 overflow-hidden">
+      <div className="flex-1 flex flex-col gap-4 overflow-hidden">
         {/* Batch Info Header */}
-        <div className="bg-muted/50 rounded-lg p-3 space-y-3">
-          <div className="grid grid-cols-2 gap-3">
+        <div className="bg-muted/50 rounded-lg p-4 space-y-4">
+          <div className="grid grid-cols-2 gap-4">
             {/* Left side batch info */}
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-muted-foreground w-20">Batch #:</span>
-                <Badge variant="outline" className="text-xs font-mono">{batch.batchNumber}</Badge>
+            <div className="space-y-2.5">
+              <div className="flex items-center gap-3">
+                <span className="text-sm text-muted-foreground w-24">Batch #:</span>
+                <Badge variant="outline" className="text-sm font-mono px-2 py-0.5">{batch.batchNumber}</Badge>
               </div>
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-muted-foreground w-20">Product ID:</span>
-                <span className="text-xs font-mono text-foreground">{batch.productId}</span>
+              <div className="flex items-center gap-3">
+                <span className="text-sm text-muted-foreground w-24">Product ID:</span>
+                <span className="text-sm font-mono text-foreground">{batch.productId}</span>
               </div>
-              <div className="flex items-center gap-2">
-                <User className="w-3 h-3 text-muted-foreground" />
-                <span className="text-xs text-muted-foreground">Operator:</span>
-                <span className="text-xs text-foreground">{batch.operator.id} - {batch.operator.name}</span>
+              <div className="flex items-center gap-3">
+                <User className="w-4 h-4 text-muted-foreground" />
+                <span className="text-sm text-muted-foreground">Operator:</span>
+                <span className="text-sm font-medium text-foreground">{batch.operator.id} - {batch.operator.name}</span>
               </div>
             </div>
 
             {/* Right side time info */}
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <Clock className="w-3 h-3 text-muted-foreground" />
-                <span className="text-xs text-muted-foreground">Start:</span>
-                <span className="text-xs font-mono text-foreground">
+            <div className="space-y-2.5">
+              <div className="flex items-center gap-3">
+                <Clock className="w-4 h-4 text-muted-foreground" />
+                <span className="text-sm text-muted-foreground">Start:</span>
+                <span className="text-sm font-mono text-foreground">
                   {batch.startTime ? format(batch.startTime, 'yyyy-MM-dd HH:mm:ss') : '--'}
                 </span>
               </div>
-              <div className="flex items-center gap-2">
-                <Clock className="w-3 h-3 text-muted-foreground" />
-                <span className="text-xs text-muted-foreground">End:</span>
-                <span className="text-xs font-mono text-foreground">
+              <div className="flex items-center gap-3">
+                <Clock className="w-4 h-4 text-muted-foreground" />
+                <span className="text-sm text-muted-foreground">End:</span>
+                <span className="text-sm font-mono text-foreground">
                   {batch.endTime ? format(batch.endTime, 'yyyy-MM-dd HH:mm:ss') : '--'}
                 </span>
               </div>
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-muted-foreground">State:</span>
+              <div className="flex items-center gap-3">
+                <span className="text-sm text-muted-foreground">State:</span>
                 <Badge 
-                  className={`text-[10px] ${
+                  className={`text-xs px-2 py-0.5 ${
                     batch.state === 'blending' ? 'bg-success/20 text-success' :
                     batch.state === 'emergency-stop' ? 'bg-destructive/20 text-destructive' :
                     batch.state === 'loading' ? 'bg-primary/20 text-primary' :
+                    batch.state === 'complete' ? 'bg-success/20 text-success' :
                     'bg-muted text-muted-foreground'
                   }`}
                 >
@@ -306,19 +312,19 @@ export function DigitalTwin({
           </div>
 
           {/* Recipe Selector */}
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-muted-foreground">Recipe:</span>
+          <div className="flex items-center gap-3">
+            <span className="text-sm text-muted-foreground">Recipe:</span>
             <Select 
               value={batch.recipeId} 
               onValueChange={onSelectRecipe}
               disabled={!isIdle}
             >
-              <SelectTrigger className="flex-1 h-8 text-xs bg-background">
+              <SelectTrigger className="flex-1 h-9 text-sm bg-background">
                 <SelectValue placeholder="Select recipe" />
               </SelectTrigger>
               <SelectContent className="bg-popover border-border z-50">
                 {availableRecipes.map(recipe => (
-                  <SelectItem key={recipe.id} value={recipe.id} className="text-xs">
+                  <SelectItem key={recipe.id} value={recipe.id} className="text-sm">
                     {recipe.name}
                   </SelectItem>
                 ))}
@@ -327,12 +333,12 @@ export function DigitalTwin({
           </div>
 
           {/* Ingredients */}
-          <div className="flex flex-wrap gap-1">
+          <div className="flex flex-wrap gap-1.5">
             {batch.recipe.map((item, idx) => (
               <Badge 
                 key={idx} 
                 variant={item.added ? "default" : "outline"}
-                className="text-[10px]"
+                className="text-xs px-2 py-0.5"
               >
                 {item.ingredient.split(' ')[0]} ({item.quantity}{item.unit})
               </Badge>
@@ -340,29 +346,45 @@ export function DigitalTwin({
           </div>
         </div>
 
+        {/* Progress Bar */}
+        {batch.state !== 'idle' && (
+          <div className="space-y-1.5">
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">Overall Progress</span>
+              <span className="font-mono font-semibold text-primary">{progressPercent.toFixed(1)}%</span>
+            </div>
+            <Progress value={progressPercent} className="h-3" />
+          </div>
+        )}
+
         {/* Blending Sequence Table */}
         <div className="flex-1 overflow-auto">
-          <div className="text-xs font-medium text-muted-foreground mb-2">Blending Sequence Status</div>
+          <div className="text-sm font-semibold text-foreground mb-2">Blending Sequence Status</div>
           <div className="border rounded-lg overflow-hidden">
             <Table>
               <TableHeader>
                 <TableRow className="bg-muted/50">
-                  <TableHead className="text-xs py-2 h-8">Step</TableHead>
-                  <TableHead className="text-xs py-2 h-8 text-center">Set Point (min)</TableHead>
-                  <TableHead className="text-xs py-2 h-8 text-center">Actual (min)</TableHead>
-                  <TableHead className="text-xs py-2 h-8 text-center">Status</TableHead>
+                  <TableHead className="text-sm py-3 h-10 font-semibold">Step</TableHead>
+                  <TableHead className="text-sm py-3 h-10 text-center font-semibold">Set Point (min)</TableHead>
+                  <TableHead className="text-sm py-3 h-10 text-center font-semibold">Actual (min)</TableHead>
+                  <TableHead className="text-sm py-3 h-10 text-center font-semibold">Status</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {batch.blendingSequence.map((seq, idx) => (
                   <TableRow key={seq.step} className={seq.status === 'in-progress' ? 'bg-primary/5' : ''}>
-                    <TableCell className="text-xs py-2 font-medium">
-                      <span className="text-muted-foreground mr-1">{idx + 1}.</span>
+                    <TableCell className="text-sm py-3 font-medium">
+                      <span className="text-muted-foreground mr-2">{idx + 1}.</span>
                       {seq.label}
                     </TableCell>
-                    <TableCell className="text-xs py-2 text-center font-mono">{seq.setPointMinutes}</TableCell>
-                    <TableCell className="text-xs py-2 text-center font-mono">{seq.actualMinutes.toFixed(1)}</TableCell>
-                    <TableCell className="text-xs py-2 text-center">{getSequenceStatusBadge(seq.status)}</TableCell>
+                    <TableCell className="text-sm py-3 text-center font-mono">{seq.setPointMinutes}</TableCell>
+                    <TableCell className={`text-sm py-3 text-center font-mono font-semibold ${
+                      seq.status === 'in-progress' ? 'text-primary' : 
+                      seq.status === 'completed' ? 'text-success' : ''
+                    }`}>
+                      {seq.actualMinutes.toFixed(1)}
+                    </TableCell>
+                    <TableCell className="text-sm py-3 text-center">{getSequenceStatusBadge(seq.status)}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -371,8 +393,8 @@ export function DigitalTwin({
         </div>
 
         {/* Sync indicator */}
-        <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
-          <Zap className="w-3 h-3 text-primary animate-pulse" />
+        <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
+          <Zap className="w-4 h-4 text-primary animate-pulse" />
           <span>Syncing to Maintenance, QC, Yield, Scheduling</span>
         </div>
       </div>
