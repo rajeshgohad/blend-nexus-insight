@@ -26,6 +26,7 @@ const Index = () => {
     alerts,
     rftPercentage,
     learningProgress,
+    availableRecipes,
     actions,
   } = useSimulation();
 
@@ -43,12 +44,14 @@ const Index = () => {
         <DigitalTwin
           parameters={parameters}
           batch={batch}
+          availableRecipes={availableRecipes}
           onStart={actions.startBatch}
           onStop={actions.stopBatch}
           onSuspend={actions.suspendBatch}
           onResume={actions.resumeBatch}
           onEmergencyStop={actions.emergencyStop}
           onEmergencyReset={actions.emergencyReset}
+          onSelectRecipe={actions.selectRecipe}
         />
       ),
     },

@@ -1,5 +1,27 @@
 export type BatchState = 'idle' | 'loading' | 'blending' | 'sampling' | 'discharge' | 'cleaning' | 'complete' | 'emergency-stop';
 
+export type BlendingSequenceStep = 'start-delay' | 'charging' | 'pre-blend' | 'main-blend' | 'lube-pause' | 'lube-blend' | 'discharge';
+
+export interface BlendingSequenceItem {
+  step: BlendingSequenceStep;
+  label: string;
+  setPointMinutes: number;
+  actualMinutes: number;
+  status: 'pending' | 'in-progress' | 'completed';
+}
+
+export interface Operator {
+  id: string;
+  name: string;
+}
+
+export interface Recipe {
+  id: string;
+  name: string;
+  productId: string;
+  ingredients: RecipeItem[];
+}
+
 export interface BlenderParameters {
   rotationSpeed: number;
   blendTime: number;
@@ -12,11 +34,17 @@ export interface BlenderParameters {
 export interface BatchInfo {
   id: string;
   productName: string;
+  productId: string;
   batchNumber: string;
-  startTime: Date;
+  startTime: Date | null;
+  endTime: Date | null;
   targetQuantity: number;
   recipe: RecipeItem[];
+  recipeId: string;
+  recipeName: string;
   state: BatchState;
+  operator: Operator;
+  blendingSequence: BlendingSequenceItem[];
 }
 
 export interface RecipeItem {
