@@ -363,22 +363,22 @@ export function PredictiveMaintenance({
                 </div>
               </div>
 
-              {/* Anomaly Detection */}
+              {/* Anomaly Detection - Only HIGH severity */}
               <div>
                 <div className="flex items-center gap-2 mb-3">
-                  <AlertTriangle className="w-5 h-5 text-warning" />
-                  <span className="text-sm font-medium text-muted-foreground">Anomalies</span>
-                  <Badge variant="outline" className="text-xs px-2 py-1 ml-auto">
-                    {anomalies.length}
+                  <AlertTriangle className="w-5 h-5 text-destructive" />
+                  <span className="text-sm font-medium text-muted-foreground">High Priority Anomalies</span>
+                  <Badge variant="destructive" className="text-xs px-2 py-1 ml-auto">
+                    {anomalies.filter(a => a.severity === 'high').length}
                   </Badge>
                 </div>
                 <div className="space-y-3">
-                  {anomalies.length === 0 ? (
+                  {anomalies.filter(a => a.severity === 'high').length === 0 ? (
                     <div className="text-sm text-muted-foreground text-center py-4">
-                      No anomalies detected
+                      No high priority anomalies
                     </div>
                   ) : (
-                    anomalies.slice(0, 3).map((anomaly) => (
+                    anomalies.filter(a => a.severity === 'high').slice(0, 2).map((anomaly) => (
                       <AnomalyItem key={anomaly.id} anomaly={anomaly} />
                     ))
                   )}

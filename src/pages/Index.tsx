@@ -40,7 +40,7 @@ const Index = () => {
     maintenanceDecisions,
     maintenanceLogs,
     processMaintenanceDecision,
-  } = useMaintenanceWorkflow(components, schedule);
+  } = useMaintenanceWorkflow(components, schedule, anomalies);
 
   const isRunning = batch.state === 'blending' || batch.state === 'loading';
 

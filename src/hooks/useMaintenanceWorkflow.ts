@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import type {
   ComponentHealth,
   Technician,
@@ -9,6 +9,7 @@ import type {
   MaintenanceLog,
   NotificationRecord,
   ScheduledBatch,
+  Anomaly,
 } from '@/types/manufacturing';
 
 const generateId = () => Math.random().toString(36).substr(2, 9);
@@ -29,13 +30,15 @@ const initialSpares: SparePart[] = [
   { id: 'sp-006', name: 'Coupling Element', partNumber: 'CPL-VB500-002', quantity: 0, minStock: 1, leadTimeDays: 7, vendor: 'Rexnord', unitCost: 320 },
 ];
 
-export function useMaintenanceWorkflow(components: ComponentHealth[], schedule: ScheduledBatch[]) {
+export function useMaintenanceWorkflow(components: ComponentHealth[], schedule: ScheduledBatch[], anomalies: Anomaly[] = []) {
   const [technicians, setTechnicians] = useState<Technician[]>(initialTechnicians);
   const [spares, setSpares] = useState<SparePart[]>(initialSpares);
   const [workOrders, setWorkOrders] = useState<WorkOrder[]>([]);
   const [purchaseOrders, setPurchaseOrders] = useState<PurchaseOrder[]>([]);
   const [maintenanceDecisions, setMaintenanceDecisions] = useState<MaintenanceDecision[]>([]);
   const [maintenanceLogs, setMaintenanceLogs] = useState<MaintenanceLog[]>([]);
+  const processedAnomalyIds = useRef<Set<string>>(new Set());
+  const processedZeroStockIds = useRef<Set<string>>(new Set());
 
   const addLog = useCallback((action: string, details: string, actor: string = 'AI System') => {
     const log: MaintenanceLog = {
@@ -283,6 +286,65 @@ export function useMaintenanceWorkflow(components: ComponentHealth[], schedule: 
     return decision;
   }, [analyzeComponent, createWorkOrder, createPurchaseOrder, sendNotifications]);
 
+  // Create work order from high severity anomaly
+  const createWorkOrderFromAnomaly = useCallback((anomaly: Anomaly) => {
+    const skillRequired = 'senior';
+    const technician = technicians.find(t => t.available);
+    const estimatedDuration = 2;
+    const idleWindow = findIdleWindow(schedule, estimatedDuration);
+
+    const workOrder: WorkOrder = {
+      id: `WO-${Date.now().toString(36).toUpperCase()}`,
+      component: anomaly.source,
+      type: 'general',
+      status: technician ? 'scheduled' : 'pending',
+      priority: 'high',
+      assignedTechnician: technician || null,
+      scheduledTime: idleWindow?.start || null,
+      sparesRequired: [],
+      estimatedDuration,
+      createdAt: new Date(),
+      instructions: `HIGH PRIORITY: Investigate ${anomaly.description}. Source: ${anomaly.source}. Perform inspection and corrective action.`,
+      notificationsSent: [],
+    };
+
+    // Mark technician as busy
+    if (technician) {
+      setTechnicians(prev => prev.map(t => 
+        t.id === technician.id 
+          ? { ...t, available: false, currentTask: `WO: ${anomaly.source} - Anomaly`, nextAvailable: idleWindow?.end || null }
+          : t
+      ));
+    }
+
+    setWorkOrders(prev => [workOrder, ...prev]);
+    addLog('Work Order Created (Anomaly)', `WO ${workOrder.id} for high anomaly: ${anomaly.description}. Assigned: ${technician?.name || 'Pending'}. Scheduled: ${idleWindow?.start?.toLocaleString() || 'TBD'}`, 'AI System');
+
+    // Send notifications
+    sendNotifications(workOrder);
+
+    return workOrder;
+  }, [technicians, findIdleWindow, schedule, addLog, sendNotifications]);
+
+  // Auto-create purchase order for zero stock spares
+  const createPurchaseOrderForZeroStock = useCallback((spare: SparePart) => {
+    const po: PurchaseOrder = {
+      id: `PO-${Date.now().toString(36).toUpperCase()}-${spare.id}`,
+      sparePart: spare,
+      quantity: spare.minStock + 2, // Order minStock + buffer
+      vendor: spare.vendor,
+      status: 'pending',
+      createdAt: new Date(),
+      expectedDelivery: new Date(Date.now() + spare.leadTimeDays * 24 * 60 * 60 * 1000),
+      workOrderId: 'AUTO-REPLENISH',
+    };
+
+    setPurchaseOrders(prev => [po, ...prev]);
+    addLog('Purchase Order Created (Zero Stock)', `PO ${po.id} for ${spare.name} (Qty: ${po.quantity}) from ${spare.vendor}. Lead time: ${spare.leadTimeDays} days.`, 'AI System');
+
+    return po;
+  }, [addLog]);
+
   // Auto-analyze components when they change
   useEffect(() => {
     const criticalComponents = components.filter(c => c.health < 70 || c.trend === 'critical');
@@ -294,6 +356,28 @@ export function useMaintenanceWorkflow(components: ComponentHealth[], schedule: 
     });
   }, [components, maintenanceDecisions, processMaintenanceDecision]);
 
+  // Auto-create work orders for HIGH anomalies
+  useEffect(() => {
+    const highAnomalies = anomalies.filter(a => a.severity === 'high');
+    highAnomalies.forEach(anomaly => {
+      if (!processedAnomalyIds.current.has(anomaly.id)) {
+        processedAnomalyIds.current.add(anomaly.id);
+        createWorkOrderFromAnomaly(anomaly);
+      }
+    });
+  }, [anomalies, createWorkOrderFromAnomaly]);
+
+  // Auto-create purchase orders for zero stock spares
+  useEffect(() => {
+    const zeroStockSpares = spares.filter(s => s.quantity === 0);
+    zeroStockSpares.forEach(spare => {
+      if (!processedZeroStockIds.current.has(spare.id)) {
+        processedZeroStockIds.current.add(spare.id);
+        createPurchaseOrderForZeroStock(spare);
+      }
+    });
+  }, [spares, createPurchaseOrderForZeroStock]);
+
   return {
     technicians,
     spares,
@@ -303,6 +387,7 @@ export function useMaintenanceWorkflow(components: ComponentHealth[], schedule: 
     maintenanceLogs,
     processMaintenanceDecision,
     findIdleWindow,
+    createWorkOrderFromAnomaly,
   };
 }
 
