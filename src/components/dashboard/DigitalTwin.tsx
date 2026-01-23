@@ -374,25 +374,27 @@ export function DigitalTwin({
               </div>
               
               {/* Recipe & Ingredients Row */}
-              <div className="flex items-center gap-2 mt-2 pt-2 border-t border-border/50">
-                <span className="text-xs text-muted-foreground">Recipe:</span>
-                <Select 
-                  value={batch.recipeId} 
-                  onValueChange={onSelectRecipe}
-                  disabled={!isIdle}
-                >
-                  <SelectTrigger className="h-7 text-xs bg-background w-40">
-                    <SelectValue placeholder="Select recipe" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-popover border-border z-50">
-                    {availableRecipes.map(recipe => (
-                      <SelectItem key={recipe.id} value={recipe.id} className="text-xs">
-                        {recipe.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <div className="flex flex-wrap gap-1 ml-2">
+              <div className="flex flex-col gap-2 mt-2 pt-2 border-t border-border/50">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-muted-foreground">Recipe:</span>
+                  <Select 
+                    value={batch.recipeId} 
+                    onValueChange={onSelectRecipe}
+                    disabled={!isIdle}
+                  >
+                    <SelectTrigger className="h-7 text-xs bg-background w-40">
+                      <SelectValue placeholder="Select recipe" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-popover border-border z-50">
+                      {availableRecipes.map(recipe => (
+                        <SelectItem key={recipe.id} value={recipe.id} className="text-xs">
+                          {recipe.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex flex-wrap gap-1">
                   {batch.recipe.slice(0, 4).map((item, idx) => (
                     <Badge 
                       key={idx} 
