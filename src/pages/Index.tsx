@@ -1,4 +1,4 @@
-import { Cpu, Wrench, TrendingUp, Eye, Calendar } from 'lucide-react';
+import { Cpu, Wrench, TrendingUp, Eye, Calendar, ClipboardList } from 'lucide-react';
 import { Header } from '@/components/dashboard/Header';
 import { UseCaseCard } from '@/components/dashboard/UseCaseCard';
 import { DigitalTwin } from '@/components/dashboard/DigitalTwin';
@@ -6,6 +6,7 @@ import { PredictiveMaintenance } from '@/components/dashboard/PredictiveMaintena
 import { YieldOptimization } from '@/components/dashboard/YieldOptimization';
 import { ComputerVision } from '@/components/dashboard/ComputerVision';
 import { BatchScheduling } from '@/components/dashboard/BatchScheduling';
+import { BatchOrders } from '@/components/dashboard/BatchOrders';
 import { ControlPanel } from '@/components/dashboard/ControlPanel';
 import { AlertFeed } from '@/components/dashboard/AlertFeed';
 import { useSimulation } from '@/hooks/useSimulation';
@@ -155,6 +156,15 @@ const Index = () => {
           resources={resources}
         />
       ),
+    },
+    {
+      id: 'batch-orders',
+      label: 'Batch Orders',
+      icon: <ClipboardList className="w-4 h-4" />,
+      title: 'Batch Orders',
+      subtitle: 'Master Production Schedule',
+      status: 'active' as const,
+      content: <BatchOrders />,
     },
   ];
 

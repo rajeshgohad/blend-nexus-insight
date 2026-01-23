@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Progress } from '@/components/ui/progress';
 import type { ScheduledBatch, Resource } from '@/types/manufacturing';
+import { BATCH_ORDERS, groupBatchesForScheduling, type BatchOrder } from '@/data/batchMasterData';
 
 interface BatchSchedulingProps {
   schedule: ScheduledBatch[];
@@ -60,68 +61,70 @@ const generateProductionConditions = (): ProductionCondition[] => [
   { id: '8', unit: 'blending', name: 'Density Compatible', status: 'ready', detail: 'Flow properties aligned', icon: <Scale className="w-3.5 h-3.5" /> },
 ];
 
-// Generate simulated batch groups (20 batches/day example)
-const generateBatchGroups = (): BatchGroup[] => {
+// Convert BatchOrder to GroupedBatch
+const convertToGroupedBatch = (batch: BatchOrder, index: number): GroupedBatch => {
   const now = new Date();
   const baseTime = new Date(now);
   baseTime.setHours(6, 0, 0, 0);
+  
+  return {
+    id: batch.id,
+    batchNumber: batch.batchNumber,
+    productName: batch.productName,
+    drug: batch.drug,
+    density: batch.density,
+    status: batch.status === 'in-progress' ? 'in-progress' : 
+            batch.status === 'completed' ? 'completed' : 'queued',
+    startTime: new Date(baseTime.getTime() + index * batch.estimatedDuration * 60000),
+    endTime: new Date(baseTime.getTime() + (index + 1) * batch.estimatedDuration * 60000),
+  };
+};
 
-  return [
-    {
+// Generate batch groups from master data
+const generateBatchGroups = (): BatchGroup[] => {
+  const grouping = groupBatchesForScheduling();
+  
+  const groups: BatchGroup[] = [];
+  
+  if (grouping.sameDrugSameDensity.length > 0) {
+    groups.push({
       id: 'group-1',
       type: 'same-drug-same-density',
       label: 'Same Drug + Same Density',
       cleaningRequired: 'none',
-      estimatedSavings: 120,
+      estimatedSavings: grouping.sameDrugSameDensity.length * 15, // 15 min saved per batch
       color: 'bg-emerald-500',
-      batches: Array.from({ length: 8 }, (_, i) => ({
-        id: `batch-1-${i}`,
-        batchNumber: `B-${String(101 + i).padStart(3, '0')}`,
-        productName: 'Metformin 500mg',
-        drug: 'Metformin HCl',
-        density: 'medium' as const,
-        status: i < 2 ? 'completed' : i === 2 ? 'in-progress' : 'queued',
-        startTime: new Date(baseTime.getTime() + i * 45 * 60000),
-        endTime: new Date(baseTime.getTime() + (i + 1) * 45 * 60000),
-      })),
-    },
-    {
+      batches: grouping.sameDrugSameDensity.map((b, i) => convertToGroupedBatch(b, i)),
+    });
+  }
+  
+  if (grouping.sameDrugDiffDensity.length > 0) {
+    const startIndex = grouping.sameDrugSameDensity.length;
+    groups.push({
       id: 'group-2',
       type: 'same-drug-diff-density',
       label: 'Same Drug + Different Density',
       cleaningRequired: 'partial',
-      estimatedSavings: 60,
+      estimatedSavings: grouping.sameDrugDiffDensity.length * 8, // 8 min saved per batch
       color: 'bg-amber-500',
-      batches: Array.from({ length: 8 }, (_, i) => ({
-        id: `batch-2-${i}`,
-        batchNumber: `B-${String(109 + i).padStart(3, '0')}`,
-        productName: i < 4 ? 'Metformin 850mg' : 'Metformin 1000mg',
-        drug: 'Metformin HCl',
-        density: i < 4 ? 'high' as const : 'low' as const,
-        status: 'queued' as const,
-        startTime: new Date(baseTime.getTime() + (8 + i) * 45 * 60000 + 15 * 60000),
-        endTime: new Date(baseTime.getTime() + (9 + i) * 45 * 60000 + 15 * 60000),
-      })),
-    },
-    {
+      batches: grouping.sameDrugDiffDensity.map((b, i) => convertToGroupedBatch(b, startIndex + i)),
+    });
+  }
+  
+  if (grouping.diffDrugDiffDensity.length > 0) {
+    const startIndex = grouping.sameDrugSameDensity.length + grouping.sameDrugDiffDensity.length;
+    groups.push({
       id: 'group-3',
       type: 'diff-drug-diff-density',
       label: 'Different Drug + Different Density',
       cleaningRequired: 'full',
-      estimatedSavings: 30,
+      estimatedSavings: grouping.diffDrugDiffDensity.length * 5, // 5 min saved per batch (less savings for full clean)
       color: 'bg-rose-500',
-      batches: Array.from({ length: 4 }, (_, i) => ({
-        id: `batch-3-${i}`,
-        batchNumber: `B-${String(117 + i).padStart(3, '0')}`,
-        productName: i < 2 ? 'Atorvastatin 20mg' : 'Lisinopril 10mg',
-        drug: i < 2 ? 'Atorvastatin Calcium' : 'Lisinopril',
-        density: i % 2 === 0 ? 'high' as const : 'low' as const,
-        status: 'queued' as const,
-        startTime: new Date(baseTime.getTime() + (16 + i) * 45 * 60000 + 45 * 60000),
-        endTime: new Date(baseTime.getTime() + (17 + i) * 45 * 60000 + 45 * 60000),
-      })),
-    },
-  ];
+      batches: grouping.diffDrugDiffDensity.map((b, i) => convertToGroupedBatch(b, startIndex + i)),
+    });
+  }
+  
+  return groups;
 };
 
 function ConditionIndicator({ condition }: { condition: ProductionCondition }) {
