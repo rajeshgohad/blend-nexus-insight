@@ -395,7 +395,7 @@ export function DigitalTwin({
                   </Select>
                 </div>
                 <div className="flex flex-wrap gap-1">
-                  {batch.recipe.slice(0, 4).map((item, idx) => (
+                  {batch.recipe.map((item, idx) => (
                     <Badge 
                       key={idx} 
                       variant={item.added ? "default" : "outline"}
@@ -404,9 +404,6 @@ export function DigitalTwin({
                       {item.ingredient.split(' ')[0]}
                     </Badge>
                   ))}
-                  {batch.recipe.length > 4 && (
-                    <Badge variant="outline" className="text-xs px-1.5 py-0">+{batch.recipe.length - 4}</Badge>
-                  )}
                 </div>
               </div>
 
