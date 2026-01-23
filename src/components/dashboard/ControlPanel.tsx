@@ -1,11 +1,11 @@
 import { Settings, Play, Pause, RotateCcw, Download, Zap, AlertTriangle, Clock, Package, Truck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Slider } from '@/components/ui/slider';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import type { SimulationState } from '@/types/manufacturing';
+import { BATCH_ORDERS } from '@/data/batchMasterData';
 
 interface ControlPanelProps {
   simulation: SimulationState;
@@ -62,15 +62,16 @@ export function ControlPanel({
       {/* Batch Selector */}
       <div className="space-y-2 mb-6">
         <Label className="text-xs text-muted-foreground">Batch Selection</Label>
-        <Select defaultValue="current">
+        <Select defaultValue={BATCH_ORDERS.find(b => b.status === 'in-progress')?.batchNumber || BATCH_ORDERS[0].batchNumber}>
           <SelectTrigger className="h-8 text-xs">
             <SelectValue placeholder="Select batch" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="current">BN-2024-0847 (Current)</SelectItem>
-            <SelectItem value="previous1">BN-2024-0846</SelectItem>
-            <SelectItem value="previous2">BN-2024-0845</SelectItem>
-            <SelectItem value="simulate">Simulate Future</SelectItem>
+            {BATCH_ORDERS.map(batch => (
+              <SelectItem key={batch.batchNumber} value={batch.batchNumber}>
+                {batch.batchNumber} {batch.status === 'in-progress' ? '(Current)' : ''}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
       </div>
