@@ -1,9 +1,11 @@
-import { Settings, Play, Pause, RotateCcw, Download, Zap, AlertTriangle, Clock, Package, Truck } from 'lucide-react';
+import { useState } from 'react';
+import { Settings, Play, Pause, RotateCcw, Download, Zap, AlertTriangle, Clock, Package, Truck, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import type { SimulationState } from '@/types/manufacturing';
 import { BATCH_ORDERS } from '@/data/batchMasterData';
 
@@ -36,6 +38,8 @@ export function ControlPanel({
   onReset,
   onInjectScenario 
 }: ControlPanelProps) {
+  const [isCollapsed, setIsCollapsed] = useState(false);
+
   const handleExport = () => {
     const data = {
       timestamp: new Date().toISOString(),
@@ -51,12 +55,97 @@ export function ControlPanel({
     URL.revokeObjectURL(url);
   };
 
+  // Collapsed state - show only icons
+  if (isCollapsed) {
+    return (
+      <TooltipProvider>
+        <div className="h-full flex flex-col p-2 bg-sidebar border-l border-border w-14">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                size="icon"
+                variant="ghost"
+                onClick={() => setIsCollapsed(false)}
+                className="mb-4"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="left">Expand Panel</TooltipContent>
+          </Tooltip>
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                size="icon"
+                variant={simulation.isPaused ? "default" : "outline"}
+                onClick={onTogglePause}
+                className="mb-2"
+              >
+                {simulation.isPaused ? <Play className="w-4 h-4" /> : <Pause className="w-4 h-4" />}
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="left">{simulation.isPaused ? 'Play' : 'Pause'}</TooltipContent>
+          </Tooltip>
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button size="icon" variant="outline" onClick={onReset} className="mb-2">
+                <RotateCcw className="w-4 h-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="left">Reset</TooltipContent>
+          </Tooltip>
+
+          <Separator className="my-2" />
+
+          {scenarios.map(scenario => (
+            <Tooltip key={scenario.id}>
+              <TooltipTrigger asChild>
+                <Button
+                  size="icon"
+                  variant="outline"
+                  className="mb-2"
+                  onClick={() => onInjectScenario(scenario.id)}
+                >
+                  <scenario.icon className="w-4 h-4 text-warning" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="left">{scenario.label}</TooltipContent>
+            </Tooltip>
+          ))}
+
+          <div className="mt-auto">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button size="icon" variant="outline" onClick={handleExport}>
+                  <Download className="w-4 h-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="left">Export State</TooltipContent>
+            </Tooltip>
+          </div>
+        </div>
+      </TooltipProvider>
+    );
+  }
+
   return (
-    <div className="h-full flex flex-col p-4 bg-sidebar border-l border-border">
+    <div className="h-full flex flex-col p-4 bg-sidebar border-l border-border w-64">
       {/* Header */}
-      <div className="flex items-center gap-2 mb-6">
-        <Settings className="w-5 h-5 text-primary" />
-        <h2 className="text-sm font-semibold">Control Panel</h2>
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-2">
+          <Settings className="w-5 h-5 text-primary" />
+          <h2 className="text-sm font-semibold">Control Panel</h2>
+        </div>
+        <Button
+          size="icon"
+          variant="ghost"
+          className="h-6 w-6"
+          onClick={() => setIsCollapsed(true)}
+        >
+          <ChevronRight className="w-4 h-4" />
+        </Button>
       </div>
 
       {/* Batch Selector */}
