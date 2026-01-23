@@ -456,7 +456,7 @@ export function DigitalTwin({
           </div>
 
           {/* Tablet Press Visualization */}
-          <div className="flex-1 min-w-[340px]">
+          <div className="flex-1 min-w-[290px]">
             <TabletPressVisualization 
               isActive={isTabletPressActive} 
               parameters={tabletPressParams} 
