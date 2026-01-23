@@ -141,11 +141,11 @@ function ConditionIndicator({ condition }: { condition: ProductionCondition }) {
   };
 
   return (
-    <div className={`flex items-center gap-2 p-2 rounded-lg ${statusColors[condition.status]}`}>
+    <div className={`flex items-center gap-2 p-2.5 rounded-lg ${statusColors[condition.status]}`}>
       <div className="shrink-0">{condition.icon}</div>
       <div className="flex-1 min-w-0">
-        <div className="text-xs font-medium truncate">{condition.name}</div>
-        <div className="text-[10px] opacity-75 truncate">{condition.detail}</div>
+        <div className="text-sm font-medium truncate">{condition.name}</div>
+        <div className="text-xs opacity-75 truncate">{condition.detail}</div>
       </div>
       <div className="shrink-0">{statusIcons[condition.status]}</div>
     </div>
@@ -168,28 +168,28 @@ function BatchGroupCard({ group, isExpanded, onToggle }: { group: BatchGroup; is
       {/* Header */}
       <button 
         onClick={onToggle}
-        className="w-full flex items-center gap-3 p-3 hover:bg-muted/30 transition-colors"
+        className="w-full flex items-center gap-3 p-4 hover:bg-muted/30 transition-colors"
       >
-        <div className={`w-1.5 h-10 rounded-full ${group.color}`} />
+        <div className={`w-1.5 h-12 rounded-full ${group.color}`} />
         <div className="flex-1 text-left">
           <div className="flex items-center gap-2">
-            <span className="text-sm font-semibold">{group.batches.length} Batches</span>
-            <Badge variant="outline" className={`text-[10px] ${cleaningLabels[group.cleaningRequired].color}`}>
+            <span className="text-base font-semibold">{group.batches.length} Batches</span>
+            <Badge variant="outline" className={`text-xs ${cleaningLabels[group.cleaningRequired].color}`}>
               {cleaningLabels[group.cleaningRequired].text}
             </Badge>
           </div>
-          <div className="text-xs text-muted-foreground mt-0.5">{group.label}</div>
+          <div className="text-sm text-muted-foreground mt-0.5">{group.label}</div>
         </div>
         <div className="text-right">
-          <div className="text-sm font-bold text-emerald-400">+{group.estimatedSavings}min</div>
-          <div className="text-[10px] text-muted-foreground">saved</div>
+          <div className="text-base font-bold text-emerald-400">+{group.estimatedSavings}min</div>
+          <div className="text-xs text-muted-foreground">saved</div>
         </div>
       </button>
 
       {/* Progress bar */}
-      <div className="px-3 pb-2">
-        <Progress value={progress} className="h-1.5" />
-        <div className="flex justify-between text-[10px] text-muted-foreground mt-1">
+      <div className="px-4 pb-3">
+        <Progress value={progress} className="h-2" />
+        <div className="flex justify-between text-xs text-muted-foreground mt-1">
           <span>{completedCount}/{group.batches.length} completed</span>
           {inProgressCount > 0 && <span className="text-primary">1 in progress</span>}
         </div>
@@ -197,17 +197,17 @@ function BatchGroupCard({ group, isExpanded, onToggle }: { group: BatchGroup; is
 
       {/* Expanded batch list */}
       {isExpanded && (
-        <div className="px-3 pb-3 space-y-1.5 border-t border-border/30 pt-2">
+        <div className="px-4 pb-4 space-y-2 border-t border-border/30 pt-3">
           {group.batches.map((batch, idx) => (
             <div 
               key={batch.id}
-              className={`flex items-center gap-2 p-2 rounded text-xs ${
+              className={`flex items-center gap-3 p-3 rounded text-sm ${
                 batch.status === 'completed' ? 'bg-muted/30 opacity-60' :
                 batch.status === 'in-progress' ? 'bg-primary/20 ring-1 ring-primary/50' :
                 'bg-muted/20'
               }`}
             >
-              <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-medium ${
+              <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium ${
                 batch.status === 'completed' ? 'bg-emerald-500/20 text-emerald-400' :
                 batch.status === 'in-progress' ? 'bg-primary text-primary-foreground' :
                 'bg-muted text-muted-foreground'
@@ -216,9 +216,9 @@ function BatchGroupCard({ group, isExpanded, onToggle }: { group: BatchGroup; is
               </div>
               <div className="flex-1 min-w-0">
                 <div className="font-medium truncate">{batch.batchNumber}</div>
-                <div className="text-[10px] text-muted-foreground truncate">{batch.productName}</div>
+                <div className="text-xs text-muted-foreground truncate">{batch.productName}</div>
               </div>
-              <Badge variant="outline" className="text-[9px] shrink-0">
+              <Badge variant="outline" className="text-xs shrink-0">
                 {batch.density}
               </Badge>
               {batch.status === 'in-progress' && (
@@ -247,7 +247,7 @@ function ProductionUnitStatus({ unit, conditions }: { unit: ProductionUnit; cond
   };
 
   return (
-    <div className={`flex items-center gap-2 p-2 rounded-lg border ${
+    <div className={`flex items-center gap-2 p-2.5 rounded-lg border ${
       allReady ? 'border-emerald-500/30 bg-emerald-500/5' :
       hasBlocked ? 'border-rose-500/30 bg-rose-500/5' :
       'border-amber-500/30 bg-amber-500/5'
@@ -259,7 +259,7 @@ function ProductionUnitStatus({ unit, conditions }: { unit: ProductionUnit; cond
       }`}>
         {unitLabels[unit].icon}
       </div>
-      <span className="text-xs font-medium">{unitLabels[unit].label}</span>
+      <span className="text-sm font-medium">{unitLabels[unit].label}</span>
       <div className={`ml-auto w-2 h-2 rounded-full ${
         allReady ? 'bg-emerald-500' :
         hasBlocked ? 'bg-rose-500' :
@@ -288,37 +288,37 @@ export function BatchScheduling({ schedule, resources }: BatchSchedulingProps) {
       {/* Left Panel - Batch Grouping */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Header Stats */}
-        <div className="grid grid-cols-4 gap-2 mb-4">
-          <div className="bg-card/50 rounded-lg p-3 border border-border/50">
-            <div className="text-[10px] text-muted-foreground uppercase tracking-wide">Total Batches</div>
-            <div className="text-2xl font-bold mt-1">{totalBatches}</div>
+        <div className="grid grid-cols-4 gap-3 mb-4">
+          <div className="bg-card/50 rounded-lg p-4 border border-border/50">
+            <div className="text-xs text-muted-foreground uppercase tracking-wide">Total Batches</div>
+            <div className="text-3xl font-bold mt-1">{totalBatches}</div>
           </div>
-          <div className="bg-card/50 rounded-lg p-3 border border-border/50">
-            <div className="text-[10px] text-muted-foreground uppercase tracking-wide">Completed</div>
-            <div className="text-2xl font-bold text-emerald-400 mt-1">{completedBatches}</div>
+          <div className="bg-card/50 rounded-lg p-4 border border-border/50">
+            <div className="text-xs text-muted-foreground uppercase tracking-wide">Completed</div>
+            <div className="text-3xl font-bold text-emerald-400 mt-1">{completedBatches}</div>
           </div>
-          <div className="bg-card/50 rounded-lg p-3 border border-border/50">
-            <div className="text-[10px] text-muted-foreground uppercase tracking-wide">Time Saved</div>
-            <div className="text-2xl font-bold text-primary mt-1">{totalSavings}m</div>
+          <div className="bg-card/50 rounded-lg p-4 border border-border/50">
+            <div className="text-xs text-muted-foreground uppercase tracking-wide">Time Saved</div>
+            <div className="text-3xl font-bold text-primary mt-1">{totalSavings}m</div>
           </div>
-          <div className="bg-card/50 rounded-lg p-3 border border-border/50">
-            <div className="text-[10px] text-muted-foreground uppercase tracking-wide">Efficiency</div>
-            <div className="text-2xl font-bold text-amber-400 mt-1">+42%</div>
+          <div className="bg-card/50 rounded-lg p-4 border border-border/50">
+            <div className="text-xs text-muted-foreground uppercase tracking-wide">Efficiency</div>
+            <div className="text-3xl font-bold text-amber-400 mt-1">+42%</div>
           </div>
         </div>
 
         {/* AI Insight Banner */}
-        <div className="bg-gradient-to-r from-primary/20 to-primary/5 rounded-lg p-3 mb-4 border border-primary/30">
+        <div className="bg-gradient-to-r from-primary/20 to-primary/5 rounded-lg p-4 mb-4 border border-primary/30">
           <div className="flex items-start gap-3">
             <div className="p-2 rounded-lg bg-primary/20">
-              <Cpu className="w-5 h-5 text-primary" />
+              <Cpu className="w-6 h-6 text-primary" />
             </div>
             <div className="flex-1">
               <div className="flex items-center gap-2">
-                <span className="text-sm font-semibold text-primary">Agentic AI Optimization</span>
+                <span className="text-base font-semibold text-primary">Agentic AI Optimization</span>
                 <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
               </div>
-              <p className="text-xs text-muted-foreground mt-1">
+              <p className="text-sm text-muted-foreground mt-1">
                 Batches intelligently grouped by drug + density compatibility. 
                 <span className="text-emerald-400 font-medium"> Cleaning time reduced by 42%</span> through optimal sequencing.
               </p>
@@ -329,8 +329,8 @@ export function BatchScheduling({ schedule, resources }: BatchSchedulingProps) {
         {/* Batch Groups */}
         <div className="flex-1 min-h-0">
           <div className="flex items-center gap-2 mb-3">
-            <Layers className="w-4 h-4 text-muted-foreground" />
-            <span className="text-sm font-medium">Intelligent Batch Grouping</span>
+            <Layers className="w-5 h-5 text-muted-foreground" />
+            <span className="text-base font-medium">Intelligent Batch Grouping</span>
           </div>
           <ScrollArea className="h-[calc(100%-2rem)]">
             <div className="space-y-3 pr-2">
@@ -350,10 +350,10 @@ export function BatchScheduling({ schedule, resources }: BatchSchedulingProps) {
       {/* Right Panel - Live Monitoring */}
       <div className="w-80 shrink-0 flex flex-col gap-4">
         {/* Production Units Pipeline */}
-        <div className="bg-card/30 rounded-lg p-3 border border-border/50">
+        <div className="bg-card/30 rounded-lg p-4 border border-border/50">
           <div className="flex items-center gap-2 mb-3">
-            <Box className="w-4 h-4 text-muted-foreground" />
-            <span className="text-sm font-medium">Production Pipeline</span>
+            <Box className="w-5 h-5 text-muted-foreground" />
+            <span className="text-base font-medium">Production Pipeline</span>
           </div>
           <div className="grid grid-cols-2 gap-2">
             {productionUnits.map((unit) => (
@@ -363,13 +363,13 @@ export function BatchScheduling({ schedule, resources }: BatchSchedulingProps) {
         </div>
 
         {/* Live Conditions Monitoring */}
-        <div className="flex-1 min-h-0 flex flex-col bg-card/30 rounded-lg p-3 border border-border/50">
+        <div className="flex-1 min-h-0 flex flex-col bg-card/30 rounded-lg p-4 border border-border/50">
           <div className="flex items-center gap-2 mb-3">
-            <Zap className="w-4 h-4 text-primary" />
-            <span className="text-sm font-medium">Live Conditions</span>
+            <Zap className="w-5 h-5 text-primary" />
+            <span className="text-base font-medium">Live Conditions</span>
             <div className="ml-auto flex items-center gap-1">
-              <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              <span className="text-[10px] text-muted-foreground">Monitoring</span>
+              <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="text-xs text-muted-foreground">Monitoring</span>
             </div>
           </div>
           <ScrollArea className="flex-1">
@@ -382,19 +382,19 @@ export function BatchScheduling({ schedule, resources }: BatchSchedulingProps) {
         </div>
 
         {/* Grouping Legend */}
-        <div className="bg-card/30 rounded-lg p-3 border border-border/50">
-          <div className="text-xs font-medium mb-2">Grouping Strategy</div>
-          <div className="space-y-2">
-            <div className="flex items-center gap-2 text-[11px]">
-              <div className="w-3 h-3 rounded bg-emerald-500" />
+        <div className="bg-card/30 rounded-lg p-4 border border-border/50">
+          <div className="text-sm font-medium mb-3">Grouping Strategy</div>
+          <div className="space-y-2.5">
+            <div className="flex items-center gap-2 text-sm">
+              <div className="w-3.5 h-3.5 rounded bg-emerald-500" />
               <span className="text-muted-foreground">Same drug + density = No cleaning</span>
             </div>
-            <div className="flex items-center gap-2 text-[11px]">
-              <div className="w-3 h-3 rounded bg-amber-500" />
+            <div className="flex items-center gap-2 text-sm">
+              <div className="w-3.5 h-3.5 rounded bg-amber-500" />
               <span className="text-muted-foreground">Same drug + diff density = Partial clean</span>
             </div>
-            <div className="flex items-center gap-2 text-[11px]">
-              <div className="w-3 h-3 rounded bg-rose-500" />
+            <div className="flex items-center gap-2 text-sm">
+              <div className="w-3.5 h-3.5 rounded bg-rose-500" />
               <span className="text-muted-foreground">Different drug = Full clean + QA</span>
             </div>
           </div>
