@@ -213,7 +213,7 @@ const Index = () => {
         </div>
 
         {/* Control Panel Sidebar */}
-        <div className="w-64 shrink-0 no-print">
+        <div className="shrink-0 no-print">
           <ControlPanel
             simulation={simulation}
             onSpeedChange={actions.setSpeed}
