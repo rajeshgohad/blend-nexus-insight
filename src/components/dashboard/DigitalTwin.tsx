@@ -217,7 +217,7 @@ export function DigitalTwin({
   return (
     <div className="h-full flex gap-4 overflow-hidden">
       {/* Left Column - Blender Visualization & Parameters */}
-      <div className="w-[320px] flex flex-col gap-4 shrink-0">
+      <div className="w-[400px] flex flex-col gap-4 shrink-0">
         <BlenderVisualization isRunning={isRunning} speed={parameters.rotationSpeed} />
 
         {/* Parameter Gauges */}
@@ -327,7 +327,7 @@ export function DigitalTwin({
         {/* Main content: Left side (Batch + Table) + Right side (Tablet Press) */}
         <div className="flex-1 flex gap-4 overflow-hidden">
           {/* Left side: Batch Details above Blending Sequence */}
-          <div className="w-[620px] shrink-0 flex flex-col gap-3 overflow-hidden">
+          <div className="w-[540px] shrink-0 flex flex-col gap-3 overflow-hidden">
             {/* Batch Info Header - Compact */}
             <div className="bg-muted/50 rounded-lg p-3 border">
               <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-sm">
