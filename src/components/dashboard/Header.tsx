@@ -1,5 +1,6 @@
 import { Activity, Wifi, WifiOff, Clock } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { ChatBot } from './ChatBot';
 import type { BatchState } from '@/types/manufacturing';
 
 interface HeaderProps {
@@ -80,6 +81,9 @@ export function Header({ productionLine, currentTime, batchState, isConnected }:
           >
             {getStatusText()}
           </Badge>
+
+          {/* AI Chatbot */}
+          <ChatBot />
         </div>
       </div>
     </header>
