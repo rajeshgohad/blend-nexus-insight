@@ -329,24 +329,24 @@ export function DigitalTwin({
           {/* Left side: Batch Details above Blending Sequence */}
           <div className="w-[540px] shrink-0 flex flex-col gap-3 overflow-hidden">
             {/* Batch Info Header - Compact */}
-            <div className="bg-muted/50 rounded-lg p-3 border">
-              <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-sm">
+            <div className="bg-muted/50 rounded-lg p-4 border">
+              <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-base">
                 <div className="flex items-center gap-2">
                   <span className="text-muted-foreground">Batch:</span>
-                  <Badge variant="outline" className="text-xs font-mono px-1.5 py-0">{batch.batchNumber}</Badge>
+                  <Badge variant="outline" className="text-sm font-mono px-2 py-0.5">{batch.batchNumber}</Badge>
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="text-muted-foreground">Product:</span>
-                  <span className="font-mono text-foreground text-xs">{batch.productId}</span>
+                  <span className="font-mono text-foreground text-sm">{batch.productId}</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <User className="w-3.5 h-3.5 text-muted-foreground" />
-                  <span className="text-foreground text-xs">{batch.operator.id} - {batch.operator.name}</span>
+                  <User className="w-4 h-4 text-muted-foreground" />
+                  <span className="text-foreground text-sm">{batch.operator.id} - {batch.operator.name}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="text-muted-foreground">State:</span>
                   <Badge 
-                    className={`text-xs px-1.5 py-0 ${
+                    className={`text-sm px-2 py-0.5 ${
                       batch.state === 'blending' ? 'bg-success/20 text-success' :
                       batch.state === 'emergency-stop' ? 'bg-destructive/20 text-destructive' :
                       batch.state === 'loading' ? 'bg-primary/20 text-primary' :
@@ -358,48 +358,48 @@ export function DigitalTwin({
                   </Badge>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Clock className="w-3.5 h-3.5 text-muted-foreground" />
-                  <span className="text-xs text-muted-foreground">Start:</span>
-                  <span className="font-mono text-foreground text-xs">
+                  <Clock className="w-4 h-4 text-muted-foreground" />
+                  <span className="text-sm text-muted-foreground">Start:</span>
+                  <span className="font-mono text-foreground text-sm">
                     {batch.startTime ? format(batch.startTime, 'HH:mm:ss') : '--'}
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Clock className="w-3.5 h-3.5 text-muted-foreground" />
-                  <span className="text-xs text-muted-foreground">End:</span>
-                  <span className="font-mono text-foreground text-xs">
+                  <Clock className="w-4 h-4 text-muted-foreground" />
+                  <span className="text-sm text-muted-foreground">End:</span>
+                  <span className="font-mono text-foreground text-sm">
                     {batch.endTime ? format(batch.endTime, 'HH:mm:ss') : '--'}
                   </span>
                 </div>
               </div>
               
               {/* Recipe & Ingredients Row */}
-              <div className="flex flex-col gap-2 mt-2 pt-2 border-t border-border/50">
+              <div className="flex flex-col gap-2 mt-3 pt-3 border-t border-border/50">
                 <div className="flex items-center gap-2">
-                  <span className="text-xs text-muted-foreground">Recipe:</span>
+                  <span className="text-sm text-muted-foreground">Recipe:</span>
                   <Select 
                     value={batch.recipeId} 
                     onValueChange={onSelectRecipe}
                     disabled={!isIdle}
                   >
-                    <SelectTrigger className="h-7 text-xs bg-background w-40">
+                    <SelectTrigger className="h-8 text-sm bg-background w-56">
                       <SelectValue placeholder="Select recipe" />
                     </SelectTrigger>
                     <SelectContent className="bg-popover border-border z-50">
                       {availableRecipes.map(recipe => (
-                        <SelectItem key={recipe.id} value={recipe.id} className="text-xs">
+                        <SelectItem key={recipe.id} value={recipe.id} className="text-sm">
                           {recipe.name}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="flex flex-wrap gap-1">
+                <div className="flex flex-wrap gap-1.5">
                   {batch.recipe.map((item, idx) => (
                     <Badge 
                       key={idx} 
                       variant={item.added ? "default" : "outline"}
-                      className="text-xs px-1.5 py-0"
+                      className="text-sm px-2 py-0.5"
                     >
                       {item.ingredient.split(' ')[0]}
                     </Badge>
