@@ -29,6 +29,7 @@ const Index = () => {
     rftPercentage,
     availableRecipes,
     parameterHistory,
+    equipmentFailures,
     actions,
   } = useSimulation();
 
@@ -155,6 +156,7 @@ const Index = () => {
         <BatchScheduling
           schedule={schedule}
           resources={resources}
+          equipmentFailures={equipmentFailures}
         />
       ),
     },
@@ -178,6 +180,7 @@ const Index = () => {
         <ProcessLine
           currentBatchNumber={batch.batchNumber}
           currentProductName={batch.productName}
+          equipmentFailures={equipmentFailures}
         />
       ),
     },

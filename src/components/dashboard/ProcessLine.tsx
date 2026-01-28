@@ -1,5 +1,4 @@
-import { useState } from 'react';
-import { ArrowRight, AlertTriangle, CheckCircle2, Factory, Zap } from 'lucide-react';
+import { ArrowRight, AlertTriangle, CheckCircle2, Factory, Zap, XCircle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 
@@ -9,46 +8,75 @@ interface ProcessBlock {
   status: 'idle' | 'active' | 'warning' | 'error' | 'maintenance';
   isBackup?: boolean;
   canDivert?: boolean;
+  batchNumber?: string;
+}
+
+export interface EquipmentFailure {
+  lineId: string;
+  processId: string;
+  processName: string;
+  timestamp: Date;
 }
 
 interface ProcessLineProps {
   currentBatchNumber: string;
   currentProductName: string;
+  secondaryBatchNumber?: string;
+  secondaryProductName?: string;
+  equipmentFailures?: EquipmentFailure[];
 }
 
 const processSteps = ['Sieving', 'Dispensing', 'Blending', 'Compression', 'Coating', 'Polishing'];
 
-export function ProcessLine({ currentBatchNumber, currentProductName }: ProcessLineProps) {
-  const [selectedLine, setSelectedLine] = useState<string | null>(null);
+export function ProcessLine({ 
+  currentBatchNumber, 
+  currentProductName,
+  secondaryBatchNumber = 'BN-2024-0848',
+  secondaryProductName = 'Lisinopril 10mg',
+  equipmentFailures = [],
+}: ProcessLineProps) {
+  const isProcessFailed = (lineId: string, processName: string) => 
+    equipmentFailures.some(f => f.lineId === lineId && f.processName === processName);
 
-  // Main production lines
-  const lines: { id: string; name: string; processes: ProcessBlock[] }[] = [
+  // Main production lines - Line 1 is active on Blending, Line 2 on Compression
+  const lines: { id: string; name: string; batchNumber: string; productName: string; activeStep: number; processes: ProcessBlock[] }[] = [
     {
       id: 'line-1',
       name: 'Production Line 1',
+      batchNumber: currentBatchNumber,
+      productName: currentProductName,
+      activeStep: 2, // Blending
       processes: processSteps.map((step, idx) => ({
         id: `l1-${step.toLowerCase()}`,
         name: step,
-        status: idx === 2 ? 'active' : idx < 2 ? 'idle' : 'idle',
+        status: isProcessFailed('line-1', step) ? 'error' : idx === 2 ? 'active' : 'idle',
         canDivert: step === 'Blending' || step === 'Compression',
+        batchNumber: idx === 2 ? currentBatchNumber : undefined,
       })),
     },
     {
       id: 'line-2',
       name: 'Production Line 2',
-      processes: processSteps.map((step) => ({
+      batchNumber: secondaryBatchNumber,
+      productName: secondaryProductName,
+      activeStep: 3, // Compression
+      processes: processSteps.map((step, idx) => ({
         id: `l2-${step.toLowerCase()}`,
         name: step,
-        status: 'idle' as const,
+        status: isProcessFailed('line-2', step) ? 'error' : idx === 3 ? 'active' : 'idle',
         canDivert: step === 'Blending' || step === 'Compression',
+        batchNumber: idx === 3 ? secondaryBatchNumber : undefined,
       })),
     },
   ];
 
-  // Backup process areas
+  // Backup process areas - activate if main is failed
+  const blendingFailed = isProcessFailed('line-1', 'Blending') || isProcessFailed('line-2', 'Blending');
+  const compressionFailed = isProcessFailed('line-1', 'Compression') || isProcessFailed('line-2', 'Compression');
+
   const backupAreas: ProcessBlock[] = [
-    { id: 'backup-blending', name: 'Blending (Backup)', status: 'idle', isBackup: true },
-    { id: 'backup-compression', name: 'Compression (Backup)', status: 'idle', isBackup: true },
+    { id: 'backup-blending', name: 'Blending (Backup)', status: blendingFailed ? 'active' : 'idle', isBackup: true },
+    { id: 'backup-compression', name: 'Compression (Backup)', status: compressionFailed ? 'active' : 'idle', isBackup: true },
   ];
 
   const getStatusColor = (status: ProcessBlock['status']) => {
@@ -73,7 +101,7 @@ export function ProcessLine({ currentBatchNumber, currentProductName }: ProcessL
       case 'warning':
         return <AlertTriangle className="w-4 h-4 text-amber-400" />;
       case 'error':
-        return <AlertTriangle className="w-4 h-4 text-red-400" />;
+        return <XCircle className="w-4 h-4 text-red-400" />;
       case 'maintenance':
         return <Factory className="w-4 h-4 text-blue-400" />;
       default:
@@ -83,84 +111,150 @@ export function ProcessLine({ currentBatchNumber, currentProductName }: ProcessL
 
   return (
     <div className="h-full flex flex-col gap-4 overflow-auto p-2">
-      {/* Current Order Banner */}
-      <div className="bg-primary/10 border border-primary/30 rounded-lg p-4 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <Factory className="w-6 h-6 text-primary" />
-          <div>
-            <p className="text-sm text-muted-foreground">Currently Processing</p>
-            <p className="text-lg font-semibold text-foreground">{currentBatchNumber}</p>
+      {/* Equipment Failure Alert */}
+      {equipmentFailures.length > 0 && (
+        <div className="bg-destructive/10 border border-destructive/50 rounded-lg p-4">
+          <div className="flex items-center gap-2 mb-2">
+            <XCircle className="w-5 h-5 text-destructive" />
+            <span className="font-semibold text-destructive">Equipment Failure Detected</span>
+          </div>
+          <div className="space-y-1">
+            {equipmentFailures.map((failure, idx) => (
+              <div key={idx} className="text-sm text-muted-foreground">
+                <span className="font-medium">{failure.processName}</span> on {failure.lineId === 'line-1' ? 'Line 1' : 'Line 2'} 
+                <span className="text-destructive ml-2">• Batch diverted to backup</span>
+              </div>
+            ))}
           </div>
         </div>
-        <Badge variant="outline" className="text-sm px-3 py-1">
-          {currentProductName}
-        </Badge>
+      )}
+
+      {/* Current Orders Banner */}
+      <div className="grid grid-cols-2 gap-4">
+        <div className="bg-primary/10 border border-primary/30 rounded-lg p-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Factory className="w-6 h-6 text-primary" />
+            <div>
+              <p className="text-sm text-muted-foreground">Line 1 - Blending</p>
+              <p className="text-lg font-semibold text-foreground">{currentBatchNumber}</p>
+            </div>
+          </div>
+          <Badge variant="outline" className="text-sm px-3 py-1">
+            {currentProductName}
+          </Badge>
+        </div>
+        <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-lg p-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Factory className="w-6 h-6 text-emerald-500" />
+            <div>
+              <p className="text-sm text-muted-foreground">Line 2 - Compression</p>
+              <p className="text-lg font-semibold text-foreground">{secondaryBatchNumber}</p>
+            </div>
+          </div>
+          <Badge variant="outline" className="text-sm px-3 py-1 border-emerald-500/50 text-emerald-400">
+            {secondaryProductName}
+          </Badge>
+        </div>
       </div>
 
       {/* Main Production Lines */}
       <div className="flex-1 space-y-6">
-        {lines.map((line) => (
-          <div
-            key={line.id}
-            className={cn(
-              'bg-card border rounded-lg p-4 transition-all',
-              selectedLine === line.id ? 'border-primary ring-1 ring-primary/50' : 'border-border'
-            )}
-            onClick={() => setSelectedLine(line.id === selectedLine ? null : line.id)}
-          >
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-base font-semibold text-foreground">{line.name}</h3>
-              <Badge
-                variant={line.processes.some((p) => p.status === 'active') ? 'default' : 'secondary'}
-                className="text-xs"
-              >
-                {line.processes.some((p) => p.status === 'active') ? 'Active' : 'Standby'}
-              </Badge>
-            </div>
+        {lines.map((line) => {
+          const hasError = line.processes.some(p => p.status === 'error');
+          const isActive = line.processes.some(p => p.status === 'active');
+          
+          return (
+            <div
+              key={line.id}
+              className={cn(
+                'bg-card border rounded-lg p-4 transition-all',
+                hasError ? 'border-destructive/50 bg-destructive/5' : 'border-border'
+              )}
+            >
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h3 className="text-base font-semibold text-foreground">{line.name}</h3>
+                  <p className="text-sm text-muted-foreground">
+                    {line.batchNumber} • {line.productName}
+                  </p>
+                </div>
+                <Badge
+                  variant={hasError ? 'destructive' : isActive ? 'default' : 'secondary'}
+                  className="text-xs"
+                >
+                  {hasError ? 'Error' : isActive ? 'Active' : 'Standby'}
+                </Badge>
+              </div>
 
-            {/* Process Flow */}
-            <div className="flex items-center gap-1 overflow-x-auto pb-2">
-              {line.processes.map((process, idx) => (
-                <div key={process.id} className="flex items-center">
-                  {/* Process Block */}
-                  <div
-                    className={cn(
-                      'relative flex flex-col items-center justify-center min-w-[100px] h-20 rounded-lg border-2 px-3 py-2 transition-all cursor-pointer hover:scale-105',
-                      getStatusColor(process.status)
-                    )}
-                  >
-                    {getStatusIcon(process.status)}
-                    <span className="text-sm font-medium mt-1">{process.name}</span>
-                    {process.status === 'active' && (
-                      <span className="text-[10px] mt-0.5 text-emerald-400">{currentBatchNumber}</span>
-                    )}
-                    {process.canDivert && (
-                      <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-amber-500 rounded-full border-2 border-card" title="Can divert to backup" />
+              {/* Process Flow */}
+              <div className="flex items-center gap-1 overflow-x-auto pb-2">
+                {line.processes.map((process, idx) => (
+                  <div key={process.id} className="flex items-center">
+                    {/* Process Block */}
+                    <div
+                      className={cn(
+                        'relative flex flex-col items-center justify-center min-w-[100px] h-20 rounded-lg border-2 px-3 py-2 transition-all cursor-pointer hover:scale-105',
+                        getStatusColor(process.status)
+                      )}
+                    >
+                      {getStatusIcon(process.status)}
+                      <span className="text-sm font-medium mt-1">{process.name}</span>
+                      {process.status === 'active' && process.batchNumber && (
+                        <span className="text-[10px] mt-0.5 text-emerald-400">{process.batchNumber}</span>
+                      )}
+                      {process.status === 'error' && (
+                        <span className="text-[10px] mt-0.5 text-destructive">FAILED</span>
+                      )}
+                      {process.canDivert && process.status !== 'error' && (
+                        <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-amber-500 rounded-full border-2 border-card" title="Can divert to backup" />
+                      )}
+                    </div>
+
+                    {/* Arrow Connector */}
+                    {idx < line.processes.length - 1 && (
+                      <ArrowRight className={cn(
+                        "w-5 h-5 mx-1 flex-shrink-0",
+                        process.status === 'error' ? 'text-destructive' : 'text-muted-foreground'
+                      )} />
                     )}
                   </div>
-
-                  {/* Arrow Connector */}
-                  {idx < line.processes.length - 1 && (
-                    <ArrowRight className="w-5 h-5 text-muted-foreground mx-1 flex-shrink-0" />
-                  )}
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
 
         {/* Backup Process Areas */}
-        <div className="bg-amber-500/5 border border-amber-500/30 rounded-lg p-4">
+        <div className={cn(
+          "border rounded-lg p-4",
+          (blendingFailed || compressionFailed) 
+            ? "bg-emerald-500/10 border-emerald-500/50" 
+            : "bg-amber-500/5 border-amber-500/30"
+        )}>
           <div className="flex items-center gap-2 mb-4">
-            <AlertTriangle className="w-5 h-5 text-amber-500" />
+            {(blendingFailed || compressionFailed) ? (
+              <Zap className="w-5 h-5 text-emerald-500" />
+            ) : (
+              <AlertTriangle className="w-5 h-5 text-amber-500" />
+            )}
             <h3 className="text-base font-semibold text-foreground">Backup Process Areas</h3>
-            <Badge variant="outline" className="text-xs border-amber-500/50 text-amber-500">
-              Failover Ready
+            <Badge 
+              variant="outline" 
+              className={cn(
+                "text-xs",
+                (blendingFailed || compressionFailed) 
+                  ? "border-emerald-500/50 text-emerald-400" 
+                  : "border-amber-500/50 text-amber-500"
+              )}
+            >
+              {(blendingFailed || compressionFailed) ? 'Diversion Active' : 'Failover Ready'}
             </Badge>
           </div>
           <p className="text-sm text-muted-foreground mb-4">
-            Critical backup equipment available for diversion in case of primary line failure. 
-            Scheduling will auto-adjust when failures are detected.
+            {(blendingFailed || compressionFailed) 
+              ? 'Batch has been automatically diverted to backup equipment. Work order raised for maintenance.'
+              : 'Critical backup equipment available for diversion in case of primary line failure.'
+            }
           </p>
 
           <div className="flex items-center gap-4 flex-wrap">
@@ -168,13 +262,24 @@ export function ProcessLine({ currentBatchNumber, currentProductName }: ProcessL
               <div
                 key={backup.id}
                 className={cn(
-                  'flex flex-col items-center justify-center min-w-[140px] h-24 rounded-lg border-2 border-dashed px-4 py-3 transition-all cursor-pointer hover:border-amber-500/60',
-                  'bg-amber-500/10 border-amber-500/40 text-amber-400'
+                  'flex flex-col items-center justify-center min-w-[140px] h-24 rounded-lg border-2 px-4 py-3 transition-all',
+                  backup.status === 'active' 
+                    ? 'bg-emerald-500/20 border-emerald-500 text-emerald-400'
+                    : 'bg-amber-500/10 border-amber-500/40 border-dashed text-amber-400'
                 )}
               >
-                <Factory className="w-5 h-5 mb-1" />
+                {backup.status === 'active' ? (
+                  <Zap className="w-5 h-5 mb-1 animate-pulse" />
+                ) : (
+                  <Factory className="w-5 h-5 mb-1" />
+                )}
                 <span className="text-sm font-medium text-center">{backup.name}</span>
-                <span className="text-[10px] text-amber-500/70 mt-1">Available</span>
+                <span className={cn(
+                  "text-[10px] mt-1",
+                  backup.status === 'active' ? 'text-emerald-400' : 'text-amber-500/70'
+                )}>
+                  {backup.status === 'active' ? 'Processing' : 'Available'}
+                </span>
               </div>
             ))}
           </div>

@@ -11,9 +11,17 @@ import { Progress } from '@/components/ui/progress';
 import type { ScheduledBatch, Resource } from '@/types/manufacturing';
 import { BATCH_ORDERS, groupBatchesForScheduling, type BatchOrder } from '@/data/batchMasterData';
 
+export interface EquipmentFailure {
+  lineId: string;
+  processId: string;
+  processName: string;
+  timestamp: Date;
+}
+
 interface BatchSchedulingProps {
   schedule: ScheduledBatch[];
   resources: Resource[];
+  equipmentFailures?: EquipmentFailure[];
 }
 
 // Production unit types
@@ -269,10 +277,25 @@ function ProductionUnitStatus({ unit, conditions }: { unit: ProductionUnit; cond
   );
 }
 
-export function BatchScheduling({ schedule, resources }: BatchSchedulingProps) {
+export function BatchScheduling({ schedule, resources, equipmentFailures = [] }: BatchSchedulingProps) {
   const [expandedGroup, setExpandedGroup] = useState<string | null>('group-1');
   const [conditions] = useState<ProductionCondition[]>(generateProductionConditions);
   const [batchGroups] = useState<BatchGroup[]>(generateBatchGroups);
+
+  // Check for equipment failures
+  const hasBlendingFailure = equipmentFailures.some(f => f.processName === 'Blending');
+  const hasCompressionFailure = equipmentFailures.some(f => f.processName === 'Compression');
+
+  // Update conditions when equipment failures occur
+  const updatedConditions = conditions.map(c => {
+    if (hasBlendingFailure && c.unit === 'blending') {
+      return { ...c, status: 'blocked' as const, detail: 'Line 1 Blending FAILED - Using Backup' };
+    }
+    if (hasCompressionFailure && c.unit === 'compression') {
+      return { ...c, status: 'blocked' as const, detail: 'Compression FAILED - Using Backup' };
+    }
+    return c;
+  });
 
   const totalBatches = batchGroups.reduce((sum, g) => sum + g.batches.length, 0);
   const totalSavings = batchGroups.reduce((sum, g) => sum + g.estimatedSavings, 0);
@@ -287,6 +310,27 @@ export function BatchScheduling({ schedule, resources }: BatchSchedulingProps) {
     <div className="h-full flex gap-4">
       {/* Left Panel - Batch Grouping */}
       <div className="flex-1 flex flex-col min-w-0">
+        {/* Equipment Failure Alert */}
+        {equipmentFailures.length > 0 && (
+          <div className="bg-destructive/10 border border-destructive/50 rounded-lg p-4 mb-4">
+            <div className="flex items-center gap-2 mb-2">
+              <XCircle className="w-5 h-5 text-destructive" />
+              <span className="font-semibold text-destructive">Equipment Failure - Schedule Adjusted</span>
+            </div>
+            <div className="space-y-1">
+              {equipmentFailures.map((failure, idx) => (
+                <div key={idx} className="text-sm text-muted-foreground">
+                  <span className="font-medium">{failure.processName}</span> on {failure.lineId === 'line-1' ? 'Line 1' : 'Line 2'}
+                  <span className="text-amber-500 ml-2">• Batch diverted to Backup {failure.processName}</span>
+                </div>
+              ))}
+            </div>
+            <p className="text-xs text-muted-foreground mt-2">
+              Work order raised in Maintenance tab. Next batches will use backup equipment until repair is complete.
+            </p>
+          </div>
+        )}
+
         {/* Header Stats */}
         <div className="grid grid-cols-4 gap-3 mb-4">
           <div className="bg-card/50 rounded-lg p-4 border border-border/50">
@@ -357,7 +401,7 @@ export function BatchScheduling({ schedule, resources }: BatchSchedulingProps) {
           </div>
           <div className="grid grid-cols-2 gap-2">
             {productionUnits.map((unit) => (
-              <ProductionUnitStatus key={unit} unit={unit} conditions={conditions} />
+              <ProductionUnitStatus key={unit} unit={unit} conditions={updatedConditions} />
             ))}
           </div>
         </div>
@@ -368,13 +412,13 @@ export function BatchScheduling({ schedule, resources }: BatchSchedulingProps) {
             <Zap className="w-5 h-5 text-primary" />
             <span className="text-base font-medium">Live Conditions</span>
             <div className="ml-auto flex items-center gap-1">
-              <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              <span className="text-xs text-muted-foreground">Monitoring</span>
+              <div className={`w-2 h-2 rounded-full ${equipmentFailures.length > 0 ? 'bg-destructive' : 'bg-emerald-500'} animate-pulse`} />
+              <span className="text-xs text-muted-foreground">{equipmentFailures.length > 0 ? 'Alert' : 'Monitoring'}</span>
             </div>
           </div>
           <ScrollArea className="flex-1">
             <div className="space-y-2 pr-2">
-              {conditions.map((condition) => (
+              {updatedConditions.map((condition) => (
                 <ConditionIndicator key={condition.id} condition={condition} />
               ))}
             </div>
