@@ -140,6 +140,7 @@ export function useSimulation() {
   const [rftPercentage, setRftPercentage] = useState(96.8);
   const [learningProgress, setLearningProgress] = useState({ episodes: 1247, reward: 0.87 });
   const [parameterHistory, setParameterHistory] = useState<ParameterHistoryPoint[]>([]);
+  const [equipmentFailures, setEquipmentFailures] = useState<{ lineId: string; processId: string; processName: string; timestamp: Date }[]>([]);
 
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -228,6 +229,7 @@ export function useSimulation() {
     setDetections([]);
     setAlerts([]);
     setSchedule(initialSchedule);
+    setEquipmentFailures([]);
   }, []);
 
   const approveRecommendation = useCallback((parameter: string) => {
@@ -238,8 +240,17 @@ export function useSimulation() {
   const injectScenario = useCallback((scenario: string) => {
     switch (scenario) {
       case 'equipment_failure':
+        // Add equipment failure for Blending on Line 1
+        const failure = {
+          lineId: 'line-1',
+          processId: 'l1-blending',
+          processName: 'Blending',
+          timestamp: new Date(),
+        };
+        setEquipmentFailures(prev => [...prev, failure]);
         setComponents(prev => prev.map(c => c.name === 'Main Bearings' ? { ...c, health: 35, trend: 'critical' as const } : c));
-        addAlert('Predictive Maintenance', 'critical', 'Critical: Main Bearings health dropped to 35%');
+        addAlert('Process Line', 'critical', `Equipment Failure: Blending on Line 1 - Batch diverted to backup`);
+        addAlert('Predictive Maintenance', 'critical', 'Critical: Main Bearings health dropped to 35% - Work order raised');
         break;
       case 'material_delay':
         setResources(prev => prev.map(r => r.name === 'Metformin HCl API' ? { ...r, available: false, nextAvailable: new Date(Date.now() + 2 * 60 * 60 * 1000) } : r));
@@ -496,6 +507,7 @@ export function useSimulation() {
     learningProgress,
     availableRecipes,
     parameterHistory,
+    equipmentFailures,
     actions: {
       startBatch,
       stopBatch,
