@@ -13,9 +13,10 @@ export interface ComponentHealthInput {
   health: number;          // 0-100 percentage
   rul: number;             // Remaining Useful Life in hours
   trend: 'stable' | 'declining' | 'critical';
-  failureProbability: number;  // 0-1 probability
-  lastMaintenance: Date;
-  predictedFailureDate: Date | null;
+  // Optional fields for extended analysis
+  failureProbability?: number;  // 0-1 probability
+  lastMaintenance?: Date;
+  predictedFailureDate?: Date | null;
 }
 
 export interface SensorData {
@@ -63,12 +64,13 @@ export interface RULPredictionOutput {
 }
 
 export interface ScheduledBatchInput {
-  id: string;
-  batchNumber: string;
-  productName: string;
+  batchId?: string;
+  id?: string;
+  batchNumber?: string;
+  productName?: string;
   startTime: Date;
   endTime: Date;
-  status: 'queued' | 'in-progress' | 'completed' | 'delayed';
+  status?: 'queued' | 'in-progress' | 'completed' | 'delayed';
 }
 
 // ============================================================
@@ -162,13 +164,13 @@ export interface ProductSpecs {
 export interface MaintenanceAgentService {
   analyzeComponent(component: ComponentHealthInput, schedule: ScheduledBatchInput[]): MaintenanceDecisionOutput;
   predictRUL(input: RULPredictionInput): RULPredictionOutput;
-  detectAnomalies(sensorData: SensorData[], threshold: number): AnomalyInput[];
+  detectAnomalies(sensorData: SensorData[], threshold?: number): AnomalyInput[];
   findIdleWindow(schedule: ScheduledBatchInput[], durationHours: number): { start: Date; end: Date } | null;
 }
 
 export interface YieldOptimizationAgentService {
-  detectDrift(signals: TabletPressSignalsInput[], windowSize: number): DriftDetectionOutput[];
+  detectDrift(signals: TabletPressSignalsInput[], windowSize?: number): DriftDetectionOutput[];
   predictYield(input: YieldPredictionInput): YieldPredictionOutput;
-  generateRecommendations(signals: TabletPressSignalsInput, profile: BatchProfileInput, sopLimits: SOPLimits): YieldRecommendationOutput[];
-  validateRecommendation(recommendation: YieldRecommendationOutput, sopLimits: SOPLimits): boolean;
+  generateRecommendations(signals: TabletPressSignalsInput, profile: BatchProfileInput, sopLimits?: SOPLimits, specs?: ProductSpecs): YieldRecommendationOutput[];
+  validateRecommendation(recommendation: YieldRecommendationOutput, sopLimits?: SOPLimits): boolean;
 }
