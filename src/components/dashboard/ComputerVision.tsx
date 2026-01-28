@@ -17,9 +17,6 @@ import cam03Blending from '@/assets/camera-feeds/cam-03-blending.jpg';
 import cam04Compression from '@/assets/camera-feeds/cam-04-compression.jpg';
 import cam05Coating from '@/assets/camera-feeds/cam-05-coating.jpg';
 import cam06Polishing from '@/assets/camera-feeds/cam-06-polishing.jpg';
-import cam07Capsule from '@/assets/camera-feeds/cam-07-capsule.jpg';
-import cam08QcStation from '@/assets/camera-feeds/cam-08-qc-station.jpg';
-import cam09Staging from '@/assets/camera-feeds/cam-09-staging.jpg';
 
 interface ComputerVisionProps {
   detections: QualityDetection[];
@@ -73,9 +70,6 @@ const cameraScenarios = [
   { id: 'CAM-04', label: 'Compression Area', scenario: 'No Gloves Detected', status: 'violation', icon: Shield, image: cam04Compression },
   { id: 'CAM-05', label: 'Coating Area', scenario: 'Temp Deviation', status: 'warning', icon: AlertTriangle, image: cam05Coating },
   { id: 'CAM-06', label: 'Polishing Area', scenario: 'All Clear', status: 'clear', icon: CheckCircle, image: cam06Polishing },
-  { id: 'CAM-07', label: 'Capsule Filling', scenario: 'Gown Incomplete', status: 'violation', icon: XCircle, image: cam07Capsule },
-  { id: 'CAM-08', label: 'QC Station', scenario: 'Calibration Due', status: 'warning', icon: AlertTriangle, image: cam08QcStation },
-  { id: 'CAM-09', label: 'Material Staging', scenario: 'All Clear', status: 'clear', icon: CheckCircle, image: cam09Staging },
 ];
 
 function CameraTile({ camera, isSelected, onClick }: { 
@@ -168,10 +162,10 @@ function CameraGrid({ onSelectCamera, selectedCamera }: {
         </div>
         <div className="flex items-center gap-2">
           <Badge variant="outline" className="text-[10px] text-destructive border-destructive">
-            3 Violations
+            2 Violations
           </Badge>
           <Badge variant="outline" className="text-[10px] text-warning border-warning">
-            3 Warnings
+            1 Warning
           </Badge>
         </div>
       </div>
