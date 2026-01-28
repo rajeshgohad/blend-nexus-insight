@@ -9,27 +9,28 @@ import type {
   ParameterTrendPoint,
 } from '@/types/tablet-press-yield';
 
+// Import AI Agent from backend
+import {
+  generateRecommendations as aiGenerateRecommendations,
+  predictYield as aiPredictYield,
+  detectDrift as aiDetectDrift,
+  DEFAULT_SOP_LIMITS,
+  DEFAULT_SPECS,
+  type TabletPressSignalsInput,
+  type BatchProfileInput,
+} from '@/backend/agents';
+
 const generateId = () => Math.random().toString(36).substr(2, 9);
 
 const addNoise = (value: number, variance: number) => {
   return value + (Math.random() - 0.5) * 2 * variance;
 };
 
-// SOP limits for parameters
-const SOP_LIMITS = {
-  feederSpeed: { min: 20, max: 35, unit: 'rpm' },
-  turretSpeed: { min: 40, max: 55, unit: 'rpm' },
-  preCompressionForce: { min: 2, max: 5, unit: 'kN' },
-  mainCompressionForce: { min: 12, max: 20, unit: 'kN' },
-  vacuum: { min: -400, max: -200, unit: 'mbar' },
-};
+// Re-export SOP limits for use in components (now from backend)
+export const SOP_LIMITS = DEFAULT_SOP_LIMITS;
 
-// Target specifications
-const SPECS = {
-  weight: { target: 500, tolerance: 5 }, // ±5% = 475-525mg
-  thickness: { target: 4.5, tolerance: 0.2 },
-  hardness: { target: 12, min: 8, max: 16 },
-};
+// Re-export specs for use in components (now from backend)
+export const SPECS = DEFAULT_SPECS;
 
 export function useTabletPressYield(isActive: boolean, isPaused: boolean) {
   const [signals, setSignals] = useState<TabletPressSignals>({
@@ -74,71 +75,67 @@ export function useTabletPressYield(isActive: boolean, isPaused: boolean) {
   const weightHistoryRef = useRef<number[]>([]);
   const tabletsProducedRef = useRef(0);
 
-  // Generate initial recommendations
+  // Generate initial recommendations using backend AI agent
   useEffect(() => {
-    const initialRecs: YieldRecommendation[] = [
-      {
-        id: generateId(),
-        parameter: 'Feeder Speed',
-        currentValue: 28,
-        recommendedValue: 28.3,
-        unit: 'rpm',
-        adjustment: '+0.3 rpm',
-        expectedImprovement: 0.15,
-        sopMin: SOP_LIMITS.feederSpeed.min,
-        sopMax: SOP_LIMITS.feederSpeed.max,
-        riskLevel: 'low',
-        reasoning: 'Slight increase to compensate for gradual weight decrease trend',
-        approved: false,
-        appliedAt: null,
-      },
-      {
-        id: generateId(),
-        parameter: 'Main Compression Force',
-        currentValue: 15,
-        recommendedValue: 15.5,
-        unit: 'kN',
-        adjustment: '+0.5 kN',
-        expectedImprovement: 0.22,
-        sopMin: SOP_LIMITS.mainCompressionForce.min,
-        sopMax: SOP_LIMITS.mainCompressionForce.max,
-        riskLevel: 'low',
-        reasoning: 'Increase hardness to target center; reduces friability rejects',
-        approved: false,
-        appliedAt: null,
-      },
-      {
-        id: generateId(),
-        parameter: 'Turret Speed',
-        currentValue: 45,
-        recommendedValue: 44.5,
-        unit: 'rpm',
-        adjustment: '-0.5 rpm',
-        expectedImprovement: 0.18,
-        sopMin: SOP_LIMITS.turretSpeed.min,
-        sopMax: SOP_LIMITS.turretSpeed.max,
-        riskLevel: 'low',
-        reasoning: 'Minor reduction to improve fill uniformity and reduce %RSD',
-        approved: false,
-        appliedAt: null,
-      },
-      {
-        id: generateId(),
-        parameter: 'Pre-Compression Force',
-        currentValue: 3.5,
-        recommendedValue: 3.8,
-        unit: 'kN',
-        adjustment: '+0.3 kN',
-        expectedImprovement: 0.12,
-        sopMin: SOP_LIMITS.preCompressionForce.min,
-        sopMax: SOP_LIMITS.preCompressionForce.max,
-        riskLevel: 'low',
-        reasoning: 'Better de-aeration reduces capping and lamination',
-        approved: false,
-        appliedAt: null,
-      },
-    ];
-    setRecommendations(initialRecs);
+    // Convert signals to backend format
+    const signalsInput: TabletPressSignalsInput = {
+      ...signals,
+      timestamp: new Date(),
+    };
+    
+    const profileInput: BatchProfileInput = {
+      batchNumber: 'BN-2024-0001',
+      ...batchProfile,
+    };
+    
+    // Use backend AI agent to generate recommendations
+    const aiRecs = aiGenerateRecommendations(signalsInput, profileInput, SOP_LIMITS, SPECS);
+    
+    // Convert to frontend format with additional fields
+    const initialRecs: YieldRecommendation[] = aiRecs.map(rec => ({
+      ...rec,
+      approved: false,
+      appliedAt: null,
+    }));
+    
+    // If no recommendations from AI, use defaults
+    if (initialRecs.length === 0) {
+      const defaultRecs: YieldRecommendation[] = [
+        {
+          id: generateId(),
+          parameter: 'Feeder Speed',
+          currentValue: 28,
+          recommendedValue: 28.3,
+          unit: 'rpm',
+          adjustment: '+0.3 rpm',
+          expectedImprovement: 0.15,
+          sopMin: SOP_LIMITS.feederSpeed.min,
+          sopMax: SOP_LIMITS.feederSpeed.max,
+          riskLevel: 'low',
+          reasoning: 'Slight increase to compensate for gradual weight decrease trend',
+          approved: false,
+          appliedAt: null,
+        },
+        {
+          id: generateId(),
+          parameter: 'Main Compression Force',
+          currentValue: 15,
+          recommendedValue: 15.5,
+          unit: 'kN',
+          adjustment: '+0.5 kN',
+          expectedImprovement: 0.22,
+          sopMin: SOP_LIMITS.mainCompressionForce.min,
+          sopMax: SOP_LIMITS.mainCompressionForce.max,
+          riskLevel: 'low',
+          reasoning: 'Increase hardness to target center; reduces friability rejects',
+          approved: false,
+          appliedAt: null,
+        },
+      ];
+      setRecommendations(defaultRecs);
+    } else {
+      setRecommendations(initialRecs);
+    }
 
     // Generate yield history
     const history: YieldHistoryPoint[] = Array.from({ length: 20 }, (_, i) => ({
@@ -256,45 +253,55 @@ export function useTabletPressYield(isActive: boolean, isPaused: boolean) {
         };
       });
 
-      // Randomly generate drift detections
-      if (Math.random() < 0.02) {
-        const parameters: DriftDetection['parameter'][] = ['weight', 'thickness', 'hardness', 'feederSpeed', 'turretSpeed'];
-        const param = parameters[Math.floor(Math.random() * parameters.length)];
-        const direction: DriftDetection['direction'] = Math.random() > 0.5 ? 'increasing' : 'decreasing';
+      // Use backend AI agent for drift detection on parameter trend
+      if (Math.random() < 0.02 && parameterTrend.length > 10) {
+        const signalsHistory: TabletPressSignalsInput[] = parameterTrend.map(p => ({
+          weight: p.weight,
+          thickness: p.thickness,
+          hardness: p.hardness,
+          feederSpeed: p.feederSpeed,
+          turretSpeed: p.turretSpeed,
+          vacuum: -300,
+          preCompressionForce: 3.5,
+          mainCompressionForce: 15,
+          timestamp: p.timestamp,
+        }));
         
-        const descriptions: Record<DriftDetection['parameter'], string> = {
-          weight: `Tablet weight ${direction} - potential fill depth adjustment needed`,
-          thickness: `Thickness ${direction} - check punch wear or compression settings`,
-          hardness: `Hardness ${direction} - may affect dissolution profile`,
-          feederSpeed: `Feeder speed drift detected - check hopper level`,
-          turretSpeed: `Turret speed variation - verify drive belt tension`,
-        };
-
-        const newDrift: DriftDetection = {
-          id: generateId(),
-          parameter: param,
-          direction,
-          magnitude: 0.5 + Math.random() * 2,
-          severity: Math.random() < 0.2 ? 'high' : Math.random() < 0.5 ? 'medium' : 'low',
-          detectedAt: new Date(),
-          description: descriptions[param],
-        };
-
-        setDriftDetections(prev => [newDrift, ...prev].slice(0, 5));
+        const detectedDrifts = aiDetectDrift(signalsHistory, 30);
+        
+        if (detectedDrifts.length > 0) {
+          const newDrifts: DriftDetection[] = detectedDrifts.map(d => ({
+            id: d.id,
+            parameter: d.parameter,
+            direction: d.direction,
+            magnitude: d.magnitude,
+            severity: d.severity,
+            detectedAt: d.detectedAt,
+            description: d.description,
+          }));
+          setDriftDetections(prev => [...newDrifts, ...prev].slice(0, 5));
+        }
       }
 
-      // Update prediction based on current state
+      // Use backend AI agent for yield prediction
       setPrediction(prev => {
         const approvedCount = recommendations.filter(r => r.approved).length;
-        const baseYield = 94 + approvedCount * 0.5;
+        
+        // Use backend prediction engine
+        const predictionResult = aiPredictYield({
+          signals: { ...signals, timestamp: new Date() } as TabletPressSignalsInput,
+          batchProfile: { batchNumber: 'current', ...batchProfile } as BatchProfileInput,
+          historicalYields: yieldHistory.map(h => h.actualYield),
+          activeRecommendations: approvedCount,
+        });
         
         return {
-          currentYield: addNoise(baseYield + 2, 0.3),
-          correctedYield: addNoise(baseYield + 3.5, 0.2),
-          currentRejectRate: addNoise(Math.max(0.5, 4 - approvedCount * 0.8), 0.2),
-          correctedRejectRate: addNoise(Math.max(0.3, 2 - approvedCount * 0.4), 0.1),
-          confidenceLevel: Math.min(0.95, 0.85 + approvedCount * 0.02),
-          riskLevel: approvedCount >= 2 ? 'low' : 'medium',
+          currentYield: addNoise(predictionResult.currentYield, 0.3),
+          correctedYield: addNoise(predictionResult.correctedYield, 0.2),
+          currentRejectRate: addNoise(predictionResult.currentRejectRate, 0.2),
+          correctedRejectRate: addNoise(predictionResult.correctedRejectRate, 0.1),
+          confidenceLevel: predictionResult.confidenceLevel,
+          riskLevel: predictionResult.riskLevel,
         };
       });
 
