@@ -10,16 +10,16 @@ import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import type { QualityDetection } from '@/types/manufacturing';
 
-// Import camera feed images
-import cam01EntryGate from '@/assets/camera-feeds/cam-01-entry-gate.jpg';
-import cam02NoCap from '@/assets/camera-feeds/cam-02-no-cap.jpg';
-import cam03CeilingPaint from '@/assets/camera-feeds/cam-03-ceiling-paint.jpg';
-import cam04Cleanroom from '@/assets/camera-feeds/cam-04-cleanroom.jpg';
-import cam05NoVest from '@/assets/camera-feeds/cam-05-no-vest.jpg';
-import cam06CeilingCrack from '@/assets/camera-feeds/cam-06-ceiling-crack.jpg';
-import cam07NoHelmet from '@/assets/camera-feeds/cam-07-no-helmet.jpg';
-import cam08LabGloves from '@/assets/camera-feeds/cam-08-lab-gloves.jpg';
-import cam09FloorDamage from '@/assets/camera-feeds/cam-09-floor-damage.jpg';
+// Import camera feed images - Pharma Manufacturing Areas
+import cam01Dispensing from '@/assets/camera-feeds/cam-01-dispensing.jpg';
+import cam02Sieving from '@/assets/camera-feeds/cam-02-sieving.jpg';
+import cam03Blending from '@/assets/camera-feeds/cam-03-blending.jpg';
+import cam04Compression from '@/assets/camera-feeds/cam-04-compression.jpg';
+import cam05Coating from '@/assets/camera-feeds/cam-05-coating.jpg';
+import cam06Polishing from '@/assets/camera-feeds/cam-06-polishing.jpg';
+import cam07Capsule from '@/assets/camera-feeds/cam-07-capsule.jpg';
+import cam08QcStation from '@/assets/camera-feeds/cam-08-qc-station.jpg';
+import cam09Staging from '@/assets/camera-feeds/cam-09-staging.jpg';
 
 interface ComputerVisionProps {
   detections: QualityDetection[];
@@ -65,17 +65,17 @@ const integrations = [
   { system: 'Incident Mgmt', status: 'connected', lastSync: '3s' },
 ];
 
-// Compliance use case scenarios for camera tiles
+// Compliance use case scenarios for camera tiles - Pharma Manufacturing Areas
 const cameraScenarios = [
-  { id: 'CAM-01', label: 'Entry Gate', scenario: 'PPE Check', status: 'clear', icon: Shield, image: cam01EntryGate },
-  { id: 'CAM-02', label: 'Production Floor', scenario: 'No Cap Detected', status: 'violation', icon: AlertTriangle, image: cam02NoCap },
-  { id: 'CAM-03', label: 'Ceiling Zone A', scenario: 'Paint Peeling', status: 'warning', icon: AlertTriangle, image: cam03CeilingPaint },
-  { id: 'CAM-04', label: 'Clean Room', scenario: 'Gowning Check', status: 'clear', icon: CheckCircle, image: cam04Cleanroom },
-  { id: 'CAM-05', label: 'Warehouse', scenario: 'No Safety Vest', status: 'violation', icon: XCircle, image: cam05NoVest },
-  { id: 'CAM-06', label: 'Ceiling Zone B', scenario: 'Crack Detected', status: 'warning', icon: AlertTriangle, image: cam06CeilingCrack },
-  { id: 'CAM-07', label: 'Loading Dock', scenario: 'Helmet Missing', status: 'violation', icon: Shield, image: cam07NoHelmet },
-  { id: 'CAM-08', label: 'Lab Area', scenario: 'Gloves Check', status: 'clear', icon: CheckCircle, image: cam08LabGloves },
-  { id: 'CAM-09', label: 'Epoxy Floor', scenario: 'Surface Damage', status: 'warning', icon: AlertTriangle, image: cam09FloorDamage },
+  { id: 'CAM-01', label: 'Dispensing Area', scenario: 'Weighing Clear', status: 'clear', icon: CheckCircle, image: cam01Dispensing },
+  { id: 'CAM-02', label: 'Sieving Area', scenario: 'No Mask Detected', status: 'violation', icon: AlertTriangle, image: cam02Sieving },
+  { id: 'CAM-03', label: 'Blending Area', scenario: 'Equipment Clear', status: 'clear', icon: CheckCircle, image: cam03Blending },
+  { id: 'CAM-04', label: 'Compression Area', scenario: 'No Gloves Detected', status: 'violation', icon: Shield, image: cam04Compression },
+  { id: 'CAM-05', label: 'Coating Area', scenario: 'Temp Deviation', status: 'warning', icon: AlertTriangle, image: cam05Coating },
+  { id: 'CAM-06', label: 'Polishing Area', scenario: 'All Clear', status: 'clear', icon: CheckCircle, image: cam06Polishing },
+  { id: 'CAM-07', label: 'Capsule Filling', scenario: 'Gown Incomplete', status: 'violation', icon: XCircle, image: cam07Capsule },
+  { id: 'CAM-08', label: 'QC Station', scenario: 'Calibration Due', status: 'warning', icon: AlertTriangle, image: cam08QcStation },
+  { id: 'CAM-09', label: 'Material Staging', scenario: 'All Clear', status: 'clear', icon: CheckCircle, image: cam09Staging },
 ];
 
 function CameraTile({ camera, isSelected, onClick }: { 
