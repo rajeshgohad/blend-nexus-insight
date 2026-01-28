@@ -12,6 +12,14 @@ import type {
   Anomaly,
 } from '@/types/manufacturing';
 
+// Import AI Agent from backend
+import { 
+  analyzeComponent as aiAnalyzeComponent,
+  findIdleWindow as aiFindIdleWindow,
+  type ComponentHealthInput,
+  type ScheduledBatchInput,
+} from '@/backend/agents';
+
 const generateId = () => Math.random().toString(36).substr(2, 9);
 
 const initialTechnicians: Technician[] = [
@@ -51,66 +59,55 @@ export function useMaintenanceWorkflow(components: ComponentHealth[], schedule: 
     setMaintenanceLogs(prev => [log, ...prev].slice(0, 100));
   }, []);
 
+  // Use backend agent for idle window detection
   const findIdleWindow = useCallback((schedule: ScheduledBatch[], durationHours: number): { start: Date; end: Date } | null => {
-    const now = new Date();
-    const futureSchedule = schedule
-      .filter(b => b.endTime > now)
-      .sort((a, b) => a.startTime.getTime() - b.startTime.getTime());
-
-    // Check for gap before first batch
-    if (futureSchedule.length === 0) {
-      return { start: now, end: new Date(now.getTime() + durationHours * 60 * 60 * 1000) };
-    }
-
-    const firstBatch = futureSchedule[0];
-    const gapBeforeFirst = (firstBatch.startTime.getTime() - now.getTime()) / (60 * 60 * 1000);
-    if (gapBeforeFirst >= durationHours) {
-      return { start: now, end: new Date(now.getTime() + durationHours * 60 * 60 * 1000) };
-    }
-
-    // Check gaps between batches
-    for (let i = 0; i < futureSchedule.length - 1; i++) {
-      const gapStart = futureSchedule[i].endTime;
-      const gapEnd = futureSchedule[i + 1].startTime;
-      const gapHours = (gapEnd.getTime() - gapStart.getTime()) / (60 * 60 * 1000);
-      if (gapHours >= durationHours) {
-        return { start: gapStart, end: new Date(gapStart.getTime() + durationHours * 60 * 60 * 1000) };
-      }
-    }
-
-    // After last batch
-    const lastBatch = futureSchedule[futureSchedule.length - 1];
-    return { start: lastBatch.endTime, end: new Date(lastBatch.endTime.getTime() + durationHours * 60 * 60 * 1000) };
+    // Convert to backend agent input format
+    const scheduleInput: ScheduledBatchInput[] = schedule.map(b => ({
+      id: b.id,
+      batchNumber: b.batchNumber,
+      productName: b.productName,
+      startTime: b.startTime,
+      endTime: b.endTime,
+      status: b.status,
+    }));
+    
+    return aiFindIdleWindow(scheduleInput, durationHours);
   }, []);
 
+  // Use backend AI agent for component analysis
   const analyzeComponent = useCallback((component: ComponentHealth): MaintenanceDecision => {
-    const requiresMaintenance = component.health < 70 || component.rul < 500 || component.trend === 'critical';
-    
-    let maintenanceType: 'general' | 'spare_replacement' | null = null;
-    let reasoning = '';
-
-    if (!requiresMaintenance) {
-      reasoning = `Component health at ${component.health.toFixed(0)}% with RUL of ${component.rul}h. No maintenance required.`;
-    } else if (component.health < 50 || component.trend === 'critical') {
-      maintenanceType = 'spare_replacement';
-      reasoning = `Critical condition detected. Health: ${component.health.toFixed(0)}%, Trend: ${component.trend}. Spare replacement required.`;
-    } else {
-      maintenanceType = 'general';
-      reasoning = `Preventive maintenance recommended. Health: ${component.health.toFixed(0)}%, RUL: ${component.rul}h. General maintenance sufficient.`;
-    }
-
-    const estimatedDuration = maintenanceType === 'spare_replacement' ? 4 : 2;
-    const idleWindow = findIdleWindow(schedule, estimatedDuration);
-
-    return {
-      componentName: component.name,
-      requiresMaintenance,
-      maintenanceType,
-      reasoning,
-      suggestedTime: idleWindow?.start || null,
-      machineIdleWindow: idleWindow,
+    // Convert to backend agent input format
+    const componentInput: ComponentHealthInput = {
+      name: component.name,
+      health: component.health,
+      rul: component.rul,
+      trend: component.trend,
+      failureProbability: component.failureProbability,
+      lastMaintenance: component.lastMaintenance,
+      predictedFailureDate: component.predictedFailureDate,
     };
-  }, [schedule, findIdleWindow]);
+    
+    const scheduleInput: ScheduledBatchInput[] = schedule.map(b => ({
+      id: b.id,
+      batchNumber: b.batchNumber,
+      productName: b.productName,
+      startTime: b.startTime,
+      endTime: b.endTime,
+      status: b.status,
+    }));
+    
+    // Call backend AI agent
+    const decision = aiAnalyzeComponent(componentInput, scheduleInput);
+    
+    return {
+      componentName: decision.componentName,
+      requiresMaintenance: decision.requiresMaintenance,
+      maintenanceType: decision.maintenanceType,
+      reasoning: decision.reasoning,
+      suggestedTime: decision.suggestedTime,
+      machineIdleWindow: decision.machineIdleWindow,
+    };
+  }, [schedule]);
 
   const findAvailableTechnician = useCallback((skillRequired: 'junior' | 'senior' | 'specialist'): Technician | null => {
     const skillOrder = ['specialist', 'senior', 'junior'];
