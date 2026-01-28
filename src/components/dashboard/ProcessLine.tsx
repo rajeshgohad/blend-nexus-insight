@@ -26,7 +26,7 @@ interface ProcessLineProps {
   equipmentFailures?: EquipmentFailure[];
 }
 
-const processSteps = ['Sieving', 'Dispensing', 'Blending', 'Compression', 'Coating', 'Polishing'];
+const processSteps = ['Sieving', 'Dispensing', 'Blending', 'Compression', 'Coating', 'Polishing', 'Packing'];
 
 export function ProcessLine({ 
   currentBatchNumber, 
