@@ -1,9 +1,14 @@
-import { Package, FileText, Thermometer, Droplets, Wrench, AlertCircle, CheckCircle2, Clock, Loader2 } from 'lucide-react';
+import { Package, FileText, Thermometer, Droplets, Wrench, AlertCircle, CheckCircle2, Clock, Loader2, GitBranch } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { BATCH_ORDERS, type BatchOrder } from '@/data/batchMasterData';
+
+const lineColors = {
+  'Line 1': 'bg-primary/20 text-primary',
+  'Line 2': 'bg-violet-500/20 text-violet-400',
+};
 
 const priorityColors = {
   normal: 'bg-muted text-muted-foreground',
@@ -103,6 +108,12 @@ function BatchRow({ batch }: { batch: BatchOrder }) {
         </Badge>
       </TableCell>
       <TableCell>
+        <Badge variant="outline" className={lineColors[batch.productionLine]}>
+          <GitBranch className="w-3 h-3 mr-1" />
+          {batch.productionLine}
+        </Badge>
+      </TableCell>
+      <TableCell>
         <BatchStatusBadge status={batch.status} />
       </TableCell>
       <TableCell>
@@ -197,6 +208,7 @@ export function BatchOrders() {
                 <TableHead className="w-[80px]">Env.</TableHead>
                 <TableHead className="w-[100px]">Quantity</TableHead>
                 <TableHead className="w-[80px]">Priority</TableHead>
+                <TableHead className="w-[90px]">Prod. Line</TableHead>
                 <TableHead className="w-[110px]">Status</TableHead>
                 <TableHead className="w-[40px]">Notes</TableHead>
               </TableRow>
