@@ -135,7 +135,7 @@ const Index = () => {
       id: 'vision',
       label: 'Vision QC',
       icon: <Eye className="w-4 h-4" />,
-      title: 'Computer Vision QC',
+      title: 'Autonomous Quality Assurance with Computer Vision',
       subtitle: 'Real-time Visual Monitoring',
       status: detections.some(d => d.severity === 'critical') ? 'warning' : 'active',
       content: (
