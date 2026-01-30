@@ -246,7 +246,7 @@ export function DigitalTwin({
             status={getStatus(parameters.motorLoad, 40, 85)}
           />
           <Gauge 
-            label="Temperature" 
+            label="Product Temp."
             value={parameters.temperature} 
             min={20} max={25} 
             unit="°C"
