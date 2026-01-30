@@ -1,6 +1,6 @@
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import type { ParameterHistoryPoint } from '@/types/manufacturing';
-import { format } from 'date-fns';
+import { formatTimeShort } from '@/lib/dateFormat';
 
 export type TrendParameter = 'temperature' | 'blenderSpeed';
 
@@ -41,7 +41,7 @@ export function TrendChart({ parameterHistory, selectedParameter }: TrendChartPr
   const config = parameterConfigs[selectedParameter];
   
   const data = parameterHistory.map(point => ({
-    time: format(point.timestamp, 'HH:mm'),
+    time: formatTimeShort(point.timestamp),
     value: point[config.dataKey] as number,
   }));
 
