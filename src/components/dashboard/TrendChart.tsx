@@ -20,7 +20,7 @@ interface ChartConfig {
 
 const parameterConfigs: Record<TrendParameter, ChartConfig> = {
   temperature: {
-    label: 'Temperature',
+    label: 'Product Temp.',
     unit: '°C',
     color: 'hsl(var(--warning))',
     min: 18,
