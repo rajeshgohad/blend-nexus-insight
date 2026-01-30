@@ -326,6 +326,11 @@ export function useMaintenanceWorkflow(components: ComponentHealth[], schedule: 
 
   // Auto-create purchase order for zero stock spares
   const createPurchaseOrderForZeroStock = useCallback((spare: SparePart) => {
+    // Special case: Coupling Element has fixed ETA of 06-May-2026
+    const expectedDelivery = spare.name === 'Coupling Element'
+      ? new Date(2026, 4, 6) // May 6, 2026
+      : new Date(Date.now() + spare.leadTimeDays * 24 * 60 * 60 * 1000);
+
     const po: PurchaseOrder = {
       id: `PO-${Date.now().toString(36).toUpperCase()}-${spare.id}`,
       sparePart: spare,
@@ -333,7 +338,7 @@ export function useMaintenanceWorkflow(components: ComponentHealth[], schedule: 
       vendor: spare.vendor,
       status: 'pending',
       createdAt: new Date(),
-      expectedDelivery: new Date(Date.now() + spare.leadTimeDays * 24 * 60 * 60 * 1000),
+      expectedDelivery,
       workOrderId: 'AUTO-REPLENISH',
     };
 
