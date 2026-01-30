@@ -72,7 +72,7 @@ function ComponentHealthCard({
       <div className="flex justify-between text-sm text-muted-foreground">
         <span className="flex items-center gap-1">
           <Clock className="w-4 h-4" />
-          RUL: {formatRUL(component.rul)}
+          Remaining Useful Life: {formatRUL(component.rul)}
         </span>
         <span className="text-destructive/80 font-medium">
           P(fail): {(component.failureProbability * 100).toFixed(0)}%
@@ -350,7 +350,7 @@ export function PredictiveMaintenance({
               <div>
                 <div className="flex items-center gap-2 mb-3">
                   <Wrench className="w-5 h-5 text-muted-foreground" />
-                  <span className="text-sm font-medium text-muted-foreground">RUL Prediction</span>
+                  <span className="text-sm font-medium text-muted-foreground">Remaining Useful Life Prediction</span>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   {components.map((component, idx) => (
