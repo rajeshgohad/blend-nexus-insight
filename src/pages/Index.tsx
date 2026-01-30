@@ -113,7 +113,7 @@ const Index = () => {
       id: 'yield',
       label: 'Yield',
       icon: <TrendingUp className="w-4 h-4" />,
-      title: 'Yield Optimization',
+      title: 'Adaptive Yield Optimization',
       subtitle: 'Tablet Compression AI',
       status: isTabletPressActive ? (driftDetections.length > 0 ? 'warning' : 'active') : 'idle',
       content: (
