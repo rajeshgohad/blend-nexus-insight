@@ -324,12 +324,15 @@ export function PredictiveMaintenance({
 
       {/* Tabbed Content */}
       <Tabs defaultValue="health" className="flex-1 flex flex-col min-h-0">
-        <TabsList className="grid grid-cols-5 h-10">
+        <TabsList className="grid grid-cols-6 h-10">
           <TabsTrigger value="health" className="px-2">
             <Wrench className="w-5 h-5" />
           </TabsTrigger>
           <TabsTrigger value="workorders" className="px-2">
             <ClipboardList className="w-5 h-5" />
+          </TabsTrigger>
+          <TabsTrigger value="purchaseorders" className="px-2">
+            <ShoppingCart className="w-5 h-5" />
           </TabsTrigger>
           <TabsTrigger value="resources" className="px-2">
             <User className="w-5 h-5" />
@@ -402,17 +405,31 @@ export function PredictiveMaintenance({
                   <WorkOrderCard key={wo.id} workOrder={wo} />
                 ))
               )}
-              
-              {purchaseOrders.length > 0 && (
-                <>
-                  <div className="flex items-center gap-2 mt-4 mb-3">
-                    <ShoppingCart className="w-5 h-5 text-muted-foreground" />
-                    <span className="text-sm font-medium text-muted-foreground">Purchase Orders</span>
-                  </div>
-                  {purchaseOrders.slice(0, 3).map(po => (
-                    <PurchaseOrderCard key={po.id} po={po} />
-                  ))}
-                </>
+            </div>
+          </ScrollArea>
+        </TabsContent>
+
+        {/* Purchase Orders Tab */}
+        <TabsContent value="purchaseorders" className="flex-1 min-h-0 mt-3">
+          <ScrollArea className="h-full">
+            <div className="space-y-3 pr-2">
+              <div className="flex items-center gap-2 mb-3">
+                <ShoppingCart className="w-5 h-5 text-muted-foreground" />
+                <span className="text-sm font-medium text-muted-foreground">Purchase Orders</span>
+                {pendingPOs > 0 && (
+                  <Badge variant="secondary" className="text-xs px-2 py-1 ml-auto">
+                    {pendingPOs} pending
+                  </Badge>
+                )}
+              </div>
+              {purchaseOrders.length === 0 ? (
+                <div className="text-sm text-muted-foreground text-center py-6">
+                  No purchase orders
+                </div>
+              ) : (
+                purchaseOrders.map(po => (
+                  <PurchaseOrderCard key={po.id} po={po} />
+                ))
               )}
             </div>
           </ScrollArea>
