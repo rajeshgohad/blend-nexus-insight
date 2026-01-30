@@ -340,7 +340,7 @@ export function TabletPressVisualization({ isActive, parameters }: TabletPressVi
       {/* Parameters - Compact grid with abbreviations */}
       <div className="grid grid-cols-2 gap-x-2 gap-y-1.5">
         <Gauge 
-          label="TS" 
+          label="Turret Speed" 
           value={displayParams.turretSpeed} 
           unit="RPM"
           min={0}
@@ -348,14 +348,14 @@ export function TabletPressVisualization({ isActive, parameters }: TabletPressVi
           status={isRunning && displayParams.turretSpeed > 70 ? 'warning' : 'normal'}
         />
         <Gauge 
-          label="PCF" 
+          label="Pre Compression Force" 
           value={displayParams.preCompressionForce} 
           unit="kN"
           min={0}
           max={10}
         />
         <Gauge 
-          label="MCF" 
+          label="Main Compression Force" 
           value={displayParams.mainCompressionForce} 
           unit="kN"
           min={0}
@@ -363,7 +363,7 @@ export function TabletPressVisualization({ isActive, parameters }: TabletPressVi
           status={isRunning && displayParams.mainCompressionForce > 35 ? 'warning' : 'normal'}
         />
         <Gauge 
-          label="VAC" 
+          label="Vacuum" 
           value={displayParams.vacuumLevel} 
           unit="mbar"
           min={-100}
@@ -425,7 +425,7 @@ export function TabletPressVisualization({ isActive, parameters }: TabletPressVi
                     stroke="hsl(var(--muted-foreground))"
                     tick={{ fontSize: 10 }}
                     tickLine={false}
-                    axisLine={false}
+                    axisLine={{ stroke: 'hsl(var(--border))' }}
                     interval="preserveStartEnd"
                   />
                   <YAxis 
