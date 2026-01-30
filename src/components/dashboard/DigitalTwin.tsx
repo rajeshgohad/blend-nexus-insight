@@ -219,6 +219,7 @@ export function DigitalTwin({
     <div className="h-full flex gap-4 overflow-hidden">
       {/* Left Column - Blender Visualization & Parameters */}
       <div className="w-[400px] flex flex-col gap-4 shrink-0">
+        <div className="text-base font-semibold text-foreground">V-Blending</div>
         <BlenderVisualization isRunning={isRunning} speed={parameters.rotationSpeed} />
 
         {/* Parameter Gauges */}
