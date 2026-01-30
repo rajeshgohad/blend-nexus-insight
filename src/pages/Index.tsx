@@ -89,7 +89,7 @@ const Index = () => {
       id: 'maintenance',
       label: 'Maintenance',
       icon: <Wrench className="w-4 h-4" />,
-      title: 'Predictive Maintenance',
+      title: 'Autonomous Predictive Maintenance',
       subtitle: 'Autonomous Equipment Health',
       status: components.some(c => c.health < 60) ? 'warning' : 'active',
       content: (
