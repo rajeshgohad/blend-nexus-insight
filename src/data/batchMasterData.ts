@@ -4,6 +4,7 @@ export type DensityLevel = 'low' | 'medium' | 'high';
 export type CleaningRule = 'none' | 'partial' | 'full';
 export type TabletSize = '6mm' | '8mm' | '10mm' | '12mm';
 export type TabletShape = 'round' | 'oval' | 'capsule' | 'oblong';
+export type ProductionLine = 'Line 1' | 'Line 2';
 
 export interface BatchOrder {
   id: string;
@@ -25,6 +26,7 @@ export interface BatchOrder {
   estimatedDuration: number; // minutes
   specialInstructions?: string;
   status: 'pending' | 'scheduled' | 'in-progress' | 'completed';
+  productionLine: ProductionLine;
 }
 
 // Master batch orders - these batch numbers are used across the entire application
@@ -48,6 +50,7 @@ export const BATCH_ORDERS: BatchOrder[] = [
     toolingRequired: '8mm round concave',
     estimatedDuration: 45,
     status: 'in-progress',
+    productionLine: 'Line 1',
   },
   {
     id: 'batch-002',
@@ -68,6 +71,7 @@ export const BATCH_ORDERS: BatchOrder[] = [
     toolingRequired: '8mm round concave',
     estimatedDuration: 45,
     status: 'scheduled',
+    productionLine: 'Line 2',
   },
   {
     id: 'batch-003',
@@ -89,6 +93,7 @@ export const BATCH_ORDERS: BatchOrder[] = [
     estimatedDuration: 50,
     specialInstructions: 'Requires die changeover from 8mm',
     status: 'scheduled',
+    productionLine: 'Line 1',
   },
   {
     id: 'batch-004',
@@ -110,6 +115,7 @@ export const BATCH_ORDERS: BatchOrder[] = [
     estimatedDuration: 55,
     specialInstructions: 'High priority - adjust schedule if needed',
     status: 'scheduled',
+    productionLine: 'Line 2',
   },
   {
     id: 'batch-005',
@@ -131,6 +137,7 @@ export const BATCH_ORDERS: BatchOrder[] = [
     estimatedDuration: 60,
     specialInstructions: 'Full line clearance required - different API',
     status: 'pending',
+    productionLine: 'Line 1',
   },
   {
     id: 'batch-006',
@@ -151,6 +158,7 @@ export const BATCH_ORDERS: BatchOrder[] = [
     toolingRequired: '8mm oval film-coated',
     estimatedDuration: 55,
     status: 'pending',
+    productionLine: 'Line 2',
   },
   {
     id: 'batch-007',
@@ -172,6 +180,7 @@ export const BATCH_ORDERS: BatchOrder[] = [
     estimatedDuration: 40,
     specialInstructions: 'URGENT - Hospital order. Full QA clearance required.',
     status: 'pending',
+    productionLine: 'Line 1',
   },
   {
     id: 'batch-008',
@@ -193,6 +202,7 @@ export const BATCH_ORDERS: BatchOrder[] = [
     estimatedDuration: 65,
     specialInstructions: 'Moisture sensitive - strict RH control',
     status: 'pending',
+    productionLine: 'Line 2',
   },
   {
     id: 'batch-009',
@@ -213,6 +223,7 @@ export const BATCH_ORDERS: BatchOrder[] = [
     toolingRequired: '6mm round plain',
     estimatedDuration: 45,
     status: 'pending',
+    productionLine: 'Line 1',
   },
   {
     id: 'batch-010',
@@ -233,6 +244,7 @@ export const BATCH_ORDERS: BatchOrder[] = [
     toolingRequired: '8mm round scored',
     estimatedDuration: 50,
     status: 'pending',
+    productionLine: 'Line 2',
   },
 ];
 
