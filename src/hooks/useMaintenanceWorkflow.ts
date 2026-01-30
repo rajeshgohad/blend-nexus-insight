@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
+import { formatDateTimeShort } from '@/lib/dateFormat';
 import type {
   ComponentHealth,
   Technician,
@@ -214,7 +215,7 @@ export function useMaintenanceWorkflow(components: ComponentHealth[], schedule: 
     notifications.push({
       id: generateId(),
       recipient: 'maintenance_team',
-      message: `Work Order ${workOrder.id}: ${workOrder.component} requires ${workOrder.type === 'general' ? 'general maintenance' : 'spare replacement'}. Scheduled: ${workOrder.scheduledTime?.toLocaleString() || 'TBD'}`,
+      message: `Work Order ${workOrder.id}: ${workOrder.component} requires ${workOrder.type === 'general' ? 'general maintenance' : 'spare replacement'}. Scheduled: ${workOrder.scheduledTime ? formatDateTimeShort(workOrder.scheduledTime) : 'TBD'}`,
       sentAt: new Date(),
       acknowledged: false,
     });

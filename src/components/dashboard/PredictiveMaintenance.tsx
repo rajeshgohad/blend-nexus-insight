@@ -4,6 +4,7 @@ import { Progress } from '@/components/ui/progress';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
+import { formatDate, formatTime, formatDateTimeShort } from '@/lib/dateFormat';
 import type { 
   ComponentHealth, 
   Anomaly, 
@@ -79,7 +80,7 @@ function ComponentHealthCard({
       </div>
       {component.predictedFailureDate && (
         <div className="text-sm text-muted-foreground">
-          Est. failure: {component.predictedFailureDate.toLocaleDateString()}
+          Est. failure: {formatDate(component.predictedFailureDate)}
         </div>
       )}
       {decision?.requiresMaintenance && (
@@ -153,7 +154,7 @@ function WorkOrderCard({ workOrder }: { workOrder: WorkOrder }) {
       )}
       {workOrder.scheduledTime && (
         <div className="text-sm text-muted-foreground">
-          Scheduled: {workOrder.scheduledTime.toLocaleString()}
+          Scheduled: {formatDateTimeShort(workOrder.scheduledTime)}
         </div>
       )}
       {workOrder.notificationsSent.length > 0 && (
@@ -189,7 +190,7 @@ function PurchaseOrderCard({ po }: { po: PurchaseOrder }) {
         <span>{po.vendor}</span>
       </div>
       <div className="text-sm text-muted-foreground">
-        ETA: {po.expectedDelivery.toLocaleDateString()}
+        ETA: {formatDate(po.expectedDelivery)}
       </div>
     </div>
   );
@@ -201,7 +202,7 @@ function MaintenanceLogItem({ log }: { log: MaintenanceLog }) {
       <div className="flex items-center justify-between">
         <span className="text-sm font-semibold">{log.action}</span>
         <span className="text-sm text-muted-foreground">
-          {log.timestamp.toLocaleTimeString()}
+          {formatTime(log.timestamp)}
         </span>
       </div>
       <div className="text-sm text-muted-foreground mt-1">{log.details}</div>
@@ -246,7 +247,7 @@ function AnomalyItem({ anomaly }: { anomaly: Anomaly }) {
         </Badge>
       </div>
       <div className="text-sm opacity-60 mt-2">
-        {anomaly.timestamp.toLocaleTimeString()}
+        {formatTime(anomaly.timestamp)}
       </div>
     </div>
   );

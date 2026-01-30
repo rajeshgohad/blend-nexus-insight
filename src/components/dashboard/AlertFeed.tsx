@@ -1,4 +1,5 @@
 import { Bell, Info, AlertTriangle, XCircle, CheckCircle } from 'lucide-react';
+import { formatTime } from '@/lib/dateFormat';
 import type { Alert } from '@/types/manufacturing';
 
 interface AlertFeedProps {
@@ -46,7 +47,7 @@ export function AlertFeed({ alerts }: AlertFeedProps) {
                 <span className="text-[10px] font-medium whitespace-nowrap">{alert.source}</span>
                 <span className="text-[10px] whitespace-nowrap">{alert.message}</span>
                 <span className="text-[10px] text-muted-foreground whitespace-nowrap">
-                  {alert.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                  {formatTime(alert.timestamp)}
                 </span>
               </div>
             ))}

@@ -8,7 +8,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { TrendChart, type TrendParameter } from './TrendChart';
 import { TabletPressVisualization } from './TabletPressVisualization';
 import type { BlenderParameters, BatchInfo, Recipe, ParameterHistoryPoint } from '@/types/manufacturing';
-import { format } from 'date-fns';
+import { formatTime } from '@/lib/dateFormat';
+
 
 interface DigitalTwinProps {
   parameters: BlenderParameters;
@@ -361,14 +362,14 @@ export function DigitalTwin({
                   <Clock className="w-4 h-4 text-muted-foreground" />
                   <span className="text-sm text-muted-foreground">Start:</span>
                   <span className="font-mono text-foreground text-sm">
-                    {batch.startTime ? format(batch.startTime, 'HH:mm:ss') : '--'}
+                    {batch.startTime ? formatTime(batch.startTime) : '--'}
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Clock className="w-4 h-4 text-muted-foreground" />
                   <span className="text-sm text-muted-foreground">End:</span>
                   <span className="font-mono text-foreground text-sm">
-                    {batch.endTime ? format(batch.endTime, 'HH:mm:ss') : '--'}
+                    {batch.endTime ? formatTime(batch.endTime) : '--'}
                   </span>
                 </div>
               </div>

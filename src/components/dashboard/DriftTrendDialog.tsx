@@ -1,8 +1,8 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, ReferenceLine, ReferenceDot, CartesianGrid, Tooltip } from 'recharts';
-import { format } from 'date-fns';
 import { TrendingUp, TrendingDown, AlertTriangle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { formatTime } from '@/lib/dateFormat';
 import type { DriftDetection, ParameterTrendPoint } from '@/types/tablet-press-yield';
 
 interface DriftTrendDialogProps {
@@ -30,7 +30,7 @@ export function DriftTrendDialog({ open, onOpenChange, drift, trendData }: Drift
     .map(point => ({
       timestamp: point.timestamp,
       value: point[drift.parameter as keyof ParameterTrendPoint] as number,
-      formattedTime: format(new Date(point.timestamp), 'HH:mm:ss'),
+      formattedTime: formatTime(new Date(point.timestamp)),
     }))
     .filter(d => typeof d.value === 'number');
 
@@ -84,7 +84,7 @@ export function DriftTrendDialog({ open, onOpenChange, drift, trendData }: Drift
               {drift.magnitude.toFixed(1)}% magnitude
             </Badge>
             <span className="text-sm text-muted-foreground">
-              Detected at {format(new Date(drift.detectedAt), 'HH:mm:ss')}
+              Detected at {formatTime(new Date(drift.detectedAt))}
             </span>
           </div>
 

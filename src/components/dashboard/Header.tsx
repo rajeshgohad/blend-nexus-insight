@@ -1,6 +1,7 @@
 import { Activity, Wifi, WifiOff, Clock } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { ChatBot } from './ChatBot';
+import { formatHeaderDateTime } from '@/lib/dateFormat';
 import type { BatchState } from '@/types/manufacturing';
 
 interface HeaderProps {
@@ -56,10 +57,10 @@ export function Header({ productionLine, currentTime, batchState, isConnected }:
         <div className="flex items-center gap-2 text-muted-foreground">
           <Clock className="w-4 h-4" />
           <span className="font-mono text-sm">
-            {currentTime.toLocaleTimeString('en-US', { hour12: false })}
+            {formatHeaderDateTime(currentTime).time}
           </span>
           <span className="text-xs">
-            {currentTime.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+            {formatHeaderDateTime(currentTime).date}
           </span>
         </div>
 
