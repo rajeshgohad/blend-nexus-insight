@@ -149,7 +149,7 @@ const Index = () => {
       id: 'scheduling',
       label: 'Scheduling',
       icon: <Calendar className="w-4 h-4" />,
-      title: 'Batch Scheduling',
+      title: 'Self Optimizing Batch Scheduling',
       subtitle: 'Self-Optimizing Production',
       status: 'active' as const,
       content: (
