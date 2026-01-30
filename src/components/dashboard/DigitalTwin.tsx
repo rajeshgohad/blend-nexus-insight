@@ -314,7 +314,7 @@ export function DigitalTwin({
               <SelectValue />
             </SelectTrigger>
             <SelectContent className="bg-popover border-border z-50">
-              <SelectItem value="temperature">Temperature</SelectItem>
+              <SelectItem value="temperature">Product Temp.</SelectItem>
               <SelectItem value="blenderSpeed">Rotation Speed</SelectItem>
             </SelectContent>
           </Select>
