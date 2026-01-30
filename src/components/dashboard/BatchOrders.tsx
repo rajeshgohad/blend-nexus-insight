@@ -200,9 +200,9 @@ export function BatchOrders() {
           <Table>
             <TableHeader>
               <TableRow className="hover:bg-transparent">
-                <TableHead className="w-[130px]">Batch #</TableHead>
-                <TableHead>Product</TableHead>
-                <TableHead className="w-[80px]">Density</TableHead>
+                <TableHead className="w-[120px]">Batch #</TableHead>
+                <TableHead className="w-[180px]">Product</TableHead>
+                <TableHead className="w-[70px]">Density</TableHead>
                 <TableHead className="w-[100px]">Cleaning</TableHead>
                 <TableHead className="w-[150px]">Tooling</TableHead>
                 <TableHead className="w-[80px]">Env.</TableHead>
