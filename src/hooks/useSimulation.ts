@@ -396,20 +396,42 @@ export function useSimulation() {
         rul: Math.max(0, c.rul - deltaTime),
       })));
 
-      // Random anomaly detection
-      if (Math.random() < 0.02 * deltaTime) {
-        const sources = ['Motor Current', 'Vibration Pattern', 'Temperature Sensor', 'Bearing Noise'];
-        const anomaly: Anomaly = {
-          id: generateId(),
-          timestamp: new Date(),
-          source: sources[Math.floor(Math.random() * sources.length)],
-          severity: Math.random() < 0.3 ? 'high' : Math.random() < 0.6 ? 'medium' : 'low',
-          description: 'Unusual pattern detected - AI analysis in progress',
-          acknowledged: false,
-        };
-        setAnomalies(prev => [anomaly, ...prev].slice(0, 20));
-        addAlert('Predictive Maintenance', anomaly.severity === 'high' ? 'critical' : 'warning', `Anomaly: ${anomaly.source} - ${anomaly.description}`);
-      }
+      // Random anomaly detection - ONLY 2 anomalies: Bearing Noise and Vibration Pattern
+      setAnomalies(prev => {
+        if (prev.length >= 2) return prev; // Max 2 anomalies
+        
+        if (Math.random() < 0.02 * deltaTime) {
+          // Alternate between the two specific anomaly types
+          const hasBearingNoise = prev.some(a => a.source === 'Bearing Noise');
+          const hasVibrationPattern = prev.some(a => a.source === 'Vibration Pattern');
+          
+          let source: string;
+          let description: string;
+          
+          if (!hasBearingNoise) {
+            source = 'Bearing Noise';
+            description = 'Abnormal bearing noise detected - requires inspection';
+          } else if (!hasVibrationPattern) {
+            source = 'Vibration Pattern';
+            description = 'Excessive vibration detected - dampers may need replacement';
+          } else {
+            return prev; // Both anomalies already exist
+          }
+          
+          const anomaly: Anomaly = {
+            id: generateId(),
+            timestamp: new Date(),
+            source,
+            severity: 'high', // Always high to trigger work orders
+            description,
+            acknowledged: false,
+          };
+          
+          addAlert('Predictive Maintenance', 'critical', `Anomaly: ${anomaly.source} - ${anomaly.description}`);
+          return [anomaly, ...prev];
+        }
+        return prev;
+      });
 
       // Random CV detection
       if (Math.random() < 0.015 * deltaTime) {
