@@ -34,7 +34,7 @@ const initialSpares: SparePart[] = [
   { id: 'sp-001', name: 'Main Bearing Set', partNumber: 'BRG-VB500-001', quantity: 2, minStock: 1, leadTimeDays: 5, vendor: 'SKF Industries', unitCost: 450 },
   { id: 'sp-002', name: 'Seal Kit Assembly', partNumber: 'SEL-VB500-003', quantity: 4, minStock: 2, leadTimeDays: 3, vendor: 'Parker Hannifin', unitCost: 180 },
   { id: 'sp-003', name: 'Drive Motor Brushes', partNumber: 'MOT-BR-220', quantity: 6, minStock: 4, leadTimeDays: 2, vendor: 'Siemens AG', unitCost: 45 },
-  { id: 'sp-004', name: 'Vibration Damper Pads', partNumber: 'VIB-DP-100', quantity: 8, minStock: 4, leadTimeDays: 1, vendor: 'Lord Corp', unitCost: 75 },
+  { id: 'sp-004', name: 'Vibration Damper Pads', partNumber: 'VIB-DP-100', quantity: 0, minStock: 4, leadTimeDays: 3, vendor: 'Lord Corp', unitCost: 75 },
   { id: 'sp-005', name: 'Gearbox Oil Filter', partNumber: 'FLT-GB-050', quantity: 3, minStock: 2, leadTimeDays: 2, vendor: 'Fluitek', unitCost: 95 },
   { id: 'sp-006', name: 'Coupling Element', partNumber: 'CPL-VB500-002', quantity: 0, minStock: 1, leadTimeDays: 7, vendor: 'Rexnord', unitCost: 320 },
 ];

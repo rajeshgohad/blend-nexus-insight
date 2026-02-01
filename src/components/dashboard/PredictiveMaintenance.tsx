@@ -124,7 +124,7 @@ function SparePartCard({ spare }: { spare: SparePart }) {
   );
 }
 
-function WorkOrderCard({ workOrder }: { workOrder: WorkOrder }) {
+function WorkOrderCard({ workOrder, purchaseOrders }: { workOrder: WorkOrder; purchaseOrders: PurchaseOrder[] }) {
   const statusColors: Record<WorkOrder['status'], string> = {
     'pending': 'bg-muted text-muted-foreground',
     'scheduled': 'bg-primary/20 text-primary',
@@ -132,6 +132,9 @@ function WorkOrderCard({ workOrder }: { workOrder: WorkOrder }) {
     'completed': 'bg-success/20 text-success',
     'waiting-spares': 'bg-destructive/20 text-destructive',
   };
+
+  // Find PO linked to this work order
+  const linkedPO = purchaseOrders.find(po => po.workOrderId === workOrder.id);
 
   return (
     <div className="p-3 bg-muted/30 rounded-lg space-y-2">
@@ -152,32 +155,49 @@ function WorkOrderCard({ workOrder }: { workOrder: WorkOrder }) {
           {workOrder.assignedTechnician.name}
         </div>
       )}
-      {workOrder.scheduledTime && (
-        <div className="text-sm text-muted-foreground">
-          Scheduled: {formatDateTimeShort(workOrder.scheduledTime)}
-        </div>
-      )}
-      {/* Spare Parts with Availability */}
+      {/* Spare Parts with Availability and PO Info */}
       {workOrder.sparesRequired.length > 0 && (
-        <div className="space-y-1 border-t border-muted pt-2 mt-2">
+        <div className="space-y-2 border-t border-muted pt-2 mt-2">
           <div className="text-xs text-muted-foreground font-medium flex items-center gap-1">
             <Package className="w-3 h-3" />
             Spare Parts Required:
           </div>
           {workOrder.sparesRequired.map((sr, idx) => {
             const isAvailable = sr.part.quantity >= sr.quantity;
+            const partPO = purchaseOrders.find(po => po.sparePart.id === sr.part.id && po.workOrderId === workOrder.id);
             return (
-              <div key={idx} className="flex items-center justify-between text-sm">
-                <span className="truncate flex-1">{sr.part.name}</span>
-                <Badge 
-                  variant={isAvailable ? 'default' : 'destructive'} 
-                  className="text-xs px-2 py-0.5 ml-2"
-                >
-                  {isAvailable ? `Available (${sr.part.quantity})` : `Not Available (${sr.part.quantity})`}
-                </Badge>
+              <div key={idx} className="space-y-1">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="truncate flex-1">{sr.part.name}</span>
+                  <span className={`text-xs font-semibold ${isAvailable ? 'text-success' : 'text-destructive'}`}>
+                    Available: {sr.part.quantity}
+                  </span>
+                </div>
+                {partPO && (
+                  <div className="text-xs bg-muted/50 rounded px-2 py-1 space-y-0.5">
+                    <div className="flex items-center gap-1 text-primary font-medium">
+                      <ShoppingCart className="w-3 h-3" />
+                      PO Raised: {partPO.id}
+                    </div>
+                    <div className="text-muted-foreground">
+                      Est. Procurement: {formatDate(partPO.expectedDelivery)}
+                    </div>
+                  </div>
+                )}
               </div>
             );
           })}
+        </div>
+      )}
+      {/* Scheduled Time - show after procurement if waiting for spares */}
+      {workOrder.status === 'waiting-spares' && linkedPO ? (
+        <div className="text-sm text-muted-foreground">
+          <span className="text-xs">Scheduled after procurement:</span>
+          <div className="font-medium">{formatDateTimeShort(new Date(linkedPO.expectedDelivery.getTime() + 24 * 60 * 60 * 1000))}</div>
+        </div>
+      ) : workOrder.scheduledTime && (
+        <div className="text-sm text-muted-foreground">
+          Scheduled: {formatDateTimeShort(workOrder.scheduledTime)}
         </div>
       )}
       {workOrder.notificationsSent.length > 0 && (
@@ -213,8 +233,14 @@ function PurchaseOrderCard({ po }: { po: PurchaseOrder }) {
         <span>{po.vendor}</span>
       </div>
       <div className="text-sm text-muted-foreground">
-        ETA: {formatDate(po.expectedDelivery)}
+        Est. Procurement: {formatDate(po.expectedDelivery)}
       </div>
+      {po.workOrderId && po.workOrderId !== 'AUTO-REPLENISH' && (
+        <div className="text-xs text-primary font-medium flex items-center gap-1">
+          <ClipboardList className="w-3 h-3" />
+          Linked to: {po.workOrderId}
+        </div>
+      )}
     </div>
   );
 }
@@ -425,7 +451,7 @@ export function PredictiveMaintenance({
                 </div>
               ) : (
                 workOrders.slice(0, 5).map(wo => (
-                  <WorkOrderCard key={wo.id} workOrder={wo} />
+                  <WorkOrderCard key={wo.id} workOrder={wo} purchaseOrders={purchaseOrders} />
                 ))
               )}
             </div>
