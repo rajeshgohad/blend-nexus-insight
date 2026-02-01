@@ -216,45 +216,14 @@ export function useMaintenanceWorkflow(components: ComponentHealth[], schedule: 
   const sendNotifications = useCallback((workOrder: WorkOrder): NotificationRecord[] => {
     const notifications: NotificationRecord[] = [];
     
-    // Maintenance Team
+    // Send only ONE consolidated notification to Maintenance Team (supervisor's request to reduce noise)
     notifications.push({
       id: generateId(),
       recipient: 'maintenance_team',
-      message: `Work Order ${workOrder.id}: ${workOrder.component} requires ${workOrder.type === 'general' ? 'general maintenance' : 'spare replacement'}. Scheduled: ${workOrder.scheduledTime ? formatDateTimeShort(workOrder.scheduledTime) : 'TBD'}`,
+      message: `WO ${workOrder.id}: ${workOrder.component} - ${workOrder.type === 'general' ? 'General maintenance' : 'Spare replacement'}. Status: ${workOrder.status}. ${workOrder.scheduledTime ? `Scheduled: ${formatDateTimeShort(workOrder.scheduledTime)}` : 'TBD'}`,
       sentAt: new Date(),
       acknowledged: false,
     });
-
-    // Production Supervisor
-    notifications.push({
-      id: generateId(),
-      recipient: 'production_supervisor',
-      message: `Maintenance window required: ${workOrder.estimatedDuration}h for ${workOrder.component}. Equipment will be offline.`,
-      sentAt: new Date(),
-      acknowledged: false,
-    });
-
-    // Operator
-    if (workOrder.assignedTechnician) {
-      notifications.push({
-        id: generateId(),
-        recipient: 'operator',
-        message: `Technician ${workOrder.assignedTechnician.name} assigned to ${workOrder.component}. Instructions: ${workOrder.instructions.substring(0, 100)}...`,
-        sentAt: new Date(),
-        acknowledged: false,
-      });
-    }
-
-    // Stores (if spares needed)
-    if (workOrder.sparesRequired.length > 0) {
-      notifications.push({
-        id: generateId(),
-        recipient: 'stores',
-        message: `Reserve spares for WO ${workOrder.id}: ${workOrder.sparesRequired.map(s => s.part.name).join(', ')}`,
-        sentAt: new Date(),
-        acknowledged: false,
-      });
-    }
 
     setWorkOrders(prev => prev.map(wo => 
       wo.id === workOrder.id 

@@ -153,7 +153,8 @@ export function useSimulation() {
       message,
       acknowledged: false,
     };
-    setAlerts(prev => [newAlert, ...prev].slice(0, 50));
+    // Cap alerts at 7 to avoid overwhelming the supervisor
+    setAlerts(prev => [newAlert, ...prev].slice(0, 7));
   }, []);
 
   const startBatch = useCallback(() => {
@@ -240,17 +241,16 @@ export function useSimulation() {
   const injectScenario = useCallback((scenario: string) => {
     switch (scenario) {
       case 'equipment_failure':
-        // Add equipment failure for Blending on Line 1
+        // Add equipment failure for Compression on Line 1 - batch diverts to Compression (Backup) after Blending
         const failure = {
           lineId: 'line-1',
-          processId: 'l1-blending',
-          processName: 'Blending',
+          processId: 'l1-compression',
+          processName: 'Compression',
           timestamp: new Date(),
         };
         setEquipmentFailures(prev => [...prev, failure]);
         setComponents(prev => prev.map(c => c.name === 'Main Bearings' ? { ...c, health: 35, trend: 'critical' as const } : c));
-        addAlert('Process Line', 'critical', `Equipment Failure: Blending on Line 1 - Batch diverted to backup`);
-        addAlert('Predictive Maintenance', 'critical', 'Critical: Main Bearings health dropped to 35% - Work order raised');
+        addAlert('Process Line', 'critical', `Equipment Failure: Compression on Line 1 - Batch diverted to Compression (Backup) after Blending`);
         break;
       case 'material_delay':
         setResources(prev => prev.map(r => r.name === 'Metformin HCl API' ? { ...r, available: false, nextAvailable: new Date(Date.now() + 2 * 60 * 60 * 1000) } : r));
