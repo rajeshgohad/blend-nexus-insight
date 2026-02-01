@@ -48,6 +48,7 @@ export function useMaintenanceWorkflow(components: ComponentHealth[], schedule: 
   const [maintenanceLogs, setMaintenanceLogs] = useState<MaintenanceLog[]>([]);
   const processedAnomalyIds = useRef<Set<string>>(new Set());
   const processedZeroStockIds = useRef<Set<string>>(new Set());
+  const workOrderCountRef = useRef(0);
 
   const addLog = useCallback((action: string, details: string, actor: string = 'AI System') => {
     const log: MaintenanceLog = {
@@ -329,7 +330,10 @@ export function useMaintenanceWorkflow(components: ComponentHealth[], schedule: 
       ));
     }
 
-    setWorkOrders(prev => [workOrder, ...prev]);
+    setWorkOrders(prev => {
+      workOrderCountRef.current = prev.length + 1;
+      return [workOrder, ...prev];
+    });
     
     const spareInfo = sparesRequired.map(sr => `${sr.part.name} (Qty: ${sr.part.quantity})`).join(', ');
     addLog('Work Order Created (Anomaly)', `WO ${workOrder.id} for ${anomaly.source}. Spares: ${spareInfo || 'None'}. Status: ${status}`, 'AI System');
@@ -409,12 +413,12 @@ export function useMaintenanceWorkflow(components: ComponentHealth[], schedule: 
     const highAnomalies = anomalies.filter(a => a.severity === 'high');
     highAnomalies.forEach(anomaly => {
       // Only create if we have less than 2 work orders and haven't processed this anomaly
-      if (!processedAnomalyIds.current.has(anomaly.id) && workOrders.length < 2) {
+      if (!processedAnomalyIds.current.has(anomaly.id) && workOrderCountRef.current < 2) {
         processedAnomalyIds.current.add(anomaly.id);
         createWorkOrderFromAnomaly(anomaly);
       }
     });
-  }, [anomalies, createWorkOrderFromAnomaly, workOrders.length]);
+  }, [anomalies, createWorkOrderFromAnomaly]);
 
   // NOTE: Auto PO for zero stock disabled - POs only created when linked to work orders
 
