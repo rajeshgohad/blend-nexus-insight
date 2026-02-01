@@ -388,38 +388,35 @@ export function useMaintenanceWorkflow(components: ComponentHealth[], schedule: 
     return po;
   }, [addLog]);
 
-  // Auto-analyze components when they change
+  // Auto-analyze components when they change (decisions only, NO work orders)
   useEffect(() => {
     const criticalComponents = components.filter(c => c.health < 70 || c.trend === 'critical');
     criticalComponents.forEach(component => {
       const existingDecision = maintenanceDecisions.find(d => d.componentName === component.name);
       if (!existingDecision) {
-        processMaintenanceDecision(component);
+        // Only create decision record, don't create work orders from component health
+        const decision = analyzeComponent(component);
+        setMaintenanceDecisions(prev => {
+          const filtered = prev.filter(d => d.componentName !== component.name);
+          return [decision, ...filtered];
+        });
       }
     });
-  }, [components, maintenanceDecisions, processMaintenanceDecision]);
+  }, [components, maintenanceDecisions, analyzeComponent]);
 
-  // Auto-create work orders for HIGH anomalies
+  // Auto-create work orders for HIGH anomalies - ONLY 2 max
   useEffect(() => {
     const highAnomalies = anomalies.filter(a => a.severity === 'high');
     highAnomalies.forEach(anomaly => {
-      if (!processedAnomalyIds.current.has(anomaly.id)) {
+      // Only create if we have less than 2 work orders and haven't processed this anomaly
+      if (!processedAnomalyIds.current.has(anomaly.id) && workOrders.length < 2) {
         processedAnomalyIds.current.add(anomaly.id);
         createWorkOrderFromAnomaly(anomaly);
       }
     });
-  }, [anomalies, createWorkOrderFromAnomaly]);
+  }, [anomalies, createWorkOrderFromAnomaly, workOrders.length]);
 
-  // Auto-create purchase orders for zero stock spares
-  useEffect(() => {
-    const zeroStockSpares = spares.filter(s => s.quantity === 0);
-    zeroStockSpares.forEach(spare => {
-      if (!processedZeroStockIds.current.has(spare.id)) {
-        processedZeroStockIds.current.add(spare.id);
-        createPurchaseOrderForZeroStock(spare);
-      }
-    });
-  }, [spares, createPurchaseOrderForZeroStock]);
+  // NOTE: Auto PO for zero stock disabled - POs only created when linked to work orders
 
   return {
     technicians,
