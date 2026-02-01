@@ -124,12 +124,16 @@ export function useMaintenanceWorkflow(components: ComponentHealth[], schedule: 
   }, [technicians]);
 
   const getRequiredSpares = useCallback((componentName: string): { part: SparePart; quantity: number }[] => {
+    // Map component names AND anomaly sources to spare parts
     const spareMap: Record<string, string[]> = {
       'Main Bearings': ['Main Bearing Set'],
       'Seal Assembly': ['Seal Kit Assembly'],
       'Drive Motor': ['Drive Motor Brushes'],
       'Vibration Dampers': ['Vibration Damper Pads'],
       'Gear Box': ['Gearbox Oil Filter', 'Coupling Element'],
+      // Anomaly sources mapping
+      'Bearing Noise': ['Main Bearing Set'],
+      'Vibration Pattern': ['Vibration Damper Pads'],
     };
 
     const requiredNames = spareMap[componentName] || [];
@@ -284,25 +288,35 @@ export function useMaintenanceWorkflow(components: ComponentHealth[], schedule: 
     return decision;
   }, [analyzeComponent, createWorkOrder, createPurchaseOrder, sendNotifications]);
 
-  // Create work order from high severity anomaly
+  // Create work order from high severity anomaly with associated spare parts
   const createWorkOrderFromAnomaly = useCallback((anomaly: Anomaly) => {
     const skillRequired = 'senior';
-    const technician = technicians.find(t => t.available);
     const estimatedDuration = 2;
     const idleWindow = findIdleWindow(schedule, estimatedDuration);
+    
+    // Get spare parts required for this anomaly source
+    const sparesRequired = getRequiredSpares(anomaly.source);
+    const sparesAvailable = sparesRequired.every(sr => sr.part.quantity >= sr.quantity);
+    
+    // Only assign technician if spares are available
+    const technician = sparesAvailable ? technicians.find(t => t.available) : null;
+    
+    const status: WorkOrder['status'] = sparesAvailable 
+      ? (technician ? 'scheduled' : 'pending')
+      : 'waiting-spares';
 
     const workOrder: WorkOrder = {
       id: `WO-${Date.now().toString(36).toUpperCase()}`,
       component: anomaly.source,
-      type: 'general',
-      status: technician ? 'scheduled' : 'pending',
+      type: 'spare_replacement',
+      status,
       priority: 'high',
       assignedTechnician: technician || null,
-      scheduledTime: idleWindow?.start || null,
-      sparesRequired: [],
+      scheduledTime: sparesAvailable ? (idleWindow?.start || null) : null,
+      sparesRequired,
       estimatedDuration,
       createdAt: new Date(),
-      instructions: `HIGH PRIORITY: Investigate ${anomaly.description}. Source: ${anomaly.source}. Perform inspection and corrective action.`,
+      instructions: `HIGH PRIORITY: ${anomaly.description}. Source: ${anomaly.source}. Replace affected spare parts.`,
       notificationsSent: [],
     };
 
@@ -316,13 +330,39 @@ export function useMaintenanceWorkflow(components: ComponentHealth[], schedule: 
     }
 
     setWorkOrders(prev => [workOrder, ...prev]);
-    addLog('Work Order Created (Anomaly)', `WO ${workOrder.id} for high anomaly: ${anomaly.description}. Assigned: ${technician?.name || 'Pending'}. Scheduled: ${idleWindow?.start?.toLocaleString() || 'TBD'}`, 'AI System');
+    
+    const spareInfo = sparesRequired.map(sr => `${sr.part.name} (Qty: ${sr.part.quantity})`).join(', ');
+    addLog('Work Order Created (Anomaly)', `WO ${workOrder.id} for ${anomaly.source}. Spares: ${spareInfo || 'None'}. Status: ${status}`, 'AI System');
+
+    // Create purchase order if spares not available
+    if (!sparesAvailable && sparesRequired.length > 0) {
+      sparesRequired.forEach(sr => {
+        if (sr.part.quantity < sr.quantity) {
+          const expectedDelivery = sr.part.name === 'Coupling Element'
+            ? new Date(2026, 4, 6) // May 6, 2026
+            : new Date(Date.now() + sr.part.leadTimeDays * 24 * 60 * 60 * 1000);
+            
+          const po: PurchaseOrder = {
+            id: `PO-${Date.now().toString(36).toUpperCase()}-${sr.part.id}`,
+            sparePart: sr.part,
+            quantity: sr.quantity,
+            vendor: sr.part.vendor,
+            status: 'pending',
+            createdAt: new Date(),
+            expectedDelivery,
+            workOrderId: workOrder.id,
+          };
+          setPurchaseOrders(prev => [po, ...prev]);
+          addLog('Purchase Order Created', `PO ${po.id} for ${sr.part.name}. ETA: ${expectedDelivery.toLocaleDateString()}`, 'AI System');
+        }
+      });
+    }
 
     // Send notifications
     sendNotifications(workOrder);
 
     return workOrder;
-  }, [technicians, findIdleWindow, schedule, addLog, sendNotifications]);
+  }, [technicians, findIdleWindow, schedule, addLog, sendNotifications, getRequiredSpares]);
 
   // Auto-create purchase order for zero stock spares
   const createPurchaseOrderForZeroStock = useCallback((spare: SparePart) => {
