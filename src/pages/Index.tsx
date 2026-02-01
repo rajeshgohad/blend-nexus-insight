@@ -9,7 +9,7 @@ import { BatchScheduling } from '@/components/dashboard/BatchScheduling';
 import { BatchOrders } from '@/components/dashboard/BatchOrders';
 import { ProcessLine } from '@/components/dashboard/ProcessLine';
 import { ControlPanel } from '@/components/dashboard/ControlPanel';
-import { AlertFeed } from '@/components/dashboard/AlertFeed';
+
 import { useSimulation } from '@/hooks/useSimulation';
 import { useMaintenanceWorkflow } from '@/hooks/useMaintenanceWorkflow';
 import { useTabletPressYield } from '@/hooks/useTabletPressYield';
@@ -194,6 +194,7 @@ const Index = () => {
         currentTime={simulation.currentTime}
         batchState={batch.state}
         isConnected={true}
+        alerts={alerts}
       />
 
       {/* Main Content */}
@@ -242,8 +243,6 @@ const Index = () => {
         </div>
       </div>
 
-      {/* Alert Feed */}
-      <AlertFeed alerts={alerts} />
     </div>
   );
 };
