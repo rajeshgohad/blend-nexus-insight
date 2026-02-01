@@ -70,13 +70,17 @@ export function ProcessLine({
     },
   ];
 
-  // Backup process areas - activate if main is failed
+  // Backup process areas - activate if main is failed and show diverted batch
   const blendingFailed = isProcessFailed('line-1', 'Blending') || isProcessFailed('line-2', 'Blending');
   const compressionFailed = isProcessFailed('line-1', 'Compression') || isProcessFailed('line-2', 'Compression');
 
-  const backupAreas: ProcessBlock[] = [
-    { id: 'backup-blending', name: 'Blending (Backup)', status: blendingFailed ? 'active' : 'idle', isBackup: true },
-    { id: 'backup-compression', name: 'Compression (Backup)', status: compressionFailed ? 'active' : 'idle', isBackup: true },
+  // Get the batch number that was diverted to backup
+  const divertedToBlendingBackup = isProcessFailed('line-1', 'Blending') ? currentBatchNumber : isProcessFailed('line-2', 'Blending') ? secondaryBatchNumber : undefined;
+  const divertedToCompressionBackup = isProcessFailed('line-1', 'Compression') ? currentBatchNumber : isProcessFailed('line-2', 'Compression') ? secondaryBatchNumber : undefined;
+
+  const backupAreas: (ProcessBlock & { divertedBatch?: string })[] = [
+    { id: 'backup-blending', name: 'Blending (Backup)', status: blendingFailed ? 'active' : 'idle', isBackup: true, divertedBatch: divertedToBlendingBackup },
+    { id: 'backup-compression', name: 'Compression (Backup)', status: compressionFailed ? 'active' : 'idle', isBackup: true, divertedBatch: divertedToCompressionBackup },
   ];
 
   const getStatusColor = (status: ProcessBlock['status']) => {
@@ -274,12 +278,16 @@ export function ProcessLine({
                   <Factory className="w-5 h-5 mb-1" />
                 )}
                 <span className="text-sm font-medium text-center">{backup.name}</span>
-                <span className={cn(
-                  "text-[10px] mt-1",
-                  backup.status === 'active' ? 'text-emerald-400' : 'text-amber-500/70'
-                )}>
-                  {backup.status === 'active' ? 'Processing' : 'Available'}
-                </span>
+                {backup.status === 'active' && backup.divertedBatch ? (
+                  <span className="text-[11px] mt-1 text-emerald-300 font-medium">{backup.divertedBatch}</span>
+                ) : (
+                  <span className={cn(
+                    "text-[10px] mt-1",
+                    backup.status === 'active' ? 'text-emerald-400' : 'text-amber-500/70'
+                  )}>
+                    {backup.status === 'active' ? 'Processing' : 'Available'}
+                  </span>
+                )}
               </div>
             ))}
           </div>
