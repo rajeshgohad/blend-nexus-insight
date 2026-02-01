@@ -157,6 +157,29 @@ function WorkOrderCard({ workOrder }: { workOrder: WorkOrder }) {
           Scheduled: {formatDateTimeShort(workOrder.scheduledTime)}
         </div>
       )}
+      {/* Spare Parts with Availability */}
+      {workOrder.sparesRequired.length > 0 && (
+        <div className="space-y-1 border-t border-muted pt-2 mt-2">
+          <div className="text-xs text-muted-foreground font-medium flex items-center gap-1">
+            <Package className="w-3 h-3" />
+            Spare Parts Required:
+          </div>
+          {workOrder.sparesRequired.map((sr, idx) => {
+            const isAvailable = sr.part.quantity >= sr.quantity;
+            return (
+              <div key={idx} className="flex items-center justify-between text-sm">
+                <span className="truncate flex-1">{sr.part.name}</span>
+                <Badge 
+                  variant={isAvailable ? 'default' : 'destructive'} 
+                  className="text-xs px-2 py-0.5 ml-2"
+                >
+                  {isAvailable ? `Available (${sr.part.quantity})` : `Not Available (${sr.part.quantity})`}
+                </Badge>
+              </div>
+            );
+          })}
+        </div>
+      )}
       {workOrder.notificationsSent.length > 0 && (
         <div className="flex items-center gap-2 text-sm text-success">
           <Bell className="w-4 h-4" />
