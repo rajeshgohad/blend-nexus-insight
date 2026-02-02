@@ -47,3 +47,20 @@ export {
   DEFAULT_SOP_LIMITS,
   DEFAULT_SPECS,
 } from './yield-optimization-agent';
+
+// Export vision QC agent
+export {
+  VisionAgent,
+  analyzeDetection,
+  detectBaselineDeviation,
+  routeAlert,
+  analyzeVisionMetrics,
+} from './vision-agent';
+
+// Export scheduling agent
+export {
+  SchedulingAgent,
+  groupBatches,
+  optimizeSchedule,
+  validateSchedule,
+} from './scheduling-agent';

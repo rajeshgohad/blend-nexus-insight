@@ -10,7 +10,9 @@ backend/
 │   ├── index.ts                    # Main exports
 │   ├── types.ts                    # TypeScript interfaces
 │   ├── maintenance-agent.ts        # Predictive maintenance AI
-│   └── yield-optimization-agent.ts # Yield optimization AI
+│   ├── yield-optimization-agent.ts # Yield optimization AI
+│   ├── vision-agent.ts             # Vision QC AI
+│   └── scheduling-agent.ts         # Batch scheduling AI
 └── README.md
 ```
 
@@ -64,6 +66,53 @@ generateRecommendations(signals, profile, sopLimits): YieldRecommendationOutput[
 
 // Validate recommendation against SOP limits
 validateRecommendation(recommendation, sopLimits): boolean
+```
+
+### 3. Vision QC Agent (`vision-agent.ts`)
+
+Handles autonomous quality assurance with computer vision including:
+
+- **Detection Analysis**: Enriches detections with severity, recommendations, and routing
+- **Baseline Deviation**: Monitors metrics against established baselines
+- **Alert Routing**: Determines notification recipients and escalation paths
+- **RFT Calculation**: Calculates Right First Time percentage from detections
+
+#### API Functions
+
+```typescript
+// Analyze a vision detection
+analyzeDetection(input: VisionDetectionInput): VisionDetectionOutput
+
+// Detect baseline deviations
+detectBaselineDeviation(current: BaselineMetricsInput, baseline?: BaselineMetricsInput): BaselineDeviationOutput[]
+
+// Route alert to appropriate recipients
+routeAlert(detection: VisionDetectionOutput): AlertRoutingOutput
+
+// Perform comprehensive vision analysis
+analyzeVisionMetrics(input: VisionAnalysisInput): VisionAnalysisOutput
+```
+
+### 4. Scheduling Agent (`scheduling-agent.ts`)
+
+Handles self-optimizing batch scheduling including:
+
+- **Batch Grouping**: Groups batches by drug and density compatibility
+- **Schedule Optimization**: Calculates efficiency gains and cleaning time savings
+- **Constraint Validation**: Checks resource constraints and production conditions
+- **Equipment Failure Handling**: Adjusts schedules when equipment fails
+
+#### API Functions
+
+```typescript
+// Group batches by compatibility
+groupBatches(batches: BatchOrderInput[]): ScheduleGroupOutput[]
+
+// Optimize production schedule
+optimizeSchedule(groups, conditions, constraints): ScheduleOptimizationOutput
+
+// Validate schedule against constraints
+validateSchedule(groups, conditions, equipmentFailures?): ScheduleValidationOutput
 ```
 
 ## Deployment Options
