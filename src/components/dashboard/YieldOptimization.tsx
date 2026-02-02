@@ -1,11 +1,12 @@
 import { useState } from 'react';
-import { Brain, TrendingUp, TrendingDown, CheckCircle, AlertTriangle, Zap, Target, Activity, Scale, Gauge, Wind, ArrowRight, ShieldCheck, Clock, LineChart } from 'lucide-react';
+import { Brain, TrendingUp, TrendingDown, CheckCircle, AlertTriangle, Zap, Target, Activity, Scale, Gauge, Wind, ArrowRight, ShieldCheck, Clock, LineChart, UserCog } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Card } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { DriftTrendDialog } from './DriftTrendDialog';
+import { ApprovalDialog, type ApprovalRole } from './ApprovalDialog';
 import type { 
   TabletPressSignals, 
   BatchProfile, 
@@ -15,6 +16,18 @@ import type {
   YieldHistoryPoint,
   ParameterTrendPoint,
 } from '@/types/tablet-press-yield';
+
+// Helper to determine required approval role based on variation
+function getRequiredApprovalRole(currentValue: number, recommendedValue: number): ApprovalRole | null {
+  const variation = Math.abs(recommendedValue - currentValue);
+  
+  if (variation > 0.8) {
+    return 'recipe_manager'; // High variation requires Recipe Manager
+  } else if (variation >= 0.1 && variation <= 0.3) {
+    return 'supervisor'; // Medium variation requires Supervisor
+  }
+  return null; // Low variation - no approval needed
+}
 
 interface YieldOptimizationProps {
   signals: TabletPressSignals;
@@ -132,6 +145,9 @@ function RecommendationCard({
   rec: YieldRecommendation; 
   onApprove: () => void;
 }) {
+  const requiredRole = getRequiredApprovalRole(rec.currentValue, rec.recommendedValue);
+  const variation = Math.abs(rec.recommendedValue - rec.currentValue);
+
   return (
     <div className={`p-3 rounded-lg border transition-all ${
       rec.approved 
@@ -139,12 +155,20 @@ function RecommendationCard({
         : 'border-primary/30 bg-primary/5 hover:bg-primary/10'
     }`}>
       <div className="flex justify-between items-start gap-2 mb-2">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <Badge variant={rec.riskLevel === 'low' ? 'secondary' : 'outline'} className="text-xs px-2 py-0.5">
-            {rec.riskLevel === 'low' ? <ShieldCheck className="w-3 h-3 mr-1" /> : null}
+            {rec.riskLevel === 'low' ? <ShieldCheck className="w-3 h-3 mr-1" /> : <UserCog className="w-3 h-3 mr-1" />}
             {rec.riskLevel} risk
           </Badge>
           <span className="text-sm font-medium">{rec.parameter}</span>
+          {requiredRole && !rec.approved && (
+            <Badge 
+              variant={requiredRole === 'recipe_manager' ? 'destructive' : 'default'} 
+              className="text-[10px] px-1.5 py-0.5"
+            >
+              {requiredRole === 'recipe_manager' ? 'Recipe Mgr' : 'Supervisor'} ({variation.toFixed(2)} pts)
+            </Badge>
+          )}
         </div>
         {rec.approved ? (
           <div className="flex items-center gap-1.5 text-success">
@@ -202,10 +226,34 @@ export function YieldOptimization({
 }: YieldOptimizationProps) {
   const [selectedDrift, setSelectedDrift] = useState<DriftDetection | null>(null);
   const [trendDialogOpen, setTrendDialogOpen] = useState(false);
+  
+  // Approval dialog state
+  const [approvalDialogOpen, setApprovalDialogOpen] = useState(false);
+  const [pendingApprovalRec, setPendingApprovalRec] = useState<YieldRecommendation | null>(null);
 
   const handleSeeTrend = (drift: DriftDetection) => {
     setSelectedDrift(drift);
     setTrendDialogOpen(true);
+  };
+
+  const handleApproveClick = (rec: YieldRecommendation) => {
+    const requiredRole = getRequiredApprovalRole(rec.currentValue, rec.recommendedValue);
+    
+    if (requiredRole) {
+      // Requires authorization - show dialog
+      setPendingApprovalRec(rec);
+      setApprovalDialogOpen(true);
+    } else {
+      // No authorization needed - approve directly
+      onApproveRecommendation(rec.id);
+    }
+  };
+
+  const handleApprovalConfirmed = () => {
+    if (pendingApprovalRec) {
+      onApproveRecommendation(pendingApprovalRec.id);
+      setPendingApprovalRec(null);
+    }
   };
   
   if (!isTabletPressActive) {
@@ -364,7 +412,7 @@ export function YieldOptimization({
               <RecommendationCard 
                 key={rec.id} 
                 rec={rec}
-                onApprove={() => onApproveRecommendation(rec.id)}
+                onApprove={() => handleApproveClick(rec)}
               />
             ))}
           </div>
@@ -423,6 +471,21 @@ export function YieldOptimization({
         drift={selectedDrift}
         trendData={parameterTrend}
       />
+
+      {/* Approval Dialog */}
+      {pendingApprovalRec && (
+        <ApprovalDialog
+          open={approvalDialogOpen}
+          onOpenChange={setApprovalDialogOpen}
+          requiredRole={getRequiredApprovalRole(pendingApprovalRec.currentValue, pendingApprovalRec.recommendedValue)!}
+          variation={Math.abs(pendingApprovalRec.recommendedValue - pendingApprovalRec.currentValue)}
+          parameterName={pendingApprovalRec.parameter}
+          currentValue={pendingApprovalRec.currentValue}
+          recommendedValue={pendingApprovalRec.recommendedValue}
+          unit={pendingApprovalRec.unit}
+          onApprove={handleApprovalConfirmed}
+        />
+      )}
     </ScrollArea>
   );
 }

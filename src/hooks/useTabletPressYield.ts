@@ -98,44 +98,42 @@ export function useTabletPressYield(isActive: boolean, isPaused: boolean) {
       appliedAt: null,
     }));
     
-    // If no recommendations from AI, use defaults
-    if (initialRecs.length === 0) {
-      const defaultRecs: YieldRecommendation[] = [
-        {
-          id: generateId(),
-          parameter: 'Feeder Speed',
-          currentValue: 28,
-          recommendedValue: 28.3,
-          unit: 'rpm',
-          adjustment: '+0.3 rpm',
-          expectedImprovement: 0.15,
-          sopMin: SOP_LIMITS.feederSpeed.min,
-          sopMax: SOP_LIMITS.feederSpeed.max,
-          riskLevel: 'low',
-          reasoning: 'Slight increase to compensate for gradual weight decrease trend',
-          approved: false,
-          appliedAt: null,
-        },
-        {
-          id: generateId(),
-          parameter: 'Main Compression Force',
-          currentValue: 15,
-          recommendedValue: 15.5,
-          unit: 'kN',
-          adjustment: '+0.5 kN',
-          expectedImprovement: 0.22,
-          sopMin: SOP_LIMITS.mainCompressionForce.min,
-          sopMax: SOP_LIMITS.mainCompressionForce.max,
-          riskLevel: 'low',
-          reasoning: 'Increase hardness to target center; reduces friability rejects',
-          approved: false,
-          appliedAt: null,
-        },
-      ];
-      setRecommendations(defaultRecs);
-    } else {
-      setRecommendations(initialRecs);
-    }
+    // Always use our controlled recommendations with specific variations:
+    // - One between 0.1-0.3 (Supervisor approval) 
+    // - One greater than 0.8 (Recipe Manager approval)
+    const controlledRecs: YieldRecommendation[] = [
+      {
+        id: generateId(),
+        parameter: 'Feeder Speed',
+        currentValue: 28.0,
+        recommendedValue: 28.2, // Variation = 0.2 (Supervisor level)
+        unit: 'rpm',
+        adjustment: '+0.2 rpm',
+        expectedImprovement: 0.18,
+        sopMin: SOP_LIMITS.feederSpeed.min,
+        sopMax: SOP_LIMITS.feederSpeed.max,
+        riskLevel: 'low',
+        reasoning: 'Slight increase to compensate for gradual weight decrease trend',
+        approved: false,
+        appliedAt: null,
+      },
+      {
+        id: generateId(),
+        parameter: 'Main Compression Force',
+        currentValue: 15.0,
+        recommendedValue: 16.2, // Variation = 1.2 (Recipe Manager level)
+        unit: 'kN',
+        adjustment: '+1.2 kN',
+        expectedImprovement: 0.45,
+        sopMin: SOP_LIMITS.mainCompressionForce.min,
+        sopMax: SOP_LIMITS.mainCompressionForce.max,
+        riskLevel: 'medium',
+        reasoning: 'Significant increase to correct hardness drift; requires Recipe Manager authorization',
+        approved: false,
+        appliedAt: null,
+      },
+    ];
+    setRecommendations(controlledRecs);
 
     // Generate yield history
     const history: YieldHistoryPoint[] = Array.from({ length: 20 }, (_, i) => ({
