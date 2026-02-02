@@ -1,6 +1,7 @@
 import { Activity, Wifi, WifiOff, Clock, Bell } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { ChatBot } from './ChatBot';
+import { VoiceAssistant } from './VoiceAssistant';
 import { formatHeaderDateTime, formatTime } from '@/lib/dateFormat';
 import type { BatchState, Alert } from '@/types/manufacturing';
 import {
@@ -10,15 +11,29 @@ import {
 } from '@/components/ui/popover';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
+interface VoiceActions {
+  onEquipmentFailure: () => void;
+  onEmergencyStop: () => void;
+  onEmergencyReset: () => void;
+  onStartBatch: () => void;
+  onStopBatch: () => void;
+  onSuspendBatch: () => void;
+  onResumeBatch: () => void;
+  onTogglePause: () => void;
+  onResetSimulation: () => void;
+  onSetSpeed: (speed: number) => void;
+}
+
 interface HeaderProps {
   productionLine: string;
   currentTime: Date;
   batchState: BatchState;
   isConnected: boolean;
   alerts: Alert[];
+  voiceActions?: VoiceActions;
 }
 
-export function Header({ productionLine, currentTime, batchState, isConnected, alerts }: HeaderProps) {
+export function Header({ productionLine, currentTime, batchState, isConnected, alerts, voiceActions }: HeaderProps) {
   const getStatusColor = () => {
     switch (batchState) {
       case 'blending':
@@ -153,6 +168,22 @@ export function Header({ productionLine, currentTime, batchState, isConnected, a
           >
             {getStatusText()}
           </Badge>
+
+          {/* Voice Assistant */}
+          {voiceActions && (
+            <VoiceAssistant
+              onEquipmentFailure={voiceActions.onEquipmentFailure}
+              onEmergencyStop={voiceActions.onEmergencyStop}
+              onEmergencyReset={voiceActions.onEmergencyReset}
+              onStartBatch={voiceActions.onStartBatch}
+              onStopBatch={voiceActions.onStopBatch}
+              onSuspendBatch={voiceActions.onSuspendBatch}
+              onResumeBatch={voiceActions.onResumeBatch}
+              onTogglePause={voiceActions.onTogglePause}
+              onResetSimulation={voiceActions.onResetSimulation}
+              onSetSpeed={voiceActions.onSetSpeed}
+            />
+          )}
 
           {/* AI Chatbot */}
           <ChatBot />
