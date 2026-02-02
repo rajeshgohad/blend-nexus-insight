@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { 
   Calendar, Clock, Users, Package, Box, Zap, ArrowRight, 
   CheckCircle2, AlertTriangle, XCircle, Sparkles, Layers,
@@ -10,6 +10,8 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Progress } from '@/components/ui/progress';
 import type { ScheduledBatch, Resource } from '@/types/manufacturing';
 import { BATCH_ORDERS, groupBatchesForScheduling, type BatchOrder } from '@/data/batchMasterData';
+import { SchedulingAgent } from '@/backend/agents';
+import type { ProductionConditionInput, BatchOrderInput } from '@/backend/agents/types';
 
 export interface EquipmentFailure {
   lineId: string;
@@ -297,12 +299,64 @@ export function BatchScheduling({ schedule, resources, equipmentFailures = [] }:
     return c;
   });
 
+  // Use SchedulingAgent for validation and optimization insights
+  const scheduleValidation = useMemo(() => {
+    // Convert conditions to agent format
+    const agentConditions: ProductionConditionInput[] = updatedConditions.map(c => ({
+      id: c.id,
+      unit: c.unit,
+      name: c.name,
+      status: c.status,
+      detail: c.detail,
+    }));
+
+    // Convert batch groups to agent format
+    const agentGroups = batchGroups.map(g => ({
+      id: g.id,
+      type: g.type,
+      label: g.label,
+      batches: g.batches.map(b => ({
+        id: b.id,
+        batchNumber: b.batchNumber,
+        productName: b.productName,
+        drug: b.drug,
+        density: b.density,
+        status: b.status,
+        estimatedDuration: 45,
+      })) as BatchOrderInput[],
+      cleaningRequired: g.cleaningRequired,
+      cleaningTimeMinutes: g.cleaningRequired === 'none' ? 0 : g.cleaningRequired === 'partial' ? 15 : 45,
+      estimatedSavings: g.estimatedSavings,
+      sequenceOrder: batchGroups.indexOf(g) + 1,
+      color: g.color,
+    }));
+
+    // Validate schedule using agent
+    const validation = SchedulingAgent.validateSchedule(
+      agentGroups,
+      agentConditions,
+      equipmentFailures.map(f => ({ lineId: f.lineId, processName: f.processName }))
+    );
+
+    // Get optimization insights
+    const optimization = SchedulingAgent.optimizeSchedule(
+      agentGroups,
+      agentConditions,
+      {}
+    );
+
+    return { validation, optimization };
+  }, [batchGroups, updatedConditions, equipmentFailures]);
+
   const totalBatches = batchGroups.reduce((sum, g) => sum + g.batches.length, 0);
   const totalSavings = batchGroups.reduce((sum, g) => sum + g.estimatedSavings, 0);
   const completedBatches = batchGroups.reduce(
     (sum, g) => sum + g.batches.filter(b => b.status === 'completed').length, 
     0
   );
+
+  // Use agent's efficiency gain calculation
+  const efficiencyGain = scheduleValidation.optimization.efficiencyGain;
 
   const productionUnits: ProductionUnit[] = ['sieving', 'dispensing', 'blending', 'compression', 'coating', 'polishing'];
 
@@ -347,7 +401,7 @@ export function BatchScheduling({ schedule, resources, equipmentFailures = [] }:
           </div>
           <div className="bg-card/50 rounded-lg p-4 border border-border/50">
             <div className="text-xs text-muted-foreground uppercase tracking-wide">Efficiency</div>
-            <div className="text-3xl font-bold text-amber-400 mt-1">+42%</div>
+            <div className="text-3xl font-bold text-amber-400 mt-1">+{efficiencyGain}%</div>
           </div>
         </div>
 
@@ -363,8 +417,8 @@ export function BatchScheduling({ schedule, resources, equipmentFailures = [] }:
                 <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
               </div>
               <p className="text-sm text-muted-foreground mt-1">
-                Batches intelligently grouped by drug + density compatibility. 
-                <span className="text-emerald-400 font-medium"> Cleaning time reduced by 42%</span> through optimal sequencing.
+                {scheduleValidation.optimization.insights[0] || 
+                  `Batches intelligently grouped by drug + density compatibility. Cleaning time reduced by ${efficiencyGain}% through optimal sequencing.`}
               </p>
             </div>
           </div>

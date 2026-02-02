@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { 
   Camera, Eye, AlertTriangle, Shield, CheckCircle, XCircle, Zap, 
   Bell, ClipboardList, Database, Brain, Users, Wrench, FileText,
@@ -9,6 +9,8 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import type { QualityDetection } from '@/types/manufacturing';
+import { VisionAgent } from '@/backend/agents';
+import type { VisionDetectionOutput, BaselineMetricsInput } from '@/backend/agents/types';
 
 // Import camera feed images - Pharma Manufacturing Areas
 import cam01Dispensing from '@/assets/camera-feeds/cam-01-dispensing.jpg';
@@ -37,14 +39,6 @@ const detectionTypeIcons: Record<QualityDetection['type'], React.ReactNode> = {
   leak: <AlertTriangle className="w-4 h-4" />,
   contamination: <XCircle className="w-4 h-4" />,
   safety_hazard: <AlertTriangle className="w-4 h-4" />,
-};
-
-// Simulated baseline metrics
-const baselineMetrics = {
-  ppeCompliance: 98.5,
-  surfaceCondition: 97.2,
-  environmentalNorm: 99.1,
-  safetyScore: 96.8,
 };
 
 // Simulated notification recipients
@@ -200,7 +194,7 @@ function CameraGrid({ onSelectCamera, selectedCamera }: {
   );
 }
 
-function DetectionCard({ detection, onNotify }: { detection: QualityDetection; onNotify?: () => void }) {
+function DetectionCard({ detection, onNotify }: { detection: QualityDetection; onNotify?: (detection: QualityDetection) => void }) {
   const severityColors = {
     minor: 'border-success/40 bg-success/10',
     moderate: 'border-warning/40 bg-warning/10',
@@ -245,7 +239,7 @@ function DetectionCard({ detection, onNotify }: { detection: QualityDetection; o
         </div>
         <div className="flex items-center gap-2">
           {detection.status === 'detected' && onNotify && (
-            <Button size="sm" variant="outline" className="h-7 text-xs px-2" onClick={onNotify}>
+            <Button size="sm" variant="outline" className="h-7 text-xs px-2" onClick={() => onNotify(detection)}>
               <Send className="w-3.5 h-3.5 mr-1" />
               Notify
             </Button>
@@ -298,12 +292,66 @@ function BaselineCard({ label, value, status }: { label: string; value: number; 
 
 export function ComputerVision({ detections, rftPercentage }: ComputerVisionProps) {
   const [selectedCamera, setSelectedCamera] = useState('CAM-02');
-  const totalDetections = detections.length;
-  const criticalCount = detections.filter(d => d.severity === 'critical').length;
-  const unresolvedCount = detections.filter(d => d.status !== 'resolved').length;
 
-  const handleNotify = () => {
-    console.log('Notification sent to relevant personnel');
+  // Use VisionAgent to analyze metrics
+  const visionAnalysis = useMemo(() => {
+    const baselineMetrics: BaselineMetricsInput = {
+      ppeCompliance: 98.5,
+      surfaceCondition: 97.2,
+      environmentalNorm: 99.1,
+      safetyScore: 96.8,
+    };
+
+    // Convert QualityDetection to VisionDetectionOutput for agent analysis
+    const agentDetections: VisionDetectionOutput[] = detections.map(d => ({
+      id: d.id,
+      type: d.type,
+      severity: d.severity,
+      location: d.location,
+      timestamp: d.timestamp,
+      confidence: 0.85, // Simulated confidence
+      recommendation: d.recommendation,
+      priorityScore: d.severity === 'critical' ? 90 : d.severity === 'moderate' ? 50 : 20,
+      alertRecipients: ['supervisor'],
+      status: d.status,
+      requiresImmediate: d.severity === 'critical',
+    }));
+
+    return VisionAgent.analyzeVisionMetrics({
+      detections: agentDetections,
+      baselineMetrics,
+      totalInspections: 100,
+    });
+  }, [detections]);
+
+  const { totalDetections, criticalCount, unresolvedCount, baselineDeviations } = visionAnalysis;
+
+  // Get baseline metrics for display (from agent or default)
+  const baselineMetrics: BaselineMetricsInput = {
+    ppeCompliance: 98.5,
+    surfaceCondition: 97.2,
+    environmentalNorm: 99.1,
+    safetyScore: 96.8,
+  };
+
+  const handleNotify = (detection: QualityDetection) => {
+    // Use VisionAgent to route alert
+    const agentDetection: VisionDetectionOutput = {
+      id: detection.id,
+      type: detection.type,
+      severity: detection.severity,
+      location: detection.location,
+      timestamp: detection.timestamp,
+      confidence: 0.85,
+      recommendation: detection.recommendation,
+      priorityScore: detection.severity === 'critical' ? 90 : detection.severity === 'moderate' ? 50 : 20,
+      alertRecipients: ['supervisor'],
+      status: detection.status,
+      requiresImmediate: detection.severity === 'critical',
+    };
+
+    const alertRouting = VisionAgent.routeAlert(agentDetection);
+    console.log('Alert routed via VisionAgent:', alertRouting);
   };
 
   return (

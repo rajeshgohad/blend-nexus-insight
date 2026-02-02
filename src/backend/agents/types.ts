@@ -158,6 +158,146 @@ export interface ProductSpecs {
 }
 
 // ============================================================
+// VISION QC AI AGENT TYPES
+// ============================================================
+
+export interface VisionDetectionInput {
+  id: string;
+  type: 'ppe_violation' | 'surface_damage' | 'leak' | 'contamination' | 'safety_hazard';
+  location: string;
+  confidence: number;        // 0-1
+  rawImageData?: string;     // base64 encoded image
+  timestamp?: Date;
+}
+
+export interface VisionDetectionOutput {
+  id: string;
+  type: 'ppe_violation' | 'surface_damage' | 'leak' | 'contamination' | 'safety_hazard';
+  severity: 'minor' | 'moderate' | 'critical';
+  location: string;
+  timestamp: Date;
+  confidence: number;
+  recommendation: string;
+  priorityScore: number;     // 0-100
+  alertRecipients: string[];
+  status: 'detected' | 'investigating' | 'resolved';
+  requiresImmediate: boolean;
+}
+
+export interface BaselineMetricsInput {
+  ppeCompliance: number;     // %
+  surfaceCondition: number;  // %
+  environmentalNorm: number; // %
+  safetyScore: number;       // %
+}
+
+export interface BaselineDeviationOutput {
+  id: string;
+  metric: string;
+  baselineValue: number;
+  currentValue: number;
+  deviation: number;
+  severity: 'low' | 'medium' | 'high';
+  detectedAt: Date;
+  trend: 'stable' | 'declining' | 'improving';
+  recommendedAction: string;
+}
+
+export interface AlertRoutingOutput {
+  detectionId: string;
+  recipients: string[];
+  notificationMethods: ('push' | 'sms' | 'email' | 'alarm')[];
+  escalationPath: string[];
+  responseDeadline: Date;
+  autoEscalate: boolean;
+  workflowIntegrations: string[];
+}
+
+export interface VisionAnalysisInput {
+  detections: VisionDetectionOutput[];
+  baselineMetrics: BaselineMetricsInput;
+  totalInspections: number;
+}
+
+export interface VisionAnalysisOutput {
+  rftPercentage: number;
+  totalDetections: number;
+  criticalCount: number;
+  moderateCount: number;
+  minorCount: number;
+  unresolvedCount: number;
+  baselineDeviations: BaselineDeviationOutput[];
+  riskLevel: 'low' | 'medium' | 'high';
+  recommendations: string[];
+  confidenceScore: number;
+}
+
+// ============================================================
+// SCHEDULING AI AGENT TYPES
+// ============================================================
+
+export interface BatchOrderInput {
+  id: string;
+  batchNumber: string;
+  productName: string;
+  drug: string;
+  density: 'low' | 'medium' | 'high';
+  status: 'queued' | 'in-progress' | 'completed';
+  estimatedDuration: number;  // minutes
+  priority?: number;
+}
+
+export interface ScheduleGroupOutput {
+  id: string;
+  type: 'same-drug-same-density' | 'same-drug-diff-density' | 'diff-drug-diff-density';
+  label: string;
+  batches: BatchOrderInput[];
+  cleaningRequired: 'none' | 'partial' | 'full';
+  cleaningTimeMinutes: number;
+  estimatedSavings: number;   // minutes
+  sequenceOrder: number;
+  color: string;
+}
+
+export interface ProductionConditionInput {
+  id: string;
+  unit: string;
+  name: string;
+  status: 'ready' | 'warning' | 'blocked';
+  detail: string;
+}
+
+export interface ResourceConstraintInput {
+  minOperatorSkill?: number;
+  maxMachineWear?: number;
+  requiredCertifications?: string[];
+}
+
+export interface ScheduleOptimizationOutput {
+  groups: ScheduleGroupOutput[];
+  totalBatches: number;
+  totalSavingsMinutes: number;
+  efficiencyGain: number;     // %
+  baselineCleaningTime: number;
+  optimizedCleaningTime: number;
+  blockers: Array<{ unit: string; name: string; detail: string }>;
+  warnings: Array<{ unit: string; name: string; detail: string }>;
+  constraintViolations: string[];
+  confidence: number;
+  insights: string[];
+  isOptimal: boolean;
+}
+
+export interface ScheduleValidationOutput {
+  isValid: boolean;
+  canProceed: boolean;
+  issues: Array<{ severity: 'warning' | 'error'; message: string }>;
+  errorCount: number;
+  warningCount: number;
+  recommendations: string[];
+}
+
+// ============================================================
 // AGENT SERVICE INTERFACES
 // ============================================================
 
@@ -173,4 +313,17 @@ export interface YieldOptimizationAgentService {
   predictYield(input: YieldPredictionInput): YieldPredictionOutput;
   generateRecommendations(signals: TabletPressSignalsInput, profile: BatchProfileInput, sopLimits?: SOPLimits, specs?: ProductSpecs): YieldRecommendationOutput[];
   validateRecommendation(recommendation: YieldRecommendationOutput, sopLimits?: SOPLimits): boolean;
+}
+
+export interface VisionAgentService {
+  analyzeDetection(input: VisionDetectionInput): VisionDetectionOutput;
+  detectBaselineDeviation(current: BaselineMetricsInput, baseline?: BaselineMetricsInput): BaselineDeviationOutput[];
+  routeAlert(detection: VisionDetectionOutput): AlertRoutingOutput;
+  analyzeVisionMetrics(input: VisionAnalysisInput): VisionAnalysisOutput;
+}
+
+export interface SchedulingAgentService {
+  groupBatches(batches: BatchOrderInput[]): ScheduleGroupOutput[];
+  optimizeSchedule(groups: ScheduleGroupOutput[], conditions: ProductionConditionInput[], constraints?: ResourceConstraintInput): ScheduleOptimizationOutput;
+  validateSchedule(groups: ScheduleGroupOutput[], conditions: ProductionConditionInput[], equipmentFailures?: { lineId: string; processName: string }[]): ScheduleValidationOutput;
 }
