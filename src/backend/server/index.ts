@@ -19,7 +19,7 @@ import express from 'express';
 import cors from 'cors';
 
 // Import agents - adjust path based on your deployment structure
-import { MaintenanceAgent, YieldOptimizationAgent } from '../agents';
+import { MaintenanceAgent, YieldOptimizationAgent, VisionAgent, SchedulingAgent } from '../agents';
 import { DEFAULT_SOP_LIMITS, DEFAULT_SPECS } from '../agents/yield-optimization-agent';
 
 // ============================================================
@@ -87,7 +87,7 @@ app.get('/health', (req, res) => {
     service: 'AI Agents API',
     version: '1.0.0',
     timestamp: new Date().toISOString(),
-    agents: ['maintenance', 'yield-optimization'],
+    agents: ['maintenance', 'yield-optimization', 'vision', 'scheduling'],
   });
 });
 
@@ -320,6 +320,182 @@ app.get('/api/yield/sop-limits', authenticateApiKey, (req, res) => {
 });
 
 // ============================================================
+// VISION QC AGENT ENDPOINTS
+// ============================================================
+
+// POST /api/vision/analyze-detection
+app.post('/api/vision/analyze-detection', authenticateApiKey, (req, res, next) => {
+  try {
+    const { detection } = req.body;
+    
+    if (!detection) throw createValidationError('Missing required field: detection');
+    
+    const parsedDetection = {
+      ...detection,
+      timestamp: detection.timestamp ? new Date(detection.timestamp) : new Date(),
+    };
+    
+    const result = VisionAgent.analyzeDetection(parsedDetection);
+    
+    res.json({
+      success: true,
+      data: {
+        ...result,
+        timestamp: result.timestamp.toISOString(),
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// POST /api/vision/detect-baseline-deviation
+app.post('/api/vision/detect-baseline-deviation', authenticateApiKey, (req, res, next) => {
+  try {
+    const { current, baseline } = req.body;
+    
+    if (!current) throw createValidationError('Missing required field: current');
+    
+    const result = VisionAgent.detectBaselineDeviation(current, baseline);
+    
+    res.json({
+      success: true,
+      data: result.map(d => ({
+        ...d,
+        detectedAt: d.detectedAt.toISOString(),
+      })),
+      count: result.length,
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// POST /api/vision/route-alert
+app.post('/api/vision/route-alert', authenticateApiKey, (req, res, next) => {
+  try {
+    const { detection } = req.body;
+    
+    if (!detection) throw createValidationError('Missing required field: detection');
+    
+    const parsedDetection = {
+      ...detection,
+      timestamp: new Date(detection.timestamp),
+    };
+    
+    const result = VisionAgent.routeAlert(parsedDetection);
+    
+    res.json({
+      success: true,
+      data: {
+        ...result,
+        responseDeadline: result.responseDeadline.toISOString(),
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// POST /api/vision/analyze-metrics
+app.post('/api/vision/analyze-metrics', authenticateApiKey, (req, res, next) => {
+  try {
+    const { detections, baselineMetrics, totalInspections } = req.body;
+    
+    if (!Array.isArray(detections)) throw createValidationError('detections must be an array');
+    if (!baselineMetrics) throw createValidationError('Missing required field: baselineMetrics');
+    if (totalInspections === undefined) throw createValidationError('Missing required field: totalInspections');
+    
+    const parsedDetections = detections.map(d => ({
+      ...d,
+      timestamp: new Date(d.timestamp),
+    }));
+    
+    const result = VisionAgent.analyzeVisionMetrics({
+      detections: parsedDetections,
+      baselineMetrics,
+      totalInspections,
+    });
+    
+    res.json({
+      success: true,
+      data: {
+        ...result,
+        baselineDeviations: result.baselineDeviations.map(d => ({
+          ...d,
+          detectedAt: d.detectedAt.toISOString(),
+        })),
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// ============================================================
+// SCHEDULING AGENT ENDPOINTS
+// ============================================================
+
+// POST /api/scheduling/group-batches
+app.post('/api/scheduling/group-batches', authenticateApiKey, (req, res, next) => {
+  try {
+    const { batches } = req.body;
+    
+    if (!Array.isArray(batches) || batches.length === 0) {
+      throw createValidationError('batches must be a non-empty array');
+    }
+    
+    const result = SchedulingAgent.groupBatches(batches);
+    
+    res.json({
+      success: true,
+      data: result,
+      count: result.length,
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// POST /api/scheduling/optimize
+app.post('/api/scheduling/optimize', authenticateApiKey, (req, res, next) => {
+  try {
+    const { groups, conditions, constraints } = req.body;
+    
+    if (!Array.isArray(groups)) throw createValidationError('groups must be an array');
+    if (!Array.isArray(conditions)) throw createValidationError('conditions must be an array');
+    
+    const result = SchedulingAgent.optimizeSchedule(groups, conditions, constraints);
+    
+    res.json({
+      success: true,
+      data: result,
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// POST /api/scheduling/validate
+app.post('/api/scheduling/validate', authenticateApiKey, (req, res, next) => {
+  try {
+    const { groups, conditions, equipmentFailures = [] } = req.body;
+    
+    if (!Array.isArray(groups)) throw createValidationError('groups must be an array');
+    if (!Array.isArray(conditions)) throw createValidationError('conditions must be an array');
+    
+    const result = SchedulingAgent.validateSchedule(groups, conditions, equipmentFailures);
+    
+    res.json({
+      success: true,
+      data: result,
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// ============================================================
 // 404 & ERROR HANDLERS
 // ============================================================
 
@@ -351,6 +527,13 @@ if (require.main === module) {
     console.log(`   POST /api/yield/recommendations`);
     console.log(`   POST /api/yield/validate-recommendation`);
     console.log(`   GET  /api/yield/sop-limits`);
+    console.log(`   POST /api/vision/analyze-detection`);
+    console.log(`   POST /api/vision/detect-baseline-deviation`);
+    console.log(`   POST /api/vision/route-alert`);
+    console.log(`   POST /api/vision/analyze-metrics`);
+    console.log(`   POST /api/scheduling/group-batches`);
+    console.log(`   POST /api/scheduling/optimize`);
+    console.log(`   POST /api/scheduling/validate`);
     console.log(`\n🔐 Authentication: x-api-key header required`);
     console.log(`   Dev key: ${API_KEY}\n`);
   });
