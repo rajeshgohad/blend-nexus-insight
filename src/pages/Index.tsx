@@ -186,6 +186,19 @@ const Index = () => {
     },
   ];
 
+  const voiceActions = {
+    onEquipmentFailure: () => actions.injectScenario('equipment-failure'),
+    onEmergencyStop: actions.emergencyStop,
+    onEmergencyReset: actions.emergencyReset,
+    onStartBatch: actions.startBatch,
+    onStopBatch: actions.stopBatch,
+    onSuspendBatch: actions.suspendBatch,
+    onResumeBatch: actions.resumeBatch,
+    onTogglePause: actions.togglePause,
+    onResetSimulation: actions.resetSimulation,
+    onSetSpeed: actions.setSpeed,
+  };
+
   return (
     <div className="h-screen flex flex-col bg-background overflow-hidden">
       {/* Header */}
@@ -195,6 +208,7 @@ const Index = () => {
         batchState={batch.state}
         isConnected={true}
         alerts={alerts}
+        voiceActions={voiceActions}
       />
 
       {/* Main Content */}
