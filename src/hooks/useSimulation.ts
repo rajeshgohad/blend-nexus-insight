@@ -112,7 +112,7 @@ const initialResources: Resource[] = [
 
 export function useSimulation() {
   const [simulation, setSimulation] = useState<SimulationState>({
-    speed: 1,
+    speed: 50,
     isPaused: true,
     currentTime: new Date(),
     elapsedSeconds: 0,
@@ -217,11 +217,32 @@ export function useSimulation() {
   }, []);
 
   const togglePause = useCallback(() => {
-    setSimulation(prev => ({ ...prev, isPaused: !prev.isPaused }));
-  }, []);
+    setSimulation(prev => {
+      const wasPlaying = !prev.isPaused;
+      // If we're about to start playing (currently paused -> will be unpaused)
+      if (prev.isPaused) {
+        // Auto-start batch if idle
+        setBatch(currentBatch => {
+          if (currentBatch.state === 'idle') {
+            addAlert('Digital Twin', 'info', `Batch ${currentBatch.batchNumber} started - Loading materials`);
+            return { 
+              ...currentBatch, 
+              state: 'loading', 
+              startTime: new Date(),
+              endTime: null,
+              blendingSequence: createInitialBlendingSequence(),
+            };
+          }
+          return currentBatch;
+        });
+        setParameters(prev => ({ ...prev, blendTime: 0, blendUniformity: 0 }));
+      }
+      return { ...prev, isPaused: !prev.isPaused };
+    });
+  }, [addAlert]);
 
   const resetSimulation = useCallback(() => {
-    setSimulation({ speed: 1, isPaused: true, currentTime: new Date(), elapsedSeconds: 0 });
+    setSimulation({ speed: 50, isPaused: true, currentTime: new Date(), elapsedSeconds: 0 });
     setParameters({ rotationSpeed: 0, blendTime: 0, motorLoad: 45, temperature: 22, vibration: 0.3, blendUniformity: 0 });
     setBatch(initialBatch);
     setComponents(initialComponents);

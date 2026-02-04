@@ -271,38 +271,32 @@ export function DigitalTwin({
           </div>
         </div>
 
-        {/* Control Buttons */}
-        <div className="grid grid-cols-3 gap-2">
-          {batch.state === 'idle' ? (
-            <Button size="default" onClick={onStart} className="col-span-3 bg-success hover:bg-success/90 text-base">
-              <Play className="w-5 h-5 mr-2" /> Start Batch
+        {/* Control Buttons - Only show when batch is running */}
+        {batch.state !== 'idle' && (
+          <div className="grid grid-cols-3 gap-2">
+            <Button size="default" variant="outline" onClick={onStop}>
+              <Square className="w-4 h-4 mr-1" /> Stop
             </Button>
-          ) : (
-            <>
-              <Button size="default" variant="outline" onClick={onStop}>
-                <Square className="w-4 h-4 mr-1" /> Stop
+            {isRunning ? (
+              <Button size="default" variant="outline" onClick={onSuspend}>
+                <Pause className="w-4 h-4 mr-1" /> Suspend
               </Button>
-              {isRunning ? (
-                <Button size="default" variant="outline" onClick={onSuspend}>
-                  <Pause className="w-4 h-4 mr-1" /> Suspend
-                </Button>
-              ) : (
-                <Button size="default" variant="outline" onClick={onResume}>
-                  <Play className="w-4 h-4 mr-1" /> Resume
-                </Button>
-              )}
-              {isEmergency ? (
-                <Button size="default" variant="outline" onClick={onEmergencyReset}>
-                  <RotateCcw className="w-4 h-4 mr-1" /> Reset
-                </Button>
-              ) : (
-                <Button size="default" variant="destructive" onClick={onEmergencyStop}>
-                  <AlertTriangle className="w-4 h-4 mr-1" /> E-Stop
-                </Button>
-              )}
-            </>
-          )}
-        </div>
+            ) : (
+              <Button size="default" variant="outline" onClick={onResume}>
+                <Play className="w-4 h-4 mr-1" /> Resume
+              </Button>
+            )}
+            {isEmergency ? (
+              <Button size="default" variant="outline" onClick={onEmergencyReset}>
+                <RotateCcw className="w-4 h-4 mr-1" /> Reset
+              </Button>
+            ) : (
+              <Button size="default" variant="destructive" onClick={onEmergencyStop}>
+                <AlertTriangle className="w-4 h-4 mr-1" /> E-Stop
+              </Button>
+            )}
+          </div>
+        )}
 
         {/* Trend Chart with Parameter Selector */}
         <div className="flex-1 min-h-0 bg-muted/30 rounded-lg p-3 flex flex-col gap-2">
