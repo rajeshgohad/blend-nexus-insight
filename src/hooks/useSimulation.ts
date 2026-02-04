@@ -327,7 +327,9 @@ export function useSimulation() {
         if (prev.state === 'loading') {
           const updatedRecipe = prev.recipe.map((item, idx) => {
             if (!item.added && prev.recipe.slice(0, idx).every(i => i.added)) {
-              if (Math.random() < 0.1 * deltaTime) {
+              // Scale probability for high speeds - ensure at least one item gets added per tick
+              const addProbability = Math.min(0.1 * deltaTime, 1);
+              if (Math.random() < addProbability) {
                 return { ...item, added: true };
               }
             }
@@ -344,14 +346,12 @@ export function useSimulation() {
         // Update blending sequence when blending
         if (prev.state === 'blending') {
           const updatedSequence = [...prev.blendingSequence];
-          let totalElapsedMinutes = 0;
           let currentStepFound = false;
           
           for (let i = 0; i < updatedSequence.length; i++) {
             const step = updatedSequence[i];
             
             if (step.status === 'completed') {
-              totalElapsedMinutes += step.actualMinutes;
               continue;
             }
             
@@ -390,8 +390,13 @@ export function useSimulation() {
         return prev;
       });
 
+      // Update parameters - use functional update to get current batch state
       setParameters(prev => {
-        if (batch.state === 'blending') {
+        // We need to check batch state inside here, but we can't access the latest batch
+        // So we'll update based on whether rotationSpeed is > 0 (running) or not
+        const isRunning = prev.rotationSpeed > 0 || prev.blendUniformity > 0;
+        
+        if (isRunning || batch.state === 'blending' || batch.state === 'loading') {
           const newBlendTime = Math.min(prev.blendTime + (deltaTime / 60), 30);
           const targetUniformity = 85 + (newBlendTime / 30) * 15;
           const newUniformity = Math.min(addNoise(targetUniformity, 2), 100);

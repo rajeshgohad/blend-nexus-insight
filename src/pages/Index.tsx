@@ -75,6 +75,7 @@ const Index = () => {
           batch={batch}
           availableRecipes={availableRecipes}
           parameterHistory={parameterHistory}
+          isPaused={simulation.isPaused}
           onStart={actions.startBatch}
           onStop={actions.stopBatch}
           onSuspend={actions.suspendBatch}
