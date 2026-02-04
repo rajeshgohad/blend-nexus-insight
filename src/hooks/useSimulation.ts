@@ -112,7 +112,7 @@ const initialResources: Resource[] = [
 
 export function useSimulation() {
   const [simulation, setSimulation] = useState<SimulationState>({
-    speed: 50,
+    speed: 150,
     isPaused: true,
     currentTime: new Date(),
     elapsedSeconds: 0,
@@ -242,7 +242,7 @@ export function useSimulation() {
   }, [addAlert]);
 
   const resetSimulation = useCallback(() => {
-    setSimulation({ speed: 50, isPaused: true, currentTime: new Date(), elapsedSeconds: 0 });
+    setSimulation({ speed: 150, isPaused: true, currentTime: new Date(), elapsedSeconds: 0 });
     setParameters({ rotationSpeed: 0, blendTime: 0, motorLoad: 45, temperature: 22, vibration: 0.3, blendUniformity: 0 });
     setBatch(initialBatch);
     setComponents(initialComponents);
