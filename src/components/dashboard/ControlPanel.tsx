@@ -166,7 +166,7 @@ export function ControlPanel({
 
       {/* Simulation Controls */}
       <div className="space-y-4 mb-6">
-        <Label className="text-xs text-muted-foreground">Simulation Speed</Label>
+        <Label className="text-xs text-muted-foreground">Simulation Control</Label>
         
         <div className="flex items-center gap-2">
           <Button 
@@ -188,20 +188,6 @@ export function ControlPanel({
           <Button size="sm" variant="outline" onClick={onReset}>
             <RotateCcw className="w-4 h-4" />
           </Button>
-        </div>
-
-        <div className="grid grid-cols-4 gap-1">
-          {speedOptions.map(opt => (
-            <Button
-              key={opt.value}
-              size="sm"
-              variant={simulation.speed === opt.value ? "default" : "outline"}
-              onClick={() => onSpeedChange(opt.value)}
-              className="text-xs"
-            >
-              {opt.label}
-            </Button>
-          ))}
         </div>
 
         <div className="text-xs text-muted-foreground text-center">
