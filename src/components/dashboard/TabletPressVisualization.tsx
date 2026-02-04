@@ -17,6 +17,7 @@ interface TabletPressParameters {
 interface TabletPressVisualizationProps {
   isActive: boolean;
   parameters: TabletPressParameters;
+  isPaused?: boolean;
 }
 
 type TrendParameter = 'turretSpeed' | 'mainCompressionForce';
@@ -91,7 +92,7 @@ function Gauge({
   );
 }
 
-export function TabletPressVisualization({ isActive, parameters }: TabletPressVisualizationProps) {
+export function TabletPressVisualization({ isActive, parameters, isPaused = false }: TabletPressVisualizationProps) {
   const [selectedTrend, setSelectedTrend] = useState<TrendParameter>('turretSpeed');
   const [history, setHistory] = useState<HistoryPoint[]>([]);
   const [isStopped, setIsStopped] = useState(false);
@@ -125,8 +126,8 @@ export function TabletPressVisualization({ isActive, parameters }: TabletPressVi
     }
   }, [isActive, isStopped, parameters]);
 
-  // Determine if running (active and not stopped)
-  const isRunning = isActive && !isStopped;
+  // Determine if running (active and not stopped and not paused)
+  const isRunning = isActive && !isStopped && !isPaused;
 
   // Build history when running
   useEffect(() => {

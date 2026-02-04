@@ -16,6 +16,7 @@ interface DigitalTwinProps {
   batch: BatchInfo;
   availableRecipes: Recipe[];
   parameterHistory: ParameterHistoryPoint[];
+  isPaused?: boolean;
   onStart: () => void;
   onStop: () => void;
   onSuspend: () => void;
@@ -137,6 +138,7 @@ export function DigitalTwin({
   batch,
   availableRecipes,
   parameterHistory,
+  isPaused = false,
   onStart, 
   onStop, 
   onSuspend, 
@@ -455,7 +457,8 @@ export function DigitalTwin({
           <div className="flex-1 min-w-[290px]">
             <TabletPressVisualization 
               isActive={isTabletPressActive} 
-              parameters={tabletPressParams} 
+              parameters={tabletPressParams}
+              isPaused={isPaused}
             />
           </div>
         </div>
