@@ -9,11 +9,15 @@
  2. uvicorn main:app --reload --port 3001
  """
  import os
+import sys
  from datetime import datetime
  from typing import Optional, List
  from fastapi import FastAPI, HTTPException, Depends, Header
  from fastapi.middleware.cors import CORSMiddleware
  from pydantic import BaseModel
+ 
+ # Add current directory to path for imports
+ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
  
  from agents import (
      MaintenanceAgent,
@@ -23,25 +27,25 @@
      DEFAULT_SOP_LIMITS,
      DEFAULT_SPECS,
  )
- from models.maintenance import (
+ from agents.maintenance_agent import (
      ComponentHealthInput,
      SensorData,
      RULPredictionInput,
      ScheduledBatchInput,
  )
- from models.yield_optimization import (
+ from agents.yield_optimization_agent import (
      TabletPressSignalsInput,
      BatchProfileInput,
      YieldRecommendationOutput,
      SOPLimits,
      ProductSpecs,
  )
- from models.vision import (
+ from agents.vision_agent import (
      VisionDetectionInput,
      VisionDetectionOutput,
      BaselineMetricsInput,
  )
- from models.scheduling import (
+ from agents.scheduling_agent import (
      BatchOrderInput,
      ScheduleGroupOutput,
      ProductionConditionInput,

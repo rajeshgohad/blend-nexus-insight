@@ -10,15 +10,75 @@
  import uuid
  from datetime import datetime, timedelta
  from typing import Optional, List
- from models.maintenance import (
-     ComponentHealthInput,
-     SensorData,
-     MaintenanceDecisionOutput,
-     AnomalyInput,
-     RULPredictionInput,
-     RULPredictionOutput,
-     ScheduledBatchInput,
- )
+ from pydantic import BaseModel, Field
+ 
+ 
+ # ============================================================
+ # INLINE MODELS (to avoid circular import issues)
+ # ============================================================
+ 
+ class ComponentHealthInput(BaseModel):
+     name: str
+     health: float = Field(ge=0, le=100, description="Health percentage 0-100")
+     rul: float = Field(description="Remaining Useful Life in hours")
+     trend: str  # "stable", "declining", "critical"
+     failure_probability: Optional[float] = Field(None, ge=0, le=1)
+     last_maintenance: Optional[datetime] = None
+     predicted_failure_date: Optional[datetime] = None
+ 
+ 
+ class SensorData(BaseModel):
+     vibration: float = Field(description="mm/s")
+     motor_load: float = Field(description="percentage")
+     temperature: float = Field(description="°C")
+     timestamp: datetime
+ 
+ 
+ class MaintenanceDecisionOutput(BaseModel):
+     component_name: str
+     requires_maintenance: bool
+     maintenance_type: Optional[str] = None  # "general", "spare_replacement"
+     reasoning: str
+     suggested_time: Optional[datetime] = None
+     machine_idle_window: Optional[dict] = None
+     priority: str  # "low", "medium", "high", "critical"
+     estimated_duration: float = Field(description="hours")
+ 
+ 
+ class AnomalyInput(BaseModel):
+     id: str
+     timestamp: datetime
+     source: str
+     severity: str  # "low", "medium", "high"
+     description: str
+ 
+ 
+ class RULPredictionInput(BaseModel):
+     component_name: str
+     current_health: float
+     operating_hours: float
+     vibration_level: float
+     temperature_delta: float
+     motor_load_avg: float
+ 
+ 
+ class RULPredictionOutput(BaseModel):
+     component_name: str
+     predicted_rul: float = Field(description="hours")
+     confidence_level: float = Field(ge=0, le=1)
+     degradation_rate: float = Field(description="% per hour")
+     failure_probability: float
+     predicted_failure_date: datetime
+ 
+ 
+ class ScheduledBatchInput(BaseModel):
+     batch_id: Optional[str] = None
+     id: Optional[str] = None
+     batch_number: Optional[str] = None
+     product_name: Optional[str] = None
+     start_time: datetime
+     end_time: datetime
+     status: Optional[str] = None  # "queued", "in-progress", "completed", "delayed"
  
  
  # Configuration

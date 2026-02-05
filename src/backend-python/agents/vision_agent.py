@@ -10,15 +10,82 @@
  import uuid
  from datetime import datetime, timedelta
  from typing import List, Optional
- from models.vision import (
-     VisionDetectionInput,
-     VisionDetectionOutput,
-     BaselineMetricsInput,
-     BaselineDeviationOutput,
-     AlertRoutingOutput,
-     VisionAnalysisInput,
-     VisionAnalysisOutput,
- )
+ from pydantic import BaseModel, Field
+ 
+ 
+ # ============================================================
+ # INLINE MODELS
+ # ============================================================
+ 
+ class VisionDetectionInput(BaseModel):
+     id: str
+     type: str  # "ppe_violation", "surface_damage", "leak", "contamination", "safety_hazard"
+     location: str
+     confidence: float = Field(ge=0, le=1)
+     raw_image_data: Optional[str] = None
+     timestamp: Optional[datetime] = None
+ 
+ 
+ class VisionDetectionOutput(BaseModel):
+     id: str
+     type: str  # "ppe_violation", "surface_damage", "leak", "contamination", "safety_hazard"
+     severity: str  # "minor", "moderate", "critical"
+     location: str
+     timestamp: datetime
+     confidence: float
+     recommendation: str
+     priority_score: int = Field(ge=0, le=100)
+     alert_recipients: List[str]
+     status: str  # "detected", "investigating", "resolved"
+     requires_immediate: bool
+ 
+ 
+ class BaselineMetricsInput(BaseModel):
+     ppe_compliance: float = Field(description="%")
+     surface_condition: float = Field(description="%")
+     environmental_norm: float = Field(description="%")
+     safety_score: float = Field(description="%")
+ 
+ 
+ class BaselineDeviationOutput(BaseModel):
+     id: str
+     metric: str
+     baseline_value: float
+     current_value: float
+     deviation: float
+     severity: str  # "low", "medium", "high"
+     detected_at: datetime
+     trend: str  # "stable", "declining", "improving"
+     recommended_action: str
+ 
+ 
+ class AlertRoutingOutput(BaseModel):
+     detection_id: str
+     recipients: List[str]
+     notification_methods: List[str]  # "push", "sms", "email", "alarm"
+     escalation_path: List[str]
+     response_deadline: datetime
+     auto_escalate: bool
+     workflow_integrations: List[str]
+ 
+ 
+ class VisionAnalysisInput(BaseModel):
+     detections: List[VisionDetectionOutput]
+     baseline_metrics: BaselineMetricsInput
+     total_inspections: int
+ 
+ 
+ class VisionAnalysisOutput(BaseModel):
+     rft_percentage: float
+     total_detections: int
+     critical_count: int
+     moderate_count: int
+     minor_count: int
+     unresolved_count: int
+     baseline_deviations: List[BaselineDeviationOutput]
+     risk_level: str  # "low", "medium", "high"
+     recommendations: List[str]
+     confidence_score: float
  
  
  class Config:
