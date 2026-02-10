@@ -1,4 +1,4 @@
-import { Cpu, Wrench, TrendingUp, Eye, Calendar, ClipboardList, GitBranch } from 'lucide-react';
+import { Cpu, Wrench, TrendingUp, Eye, Calendar, ClipboardList, GitBranch, LayoutDashboard } from 'lucide-react';
 import { Header } from '@/components/dashboard/Header';
 import { UseCaseCard } from '@/components/dashboard/UseCaseCard';
 import { DigitalTwin } from '@/components/dashboard/DigitalTwin';
@@ -8,6 +8,7 @@ import { ComputerVision } from '@/components/dashboard/ComputerVision';
 import { BatchScheduling } from '@/components/dashboard/BatchScheduling';
 import { BatchOrders } from '@/components/dashboard/BatchOrders';
 import { ProcessLine } from '@/components/dashboard/ProcessLine';
+import { LineOverview } from '@/components/dashboard/LineOverview';
 import { ControlPanel } from '@/components/dashboard/ControlPanel';
 
 import { useSimulation } from '@/hooks/useSimulation';
@@ -179,6 +180,21 @@ const Index = () => {
       status: 'active' as const,
       content: (
         <ProcessLine
+          currentBatchNumber={batch.batchNumber}
+          currentProductName={batch.productName}
+          equipmentFailures={equipmentFailures}
+        />
+      ),
+    },
+    {
+      id: 'line-overview',
+      label: 'Line Overview',
+      icon: <LayoutDashboard className="w-4 h-4" />,
+      title: 'Line Overview',
+      subtitle: 'Single Line KPI Dashboard',
+      status: 'active' as const,
+      content: (
+        <LineOverview
           currentBatchNumber={batch.batchNumber}
           currentProductName={batch.productName}
           equipmentFailures={equipmentFailures}
