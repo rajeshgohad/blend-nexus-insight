@@ -20,11 +20,6 @@ import cam04Compression from '@/assets/camera-feeds/cam-04-compression.jpg';
 import cam05Coating from '@/assets/camera-feeds/cam-05-coating.jpg';
 import cam06Polishing from '@/assets/camera-feeds/cam-06-polishing.jpg';
 
-// Import violation-specific images (actual depictions of violations)
-import cam02NoCap from '@/assets/camera-feeds/cam-02-no-cap.jpg';
-import cam05NoVest from '@/assets/camera-feeds/cam-05-no-vest.jpg';
-import cam07NoHelmet from '@/assets/camera-feeds/cam-07-no-helmet.jpg';
-
 // Import camera feed videos
 import cam01DispensingVid from '@/assets/camera-feeds/cam-01-dispensing.mp4';
 import cam02SievingVid from '@/assets/camera-feeds/cam-02-sieving.mp4';
@@ -72,18 +67,18 @@ const integrations = [
 // Compliance use case scenarios for camera tiles - Pharma Manufacturing Areas
 // Anomaly bounding box definitions per camera (percentage-based positioning)
 const anomalyBoxes: Record<string, { top: string; left: string; width: string; height: string; label: string }[]> = {
-  'CAM-02': [{ top: '25%', left: '30%', width: '40%', height: '50%', label: 'No Cap' }],
-  'CAM-04': [{ top: '20%', left: '25%', width: '50%', height: '55%', label: 'No Helmet' }],
-  'CAM-05': [{ top: '25%', left: '20%', width: '45%', height: '50%', label: 'No Vest' }],
+  'CAM-02': [{ top: '30%', left: '25%', width: '50%', height: '45%', label: 'No Mask' }],
+  'CAM-04': [{ top: '40%', left: '20%', width: '35%', height: '35%', label: 'No Gloves' }],
+  'CAM-05': [{ top: '15%', left: '55%', width: '35%', height: '25%', label: 'Temp ↑' }],
 };
 
 const cameraScenarios = [
-  { id: 'CAM-01', label: 'Dispensing Area', scenario: 'Weighing Clear', status: 'clear', icon: CheckCircle, image: cam01Dispensing, video: cam01DispensingVid, useVideo: true },
-  { id: 'CAM-02', label: 'Sieving Area', scenario: 'No Cap Detected', status: 'violation', icon: AlertTriangle, image: cam02NoCap, video: cam02SievingVid, useVideo: false },
-  { id: 'CAM-03', label: 'Blending Area', scenario: 'Equipment Clear', status: 'clear', icon: CheckCircle, image: cam03Blending, video: cam03BlendingVid, useVideo: true },
-  { id: 'CAM-04', label: 'Compression Area', scenario: 'No Helmet Detected', status: 'violation', icon: Shield, image: cam07NoHelmet, video: cam04CompressionVid, useVideo: false },
-  { id: 'CAM-05', label: 'Coating Area', scenario: 'No Vest Detected', status: 'warning', icon: AlertTriangle, image: cam05NoVest, video: cam05CoatingVid, useVideo: false },
-  { id: 'CAM-06', label: 'Polishing Area', scenario: 'All Clear', status: 'clear', icon: CheckCircle, image: cam06Polishing, video: cam06PolishingVid, useVideo: true },
+  { id: 'CAM-01', label: 'Dispensing Area', scenario: 'Weighing Clear', status: 'clear', icon: CheckCircle, image: cam01Dispensing, video: cam01DispensingVid },
+  { id: 'CAM-02', label: 'Sieving Area', scenario: 'No Mask Detected', status: 'violation', icon: AlertTriangle, image: cam02Sieving, video: cam02SievingVid },
+  { id: 'CAM-03', label: 'Blending Area', scenario: 'Equipment Clear', status: 'clear', icon: CheckCircle, image: cam03Blending, video: cam03BlendingVid },
+  { id: 'CAM-04', label: 'Compression Area', scenario: 'No Gloves Detected', status: 'violation', icon: Shield, image: cam04Compression, video: cam04CompressionVid },
+  { id: 'CAM-05', label: 'Coating Area', scenario: 'Temp Deviation', status: 'warning', icon: AlertTriangle, image: cam05Coating, video: cam05CoatingVid },
+  { id: 'CAM-06', label: 'Polishing Area', scenario: 'All Clear', status: 'clear', icon: CheckCircle, image: cam06Polishing, video: cam06PolishingVid },
 ];
 
 function CameraTile({ camera, isSelected, onClick }: { 
@@ -122,27 +117,19 @@ function CameraTile({ camera, isSelected, onClick }: {
       } ${statusColors[camera.status as keyof typeof statusColors]}`}
       onClick={onClick}
     >
-      {/* Camera feed - video for clear, image for violations */}
+      {/* Camera feed video */}
       <div className="aspect-video bg-muted/30 relative overflow-hidden">
-        {camera.useVideo ? (
-          <video
-            ref={videoRef}
-            src={camera.video}
-            poster={camera.image}
-            autoPlay
-            muted
-            loop
-            playsInline
-            preload="auto"
-            className="absolute inset-0 w-full h-full object-cover"
-          />
-        ) : (
-          <img
-            src={camera.image}
-            alt={camera.label}
-            className="absolute inset-0 w-full h-full object-cover"
-          />
-        )}
+        <video
+          ref={videoRef}
+          src={camera.video}
+          poster={camera.image}
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="auto"
+          className="absolute inset-0 w-full h-full object-cover"
+        />
         
         {/* Scan line overlay effect */}
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/30" />
