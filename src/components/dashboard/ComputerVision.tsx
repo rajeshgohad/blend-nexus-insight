@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 import { 
   Camera, Eye, AlertTriangle, Shield, CheckCircle, XCircle, Zap, 
   Bell, ClipboardList, Database, Brain, Users, Wrench, FileText,
@@ -19,6 +19,14 @@ import cam03Blending from '@/assets/camera-feeds/cam-03-blending.jpg';
 import cam04Compression from '@/assets/camera-feeds/cam-04-compression.jpg';
 import cam05Coating from '@/assets/camera-feeds/cam-05-coating.jpg';
 import cam06Polishing from '@/assets/camera-feeds/cam-06-polishing.jpg';
+
+// Import camera feed videos
+import cam01DispensingVid from '@/assets/camera-feeds/cam-01-dispensing.mp4';
+import cam02SievingVid from '@/assets/camera-feeds/cam-02-sieving.mp4';
+import cam03BlendingVid from '@/assets/camera-feeds/cam-03-blending.mp4';
+import cam04CompressionVid from '@/assets/camera-feeds/cam-04-compression.mp4';
+import cam05CoatingVid from '@/assets/camera-feeds/cam-05-coating.mp4';
+import cam06PolishingVid from '@/assets/camera-feeds/cam-06-polishing.mp4';
 
 interface ComputerVisionProps {
   detections: QualityDetection[];
@@ -57,13 +65,20 @@ const integrations = [
 ];
 
 // Compliance use case scenarios for camera tiles - Pharma Manufacturing Areas
+// Anomaly bounding box definitions per camera (percentage-based positioning)
+const anomalyBoxes: Record<string, { top: string; left: string; width: string; height: string; label: string }[]> = {
+  'CAM-02': [{ top: '30%', left: '25%', width: '50%', height: '45%', label: 'No Mask' }],
+  'CAM-04': [{ top: '40%', left: '20%', width: '35%', height: '35%', label: 'No Gloves' }],
+  'CAM-05': [{ top: '15%', left: '55%', width: '35%', height: '25%', label: 'Temp ↑' }],
+};
+
 const cameraScenarios = [
-  { id: 'CAM-01', label: 'Dispensing Area', scenario: 'Weighing Clear', status: 'clear', icon: CheckCircle, image: cam01Dispensing },
-  { id: 'CAM-02', label: 'Sieving Area', scenario: 'No Mask Detected', status: 'violation', icon: AlertTriangle, image: cam02Sieving },
-  { id: 'CAM-03', label: 'Blending Area', scenario: 'Equipment Clear', status: 'clear', icon: CheckCircle, image: cam03Blending },
-  { id: 'CAM-04', label: 'Compression Area', scenario: 'No Gloves Detected', status: 'violation', icon: Shield, image: cam04Compression },
-  { id: 'CAM-05', label: 'Coating Area', scenario: 'Temp Deviation', status: 'warning', icon: AlertTriangle, image: cam05Coating },
-  { id: 'CAM-06', label: 'Polishing Area', scenario: 'All Clear', status: 'clear', icon: CheckCircle, image: cam06Polishing },
+  { id: 'CAM-01', label: 'Dispensing Area', scenario: 'Weighing Clear', status: 'clear', icon: CheckCircle, image: cam01Dispensing, video: cam01DispensingVid },
+  { id: 'CAM-02', label: 'Sieving Area', scenario: 'No Mask Detected', status: 'violation', icon: AlertTriangle, image: cam02Sieving, video: cam02SievingVid },
+  { id: 'CAM-03', label: 'Blending Area', scenario: 'Equipment Clear', status: 'clear', icon: CheckCircle, image: cam03Blending, video: cam03BlendingVid },
+  { id: 'CAM-04', label: 'Compression Area', scenario: 'No Gloves Detected', status: 'violation', icon: Shield, image: cam04Compression, video: cam04CompressionVid },
+  { id: 'CAM-05', label: 'Coating Area', scenario: 'Temp Deviation', status: 'warning', icon: AlertTriangle, image: cam05Coating, video: cam05CoatingVid },
+  { id: 'CAM-06', label: 'Polishing Area', scenario: 'All Clear', status: 'clear', icon: CheckCircle, image: cam06Polishing, video: cam06PolishingVid },
 ];
 
 function CameraTile({ camera, isSelected, onClick }: { 
@@ -85,6 +100,16 @@ function CameraTile({ camera, isSelected, onClick }: {
 
   const IconComponent = camera.icon;
 
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const boxes = anomalyBoxes[camera.id] || [];
+
+  useEffect(() => {
+    // Auto-play video muted
+    if (videoRef.current) {
+      videoRef.current.play().catch(() => {});
+    }
+  }, []);
+
   return (
     <div 
       className={`relative rounded-md overflow-hidden border-2 cursor-pointer transition-all ${
@@ -92,11 +117,15 @@ function CameraTile({ camera, isSelected, onClick }: {
       } ${statusColors[camera.status as keyof typeof statusColors]}`}
       onClick={onClick}
     >
-      {/* Camera feed image */}
+      {/* Camera feed video */}
       <div className="aspect-video bg-muted/30 relative overflow-hidden">
-        <img 
-          src={camera.image} 
-          alt={camera.label} 
+        <video
+          ref={videoRef}
+          src={camera.video}
+          poster={camera.image}
+          muted
+          loop
+          playsInline
           className="absolute inset-0 w-full h-full object-cover"
         />
         
@@ -106,22 +135,37 @@ function CameraTile({ camera, isSelected, onClick }: {
           <div className="absolute w-full h-0.5 bg-primary/30 animate-pulse" style={{ top: '30%' }} />
         </div>
 
+        {/* Anomaly bounding boxes */}
+        {boxes.map((box, i) => (
+          <div
+            key={i}
+            className={`absolute border-2 rounded-sm pointer-events-none ${
+              camera.status === 'violation' 
+                ? 'border-destructive animate-pulse' 
+                : 'border-warning animate-pulse'
+            }`}
+            style={{ top: box.top, left: box.left, width: box.width, height: box.height }}
+          >
+            <span className={`absolute -top-4 left-0 text-[8px] font-bold px-1 rounded ${
+              camera.status === 'violation' 
+                ? 'bg-destructive text-destructive-foreground' 
+                : 'bg-warning text-warning-foreground'
+            }`}>
+              {box.label}
+            </span>
+            {/* Corner markers */}
+            <div className={`absolute top-0 left-0 w-2 h-2 border-t-2 border-l-2 ${camera.status === 'violation' ? 'border-destructive' : 'border-warning'}`} />
+            <div className={`absolute top-0 right-0 w-2 h-2 border-t-2 border-r-2 ${camera.status === 'violation' ? 'border-destructive' : 'border-warning'}`} />
+            <div className={`absolute bottom-0 left-0 w-2 h-2 border-b-2 border-l-2 ${camera.status === 'violation' ? 'border-destructive' : 'border-warning'}`} />
+            <div className={`absolute bottom-0 right-0 w-2 h-2 border-b-2 border-r-2 ${camera.status === 'violation' ? 'border-destructive' : 'border-warning'}`} />
+          </div>
+        ))}
+
         {/* Status indicator */}
         <div className="absolute top-1 left-1 flex items-center gap-1 bg-background/90 rounded px-1 py-0.5">
           <div className={`w-1.5 h-1.5 rounded-full ${statusDot[camera.status as keyof typeof statusDot]}`} />
           <span className="text-[10px] font-mono font-medium">{camera.id}</span>
         </div>
-
-        {/* Detection overlay for violations/warnings */}
-        {camera.status !== 'clear' && (
-          <div className="absolute inset-2 border border-dashed border-current rounded opacity-60">
-            <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 ${
-              camera.status === 'violation' ? 'text-destructive' : 'text-warning'
-            }`}>
-              <IconComponent className="w-6 h-6" />
-            </div>
-          </div>
-        )}
 
         {/* AI active indicator */}
         <div className="absolute bottom-1 right-1">
