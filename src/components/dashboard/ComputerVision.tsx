@@ -123,9 +123,11 @@ function CameraTile({ camera, isSelected, onClick }: {
           ref={videoRef}
           src={camera.video}
           poster={camera.image}
+          autoPlay
           muted
           loop
           playsInline
+          preload="auto"
           className="absolute inset-0 w-full h-full object-cover"
         />
         
