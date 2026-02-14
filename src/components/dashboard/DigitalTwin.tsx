@@ -255,7 +255,7 @@ export function DigitalTwin({
             status={getStatus(parameters.temperature, 20, 25)}
           />
           <Gauge 
-            label="Vibration" 
+            label="Eqp. Vibration Mon." 
             value={parameters.vibration} 
             min={0.1} max={2.5} 
             unit="mm/s"
