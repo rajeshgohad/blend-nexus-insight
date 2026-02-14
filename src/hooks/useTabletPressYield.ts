@@ -316,14 +316,14 @@ export function useTabletPressYield(isActive: boolean, isPaused: boolean) {
     };
   }, [isActive, isPaused, recommendations]);
 
-  // Reset when deactivated
+  // Reset counters when deactivated, but keep chart data (parameterTrend) frozen at last known values
   useEffect(() => {
     if (!isActive) {
       tabletsProducedRef.current = 0;
       weightHistoryRef.current = [];
       setDriftDetections([]);
-      setParameterTrend([]);
       setBatchProfile(prev => ({ ...prev, tabletsProduced: 0 }));
+      // Do NOT clear parameterTrend — keep last known chart values
     }
   }, [isActive]);
 
