@@ -536,23 +536,23 @@ export function useSimulation() {
         reward: Math.min(0.98, prev.reward + (Math.random() * 0.001 * deltaTime)),
       }));
 
-      // Update parameter history (add new point every simulated 10 minutes)
-      setParameterHistory(prev => {
-        const lastPoint = prev[prev.length - 1];
-        const now = new Date();
-        // Check if 10 simulated minutes have passed (in real time based on speed)
-        if (!lastPoint || (now.getTime() - lastPoint.timestamp.getTime()) >= 10000 / simulation.speed) {
-          const newPoint: ParameterHistoryPoint = {
-            timestamp: now,
-            motorLoad: batch.state === 'blending' ? 55 + Math.random() * 20 : 45 + Math.random() * 5,
-            temperature: 22 + Math.random() * 2,
-            blenderSpeed: batch.state === 'blending' ? 15 + Math.random() * 8 : 0,
-          };
-          // Keep last 36 points (6 hours at 10 min intervals)
-          return [...prev.slice(-35), newPoint];
-        }
-        return prev;
-      });
+      // Update parameter history (add new point every simulated 10 minutes) — freeze when tablet press is running
+      if (batch.state !== 'complete') {
+        setParameterHistory(prev => {
+          const lastPoint = prev[prev.length - 1];
+          const now = new Date();
+          if (!lastPoint || (now.getTime() - lastPoint.timestamp.getTime()) >= 10000 / simulation.speed) {
+            const newPoint: ParameterHistoryPoint = {
+              timestamp: now,
+              motorLoad: batch.state === 'blending' ? 55 + Math.random() * 20 : 45 + Math.random() * 5,
+              temperature: 22 + Math.random() * 2,
+              blenderSpeed: batch.state === 'blending' ? 15 + Math.random() * 8 : 0,
+            };
+            return [...prev.slice(-35), newPoint];
+          }
+          return prev;
+        });
+      }
 
     }, 1000);
 
