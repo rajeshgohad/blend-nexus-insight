@@ -211,91 +211,45 @@ export function LineOverview({
           </div>
         </div>
 
-        {/* Production & Quality Parameters */}
-        <div className="flex flex-col gap-4">
-          {/* Production */}
-          <div className="bg-muted/20 rounded-lg border border-border/50 p-4 flex-1">
-            <div className="flex items-center gap-2 mb-3">
-              <Activity className="w-5 h-5 text-primary" />
-              <span className="text-base font-medium">Production Parameters</span>
-            </div>
-            <div className="grid grid-cols-2 gap-2">
-              {productionParams.map((p) => (
-                <div key={p.label} className="bg-muted/30 rounded-lg p-2">
-                  <div className="text-xs text-muted-foreground">{p.label}</div>
-                  <div className={cn(
-                    "text-sm font-semibold",
-                    p.status === 'normal' ? 'text-foreground' : 'text-warning'
-                  )}>
-                    {p.value}
-                    {p.status === 'warning' && <AlertTriangle className="w-3 h-3 inline ml-1 text-warning" />}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Quality */}
-          <div className="bg-muted/20 rounded-lg border border-border/50 p-4 flex-1">
-            <div className="flex items-center gap-2 mb-3">
-              <Shield className="w-5 h-5 text-primary" />
-              <span className="text-base font-medium">Quality Parameters</span>
-            </div>
-            <div className="grid grid-cols-2 gap-2">
-              {qualityParams.map((q) => (
-                <div key={q.label} className="bg-muted/30 rounded-lg p-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-muted-foreground">{q.label}</span>
-                    <Badge variant="outline" className="text-[10px] text-success border-success h-4 px-1">PASS</Badge>
-                  </div>
-                  <div className="text-sm font-semibold">{q.value}</div>
-                  <div className="text-[10px] text-muted-foreground">Target: {q.target}</div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* Maintenance */}
+        {/* Production Parameters */}
         <div className="bg-muted/20 rounded-lg border border-border/50 p-4 flex flex-col">
           <div className="flex items-center gap-2 mb-3">
-            <Wrench className="w-5 h-5 text-primary" />
-            <span className="text-base font-medium">Maintenance Status</span>
+            <Activity className="w-5 h-5 text-primary" />
+            <span className="text-base font-medium">Production Parameters</span>
           </div>
-          <div className="flex-1 space-y-2">
-            {maintenanceParams.map((m) => (
-              <div key={m.label} className="bg-muted/30 rounded-lg p-2.5">
-                <div className="flex items-center justify-between mb-1.5">
-                  <span className="text-sm font-medium">{m.label}</span>
-                  <Badge
-                    variant="outline"
-                    className={cn(
-                      "text-[10px] h-4 px-1",
-                      m.status === 'healthy' ? 'text-success border-success' : 'text-warning border-warning'
-                    )}
-                  >
-                    {m.status === 'healthy' ? 'Healthy' : 'Attention'}
-                  </Badge>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Progress value={m.health} className="flex-1 h-2" />
-                  <span className={cn(
-                    "text-xs font-semibold w-10 text-right",
-                    m.health >= 85 ? 'text-success' : m.health >= 70 ? 'text-warning' : 'text-destructive'
-                  )}>
-                    {m.health}%
-                  </span>
-                </div>
-                <div className="flex items-center gap-1 mt-1 text-xs text-muted-foreground">
-                  <Clock className="w-3 h-3" />
-                  <span>Next PM: {m.nextPM}</span>
+          <div className="grid grid-cols-2 gap-2">
+            {productionParams.map((p) => (
+              <div key={p.label} className="bg-muted/30 rounded-lg p-2">
+                <div className="text-xs text-muted-foreground">{p.label}</div>
+                <div className={cn(
+                  "text-sm font-semibold",
+                  p.status === 'normal' ? 'text-foreground' : 'text-warning'
+                )}>
+                  {p.value}
+                  {p.status === 'warning' && <AlertTriangle className="w-3 h-3 inline ml-1 text-warning" />}
                 </div>
               </div>
             ))}
           </div>
-          <div className="mt-3 pt-3 border-t border-border/50 text-xs text-muted-foreground">
-            <span>Open Work Orders: <strong className="text-warning">2</strong></span>
-            <span className="ml-4">Overdue: <strong className="text-destructive">0</strong></span>
+        </div>
+
+        {/* Quality Parameters */}
+        <div className="bg-muted/20 rounded-lg border border-border/50 p-4 flex flex-col">
+          <div className="flex items-center gap-2 mb-3">
+            <Shield className="w-5 h-5 text-primary" />
+            <span className="text-base font-medium">Quality Parameters</span>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            {qualityParams.map((q) => (
+              <div key={q.label} className="bg-muted/30 rounded-lg p-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-muted-foreground">{q.label}</span>
+                  <Badge variant="outline" className="text-[10px] text-success border-success h-4 px-1">PASS</Badge>
+                </div>
+                <div className="text-sm font-semibold">{q.value}</div>
+                <div className="text-[10px] text-muted-foreground">Target: {q.target}</div>
+              </div>
+            ))}
           </div>
         </div>
       </div>
