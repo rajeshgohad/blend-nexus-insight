@@ -3,7 +3,7 @@ import { Square, Play } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
 import { format } from 'date-fns';
 
 interface TabletPressParameters {
@@ -28,13 +28,16 @@ interface HistoryPoint {
   mainCompressionForce: number;
 }
 
-const trendConfigs: Record<TrendParameter, { label: string; unit: string; color: string; min: number; max: number }> = {
+const trendConfigs: Record<TrendParameter, { label: string; unit: string; color: string; min: number; max: number; setPoint: number; ucl: number; lcl: number }> = {
   turretSpeed: {
     label: 'Turret Speed',
     unit: 'RPM',
     color: 'hsl(var(--primary))',
     min: 20,
     max: 80,
+    setPoint: 45,
+    ucl: 60,
+    lcl: 35,
   },
   mainCompressionForce: {
     label: 'Main Compression',
@@ -42,6 +45,9 @@ const trendConfigs: Record<TrendParameter, { label: string; unit: string; color:
     color: 'hsl(var(--warning))',
     min: 5,
     max: 40,
+    setPoint: 15,
+    ucl: 25,
+    lcl: 10,
   },
 };
 
@@ -415,7 +421,11 @@ export function TabletPressVisualization({ isActive, parameters, isPaused = fals
           <div className="flex flex-col gap-2 h-full">
             <div className="flex items-center justify-between">
               <span className="text-sm font-semibold text-foreground">{config.label} ({config.unit})</span>
-              <span className="text-xs text-muted-foreground">Last 6 hours</span>
+              <div className="flex items-center gap-3 text-[10px] text-muted-foreground">
+                <span className="flex items-center gap-1"><span className="w-3 h-0.5 bg-destructive inline-block" /> UCL</span>
+                <span className="flex items-center gap-1"><span className="w-3 h-0.5 bg-primary inline-block" /> SP</span>
+                <span className="flex items-center gap-1"><span className="w-3 h-0.5 bg-destructive inline-block" /> LCL</span>
+              </div>
             </div>
             <div className="flex-1 min-h-[60px]">
               <ResponsiveContainer width="100%" height="100%">
@@ -447,6 +457,9 @@ export function TabletPressVisualization({ isActive, parameters, isPaused = fals
                     labelStyle={{ color: 'hsl(var(--foreground))' }}
                     formatter={(value: number) => [`${value.toFixed(1)} ${config.unit}`, config.label]}
                   />
+                  <ReferenceLine y={config.ucl} stroke="hsl(var(--destructive))" strokeDasharray="6 3" strokeWidth={1} label={{ value: 'UCL', position: 'right', fontSize: 9, fill: 'hsl(var(--destructive))' }} />
+                  <ReferenceLine y={config.setPoint} stroke="hsl(var(--primary))" strokeDasharray="4 4" strokeWidth={1} label={{ value: 'SP', position: 'right', fontSize: 9, fill: 'hsl(var(--primary))' }} />
+                  <ReferenceLine y={config.lcl} stroke="hsl(var(--destructive))" strokeDasharray="6 3" strokeWidth={1} label={{ value: 'LCL', position: 'right', fontSize: 9, fill: 'hsl(var(--destructive))' }} />
                   <Line 
                     type="monotone" 
                     dataKey="value" 
