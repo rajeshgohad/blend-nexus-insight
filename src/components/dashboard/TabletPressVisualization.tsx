@@ -386,7 +386,7 @@ export function TabletPressVisualization({ isActive, parameters, isPaused = fals
             </>
           ) : (
             <>
-              <Square className="w-4 h-4 mr-2" /> Stop
+              <Square className="w-4 h-4 mr-2" /> E-Stop
             </>
           )}
         </Button>
