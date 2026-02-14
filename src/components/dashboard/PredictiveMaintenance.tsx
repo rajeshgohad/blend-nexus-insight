@@ -327,7 +327,7 @@ export function PredictiveMaintenance({
       {/* Sensor Inputs */}
       <div className="flex flex-wrap gap-3">
         <SensorInput 
-          label="Vibration" 
+          label="Equip. Vibration" 
           value={vibration} 
           unit="mm/s" 
           icon={<Activity className="w-4 h-4 text-primary" />}
