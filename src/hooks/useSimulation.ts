@@ -445,11 +445,12 @@ export function useSimulation() {
       });
 
       setParameters(prev => {
-        // We need to check batch state inside here, but we can't access the latest batch
-        // So we'll update based on whether rotationSpeed is > 0 (running) or not
-        const isRunning = prev.rotationSpeed > 0 || prev.blendUniformity > 0;
+        // When batch is complete (tablet press running), freeze blending parameters at last known values
+        if (batch.state === 'complete') {
+          return prev;
+        }
         
-        if (isRunning || batch.state === 'blending' || batch.state === 'loading') {
+        if (batch.state === 'blending' || batch.state === 'loading') {
           const newBlendTime = Math.min(prev.blendTime + (deltaTime / 60), 30);
           const targetUniformity = 85 + (newBlendTime / 30) * 15;
           const newUniformity = Math.min(addNoise(targetUniformity, 2), 100);
