@@ -111,17 +111,11 @@ export function TabletPressVisualization({ isActive, parameters, isPaused = fals
   });
   const lastUpdateRef = useRef<Date>(new Date());
 
-  // Reset stopped state when tablet press becomes inactive
+  // When tablet press deactivates, keep last known params and history (don't reset to zero)
   useEffect(() => {
     if (!isActive) {
       setIsStopped(false);
-      setLastParams({
-        turretSpeed: 0,
-        preCompressionForce: 0,
-        mainCompressionForce: 0,
-        vacuumLevel: 0,
-        punchLubrication: 0,
-      });
+      // Do NOT reset lastParams or history — keep last known values
     }
   }, [isActive]);
 
@@ -138,7 +132,7 @@ export function TabletPressVisualization({ isActive, parameters, isPaused = fals
   // Build history when running
   useEffect(() => {
     if (!isRunning) {
-      setHistory([]);
+      // Don't clear history — keep last known chart data
       return;
     }
 
@@ -178,18 +172,10 @@ export function TabletPressVisualization({ isActive, parameters, isPaused = fals
     return () => clearInterval(interval);
   }, [isRunning, parameters, history.length]);
 
-  // Use current values when running, last values when stopped, zero when inactive
+  // Use current values when running, last known values otherwise
   const displayParams = isRunning 
     ? parameters 
-    : isStopped 
-      ? lastParams 
-      : {
-          turretSpeed: 0,
-          preCompressionForce: 0,
-          mainCompressionForce: 0,
-          vacuumLevel: 0,
-          punchLubrication: 0,
-        };
+    : lastParams;
 
   const config = trendConfigs[selectedTrend];
   const chartData = history.map(point => ({
