@@ -67,7 +67,7 @@ const Index = () => {
       id: 'line-overview',
       label: 'Line Overview',
       icon: <LayoutDashboard className="w-4 h-4" />,
-      title: 'Line Overview',
+      title: 'OSD Mfg. Process Line Overview',
       subtitle: 'Single Line KPI Dashboard',
       status: 'active' as const,
       content: (
