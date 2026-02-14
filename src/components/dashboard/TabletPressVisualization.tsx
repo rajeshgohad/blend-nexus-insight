@@ -110,12 +110,17 @@ export function TabletPressVisualization({ isActive, parameters, isPaused = fals
     punchLubrication: 0,
   });
   const lastUpdateRef = useRef<Date>(new Date());
+  const parametersRef = useRef(parameters);
+
+  // Keep parametersRef in sync
+  useEffect(() => {
+    parametersRef.current = parameters;
+  }, [parameters]);
 
   // When tablet press deactivates, keep last known params and history (don't reset to zero)
   useEffect(() => {
     if (!isActive) {
       setIsStopped(false);
-      // Do NOT reset lastParams or history — keep last known values
     }
   }, [isActive]);
 
@@ -132,7 +137,6 @@ export function TabletPressVisualization({ isActive, parameters, isPaused = fals
   // Build history when running
   useEffect(() => {
     if (!isRunning) {
-      // Don't clear history — keep last known chart data
       return;
     }
 
@@ -148,29 +152,27 @@ export function TabletPressVisualization({ isActive, parameters, isPaused = fals
         });
       }
       setHistory(seedData);
+      lastUpdateRef.current = now;
       return;
     }
 
-    // Add new data points periodically
+    // Add new data points every 2 seconds for visible chart movement
     const interval = setInterval(() => {
       const now = new Date();
-      if (now.getTime() - lastUpdateRef.current.getTime() >= 10000) {
-        lastUpdateRef.current = now;
-        setHistory(prev => {
-          const newPoint: HistoryPoint = {
-            timestamp: now,
-            turretSpeed: parameters.turretSpeed,
-            mainCompressionForce: parameters.mainCompressionForce,
-          };
-          const updated = [...prev, newPoint];
-          // Keep last 36 points (6 hours at 10-min intervals)
-          return updated.slice(-36);
-        });
-      }
-    }, 1000);
+      lastUpdateRef.current = now;
+      setHistory(prev => {
+        const newPoint: HistoryPoint = {
+          timestamp: now,
+          turretSpeed: parametersRef.current.turretSpeed,
+          mainCompressionForce: parametersRef.current.mainCompressionForce,
+        };
+        const updated = [...prev, newPoint];
+        return updated.slice(-36);
+      });
+    }, 2000);
 
     return () => clearInterval(interval);
-  }, [isRunning, parameters, history.length]);
+  }, [isRunning, history.length]);
 
   // Use current values when running, last known values otherwise
   const displayParams = isRunning 
