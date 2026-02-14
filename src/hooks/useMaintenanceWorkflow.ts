@@ -313,6 +313,8 @@ export function useMaintenanceWorkflow(components: ComponentHealth[], schedule: 
         if (sr.part.quantity < sr.quantity) {
           const expectedDelivery = sr.part.name === 'Coupling Element'
             ? new Date(2026, 4, 6) // May 6, 2026
+            : sr.part.name === 'Vibration Damper Pads'
+            ? new Date(2026, 3, 15) // April 15, 2026
             : new Date(Date.now() + sr.part.leadTimeDays * 24 * 60 * 60 * 1000);
             
           const po: PurchaseOrder = {
@@ -340,8 +342,10 @@ export function useMaintenanceWorkflow(components: ComponentHealth[], schedule: 
   // Auto-create purchase order for zero stock spares
   const createPurchaseOrderForZeroStock = useCallback((spare: SparePart) => {
     // Special case: Coupling Element has fixed ETA of 06-May-2026
-    const expectedDelivery = spare.name === 'Coupling Element'
+  const expectedDelivery = spare.name === 'Coupling Element'
       ? new Date(2026, 4, 6) // May 6, 2026
+      : spare.name === 'Vibration Damper Pads'
+      ? new Date(2026, 3, 15) // April 15, 2026
       : new Date(Date.now() + spare.leadTimeDays * 24 * 60 * 60 * 1000);
 
     const po: PurchaseOrder = {
