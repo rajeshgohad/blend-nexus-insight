@@ -263,7 +263,7 @@ export function DigitalTwin({
           />
           <div className="flex flex-col gap-1.5">
             <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Blending Uniformity</span>
+              <span className="text-muted-foreground">Blend Uniformity</span>
               <span className="font-mono font-semibold text-success">
                 {parameters.blendUniformity.toFixed(1)}%
               </span>
