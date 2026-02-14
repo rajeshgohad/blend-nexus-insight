@@ -143,6 +143,8 @@ export function useSimulation() {
   const [equipmentFailures, setEquipmentFailures] = useState<{ lineId: string; processId: string; processName: string; timestamp: Date }[]>([]);
 
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const batchCountRef = useRef(0); // Track which batch we're on (0 = not started, 1 = first, 2 = second)
+  const tabletPressStartRef = useRef<number | null>(null); // Real timestamp when tablet press became active
 
   const addAlert = useCallback((source: string, type: Alert['type'], message: string) => {
     const newAlert: Alert = {
@@ -158,6 +160,8 @@ export function useSimulation() {
   }, []);
 
   const startBatch = useCallback(() => {
+    if (batchCountRef.current === 0) batchCountRef.current = 1;
+    tabletPressStartRef.current = null;
     setBatch(prev => ({ 
       ...prev, 
       state: 'loading', 
@@ -166,7 +170,7 @@ export function useSimulation() {
       blendingSequence: createInitialBlendingSequence(),
     }));
     setParameters(prev => ({ ...prev, blendTime: 0, blendUniformity: 0 }));
-    addAlert('Digital Twin', 'info', `Batch ${batch.batchNumber} started - Loading materials`);
+    addAlert('Digital Twin', 'info', `Batch ${batch.batchNumber} (${batchCountRef.current}/2) started - Loading materials`);
   }, [batch.batchNumber, addAlert]);
 
   const stopBatch = useCallback(() => {
@@ -224,7 +228,9 @@ export function useSimulation() {
         // Auto-start batch if idle
         setBatch(currentBatch => {
           if (currentBatch.state === 'idle') {
-            addAlert('Digital Twin', 'info', `Batch ${currentBatch.batchNumber} started - Loading materials`);
+            batchCountRef.current = 1;
+            tabletPressStartRef.current = null;
+            addAlert('Digital Twin', 'info', `Batch ${currentBatch.batchNumber} (1/2) started - Loading materials`);
             return { 
               ...currentBatch, 
               state: 'loading', 
@@ -252,6 +258,8 @@ export function useSimulation() {
     setAlerts([]);
     setSchedule(initialSchedule);
     setEquipmentFailures([]);
+    batchCountRef.current = 0;
+    tabletPressStartRef.current = null;
   }, []);
 
   const approveRecommendation = useCallback((parameter: string) => {
@@ -390,7 +398,52 @@ export function useSimulation() {
         return prev;
       });
 
-      // Update parameters - use functional update to get current batch state
+      // Tablet press auto-transition: after 30 real seconds of tablet press, start next batch
+      setBatch(prev => {
+        if (prev.state === 'complete') {
+          // Start tracking tablet press time
+          if (tabletPressStartRef.current === null) {
+            tabletPressStartRef.current = Date.now();
+          }
+          
+          const elapsed = (Date.now() - tabletPressStartRef.current) / 1000;
+          
+          if (elapsed >= 30 && batchCountRef.current < 2) {
+            // Transition to batch 2
+            batchCountRef.current = 2;
+            tabletPressStartRef.current = null;
+            const nextBatchNumber = 'BN-2024-0848';
+            const nextRecipe = availableRecipes[1]; // Lisinopril 10mg
+            addAlert('Digital Twin', 'success', `Batch 1 tablet press complete. Starting Batch 2 (${nextBatchNumber})`);
+            setParameters(p => ({ ...p, blendTime: 0, blendUniformity: 0, rotationSpeed: 0 }));
+            return {
+              ...prev,
+              id: generateId(),
+              batchNumber: nextBatchNumber,
+              productName: 'Lisinopril 10mg',
+              productId: nextRecipe.productId,
+              recipeId: nextRecipe.id,
+              recipeName: nextRecipe.name,
+              recipe: nextRecipe.ingredients.map(i => ({ ...i })),
+              state: 'loading' as const,
+              startTime: new Date(),
+              endTime: null,
+              blendingSequence: createInitialBlendingSequence(),
+            };
+          }
+          
+          if (elapsed >= 30 && batchCountRef.current >= 2) {
+            // Batch 2 tablet press done — simulation complete
+            if (tabletPressStartRef.current !== null) {
+              tabletPressStartRef.current = null;
+              addAlert('Digital Twin', 'success', 'All 2 batches completed successfully');
+              setSimulation(s => ({ ...s, isPaused: true }));
+            }
+          }
+        }
+        return prev;
+      });
+
       setParameters(prev => {
         // We need to check batch state inside here, but we can't access the latest batch
         // So we'll update based on whether rotationSpeed is > 0 (running) or not
