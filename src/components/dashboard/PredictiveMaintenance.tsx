@@ -98,7 +98,7 @@ function TechnicianCard({ technician }: { technician: Technician }) {
       <User className="w-5 h-5 text-muted-foreground" />
       <div className="flex-1 min-w-0">
         <div className="text-sm font-semibold truncate">{technician.name}</div>
-        <div className="text-sm text-muted-foreground capitalize">{technician.skill}</div>
+        <div className="text-sm text-muted-foreground capitalize">{technician.skill === 'specialist' ? 'Supervisor' : technician.skill === 'senior' ? 'Sr. Technician' : 'Jr. Technician'}</div>
       </div>
       <Badge variant={technician.available ? 'default' : 'secondary'} className="text-xs px-2 py-1">
         {technician.available ? 'Available' : 'Busy'}
@@ -203,7 +203,7 @@ function WorkOrderCard({ workOrder, purchaseOrders }: { workOrder: WorkOrder; pu
       {workOrder.notificationsSent.length > 0 && (
         <div className="flex items-center gap-2 text-sm text-success">
           <Bell className="w-4 h-4" />
-          {workOrder.notificationsSent.length} notifications sent
+          {workOrder.notificationsSent.length} notification sent (Supervisor)
         </div>
       )}
     </div>
