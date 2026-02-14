@@ -64,6 +64,21 @@ const Index = () => {
 
   const useCases = [
     {
+      id: 'line-overview',
+      label: 'Line Overview',
+      icon: <LayoutDashboard className="w-4 h-4" />,
+      title: 'Line Overview',
+      subtitle: 'Single Line KPI Dashboard',
+      status: 'active' as const,
+      content: (
+        <LineOverview
+          currentBatchNumber={batch.batchNumber}
+          currentProductName={batch.productName}
+          equipmentFailures={equipmentFailures}
+        />
+      ),
+    },
+    {
       id: 'digital-twin',
       label: 'Digital Twin',
       icon: <Cpu className="w-4 h-4" />,
@@ -186,21 +201,6 @@ const Index = () => {
         />
       ),
     },
-    {
-      id: 'line-overview',
-      label: 'Line Overview',
-      icon: <LayoutDashboard className="w-4 h-4" />,
-      title: 'Line Overview',
-      subtitle: 'Single Line KPI Dashboard',
-      status: 'active' as const,
-      content: (
-        <LineOverview
-          currentBatchNumber={batch.batchNumber}
-          currentProductName={batch.productName}
-          equipmentFailures={equipmentFailures}
-        />
-      ),
-    },
   ];
 
   const voiceActions = {
@@ -232,7 +232,7 @@ const Index = () => {
       <div className="flex-1 flex overflow-hidden">
         {/* Tabbed Dashboard */}
         <div className="flex-1 p-4 overflow-hidden">
-          <Tabs defaultValue="digital-twin" className="h-full flex flex-col">
+          <Tabs defaultValue="line-overview" className="h-full flex flex-col">
             <TabsList className="w-full justify-start gap-1 bg-muted/50 p-1 h-auto flex-wrap">
               {useCases.map((uc) => (
                 <TabsTrigger
