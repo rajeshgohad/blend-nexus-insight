@@ -395,6 +395,18 @@ export function useMaintenanceWorkflow(components: ComponentHealth[], schedule: 
 
   // NOTE: Auto PO for zero stock disabled - POs only created when linked to work orders
 
+  const resetWorkflow = useCallback(() => {
+    setTechnicians(initialTechnicians);
+    setSpares(initialSpares);
+    setWorkOrders([]);
+    setPurchaseOrders([]);
+    setMaintenanceDecisions([]);
+    setMaintenanceLogs([]);
+    processedAnomalyIds.current = new Set();
+    processedZeroStockIds.current = new Set();
+    workOrderCountRef.current = 0;
+  }, []);
+
   return {
     technicians,
     spares,
@@ -405,6 +417,7 @@ export function useMaintenanceWorkflow(components: ComponentHealth[], schedule: 
     processMaintenanceDecision,
     findIdleWindow,
     createWorkOrderFromAnomaly,
+    resetWorkflow,
   };
 }
 
