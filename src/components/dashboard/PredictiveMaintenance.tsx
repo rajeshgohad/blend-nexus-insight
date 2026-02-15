@@ -194,6 +194,12 @@ function WorkOrderCard({ workOrder, purchaseOrders }: { workOrder: WorkOrder; pu
         <div className="text-sm text-muted-foreground">
           <span className="text-xs">Scheduled after procurement:</span>
           <div className="font-medium">{formatDateTimeShort(new Date(linkedPO.expectedDelivery.getTime() + 24 * 60 * 60 * 1000))}</div>
+          {workOrder.assignedTechnician && (
+            <div className="flex items-center gap-1 mt-1">
+              <User className="w-3 h-3" />
+              <span className="text-xs">{workOrder.assignedTechnician.name}</span>
+            </div>
+          )}
         </div>
       ) : workOrder.scheduledTime && (
         <div className="text-sm text-muted-foreground">
