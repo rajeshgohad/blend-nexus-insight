@@ -348,11 +348,6 @@ export function PredictiveMaintenance({
 
       {/* Summary Badges */}
       <div className="flex flex-wrap gap-2">
-        {criticalComponents > 0 && (
-          <Badge variant="destructive" className="text-xs px-2 py-1">
-            {criticalComponents} Critical
-          </Badge>
-        )}
         <Badge variant="outline" className="text-xs px-2 py-1">
           {availableTechnicians}/{technicians.length} Techs
         </Badge>
