@@ -15,6 +15,7 @@ interface LineOverviewProps {
   currentBatchNumber: string;
   currentProductName: string;
   equipmentFailures?: EquipmentFailure[];
+  activeStage?: 'blending' | 'compression' | 'idle';
 }
 
 const processSteps = ['Sieving', 'Dispensing', 'Blending', 'Compression', 'Coating', 'Polishing', 'Packing'];
@@ -109,15 +110,23 @@ export function LineOverview({
   currentBatchNumber,
   currentProductName,
   equipmentFailures = [],
+  activeStage = 'idle',
 }: LineOverviewProps) {
   const isProcessFailed = (processName: string) =>
     equipmentFailures.some(f => f.lineId === 'line-1' && f.processName === processName);
 
-  const processes: ProcessBlock[] = processSteps.map((step, idx) => ({
+  const getProcessStatus = (step: string): ProcessBlock['status'] => {
+    if (isProcessFailed(step)) return 'error';
+    if (activeStage === 'blending' && step === 'Blending') return 'active';
+    if (activeStage === 'compression' && step === 'Compression') return 'active';
+    return 'idle';
+  };
+
+  const processes: ProcessBlock[] = processSteps.map((step) => ({
     id: `lo-${step.toLowerCase()}`,
     name: step,
-    status: isProcessFailed(step) ? 'error' : idx === 2 ? 'active' : 'idle',
-    batchNumber: idx === 2 ? currentBatchNumber : undefined,
+    status: getProcessStatus(step),
+    batchNumber: getProcessStatus(step) === 'active' ? currentBatchNumber : undefined,
   }));
 
   const getStatusColor = (status: ProcessBlock['status']) => {
