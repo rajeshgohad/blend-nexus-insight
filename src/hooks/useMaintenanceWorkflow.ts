@@ -153,7 +153,7 @@ export function useMaintenanceWorkflow(components: ComponentHealth[], schedule: 
 
     const sparesAvailable = sparesRequired.every(sr => sr.part.quantity >= sr.quantity);
     const skillRequired = decision.maintenanceType === 'spare_replacement' ? 'senior' : 'junior';
-    const technician = sparesAvailable ? findAvailableTechnician(skillRequired) : null;
+    const technician = findAvailableTechnician(skillRequired);
 
     const status: WorkOrder['status'] = sparesAvailable 
       ? (technician ? 'scheduled' : 'pending')
@@ -268,8 +268,7 @@ export function useMaintenanceWorkflow(components: ComponentHealth[], schedule: 
     const sparesRequired = getRequiredSpares(anomaly.source);
     const sparesAvailable = sparesRequired.every(sr => sr.part.quantity >= sr.quantity);
     
-    // Only assign technician if spares are available
-    const technician = sparesAvailable ? technicians.find(t => t.available) : null;
+    const technician = technicians.find(t => t.available) || null;
     
     const status: WorkOrder['status'] = sparesAvailable 
       ? (technician ? 'scheduled' : 'pending')
