@@ -185,21 +185,22 @@ const Index = () => {
         />
       ),
     },
-    {
-      id: 'process-line',
-      label: 'Process Line',
-      icon: <GitBranch className="w-4 h-4" />,
-      title: 'Process Line',
-      subtitle: 'Production Flow Visualization',
-      status: 'active' as const,
-      content: (
-        <ProcessLine
-          currentBatchNumber={batch.batchNumber}
-          currentProductName={batch.productName}
-          equipmentFailures={equipmentFailures}
-        />
-      ),
-    },
+    // Process Line tab hidden for now - can be re-enabled later
+    // {
+    //   id: 'process-line',
+    //   label: 'Process Line',
+    //   icon: <GitBranch className="w-4 h-4" />,
+    //   title: 'Process Line',
+    //   subtitle: 'Production Flow Visualization',
+    //   status: 'active' as const,
+    //   content: (
+    //     <ProcessLine
+    //       currentBatchNumber={batch.batchNumber}
+    //       currentProductName={batch.productName}
+    //       equipmentFailures={equipmentFailures}
+    //     />
+    //   ),
+    // },
   ];
 
   const voiceActions = {
