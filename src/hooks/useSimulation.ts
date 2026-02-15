@@ -26,36 +26,36 @@ const addNoise = (value: number, variance: number) => {
 const availableRecipes: Recipe[] = [
   {
     id: 'RCP-001',
-    name: 'Metformin HCl 500mg Standard',
-    productId: 'PRD-MET-500',
+    name: 'Cardivex 500mg Standard',
+    productId: 'PRD-CDX-500',
     ingredients: [
-      { ingredient: 'Metformin HCl', quantity: 250, unit: 'kg', added: false },
-      { ingredient: 'Microcrystalline Cellulose', quantity: 150, unit: 'kg', added: false },
-      { ingredient: 'Povidone K30', quantity: 50, unit: 'kg', added: false },
-      { ingredient: 'Magnesium Stearate', quantity: 25, unit: 'kg', added: false },
-      { ingredient: 'Colloidal Silicon Dioxide', quantity: 25, unit: 'kg', added: false },
+      { ingredient: 'Cardivex Base', quantity: 250, unit: 'kg', added: false },
+      { ingredient: 'Cellulose Binder MCC', quantity: 150, unit: 'kg', added: false },
+      { ingredient: 'Binding Agent PV-30', quantity: 50, unit: 'kg', added: false },
+      { ingredient: 'Lubricant MgSt', quantity: 25, unit: 'kg', added: false },
+      { ingredient: 'Flow Aid SiO2', quantity: 25, unit: 'kg', added: false },
     ],
   },
   {
     id: 'RCP-002',
-    name: 'Lisinopril 10mg Tablet',
-    productId: 'PRD-LIS-010',
+    name: 'Renopril 10mg Tablet',
+    productId: 'PRD-RNP-010',
     ingredients: [
-      { ingredient: 'Lisinopril Dihydrate', quantity: 50, unit: 'kg', added: false },
-      { ingredient: 'Calcium Phosphate', quantity: 200, unit: 'kg', added: false },
-      { ingredient: 'Mannitol', quantity: 100, unit: 'kg', added: false },
-      { ingredient: 'Magnesium Stearate', quantity: 15, unit: 'kg', added: false },
+      { ingredient: 'Renopril Compound', quantity: 50, unit: 'kg', added: false },
+      { ingredient: 'Calcium Filler DCP', quantity: 200, unit: 'kg', added: false },
+      { ingredient: 'Sugar Alcohol MTL', quantity: 100, unit: 'kg', added: false },
+      { ingredient: 'Lubricant MgSt', quantity: 15, unit: 'kg', added: false },
     ],
   },
   {
     id: 'RCP-003',
-    name: 'Omeprazole 20mg Capsule',
-    productId: 'PRD-OME-020',
+    name: 'Gastrozol 20mg Capsule',
+    productId: 'PRD-GZL-020',
     ingredients: [
-      { ingredient: 'Omeprazole', quantity: 100, unit: 'kg', added: false },
-      { ingredient: 'Lactose Monohydrate', quantity: 180, unit: 'kg', added: false },
-      { ingredient: 'Sodium Lauryl Sulfate', quantity: 20, unit: 'kg', added: false },
-      { ingredient: 'Hypromellose', quantity: 50, unit: 'kg', added: false },
+      { ingredient: 'Gastrozol Active', quantity: 100, unit: 'kg', added: false },
+      { ingredient: 'Lactose Filler LMH', quantity: 180, unit: 'kg', added: false },
+      { ingredient: 'Surfactant SLS', quantity: 20, unit: 'kg', added: false },
+      { ingredient: 'Coating Polymer HPMC', quantity: 50, unit: 'kg', added: false },
     ],
   },
 ];
@@ -72,15 +72,15 @@ const createInitialBlendingSequence = (): BlendingSequenceItem[] => [
 
 const initialBatch: BatchInfo = {
   id: generateId(),
-  productName: 'Metformin HCl 500mg',
-  productId: 'PRD-MET-500',
+  productName: 'Cardivex HCl 500mg',
+  productId: 'PRD-CDX-500',
   batchNumber: 'BN-2024-0847',
   startTime: null,
   endTime: null,
   targetQuantity: 500,
   recipe: availableRecipes[0].ingredients.map(i => ({ ...i })),
   recipeId: 'RCP-001',
-  recipeName: 'Metformin HCl 500mg Standard',
+  recipeName: 'Cardivex 500mg Standard',
   state: 'idle',
   operator: { id: 'OP-001', name: 'John Smith' },
   blendingSequence: createInitialBlendingSequence(),
@@ -95,11 +95,11 @@ const initialComponents: ComponentHealth[] = [
 ];
 
 const initialSchedule: ScheduledBatch[] = [
-  { id: '1', batchNumber: 'BN-2024-0847', productName: 'Metformin HCl 500mg', startTime: new Date(), endTime: new Date(Date.now() + 2 * 60 * 60 * 1000), status: 'in-progress', priority: 1 },
-  { id: '2', batchNumber: 'BN-2024-0848', productName: 'Lisinopril 10mg', startTime: new Date(Date.now() + 2.5 * 60 * 60 * 1000), endTime: new Date(Date.now() + 4.5 * 60 * 60 * 1000), status: 'queued', priority: 2 },
-  { id: '3', batchNumber: 'BN-2024-0849', productName: 'Omeprazole 20mg', startTime: new Date(Date.now() + 5 * 60 * 60 * 1000), endTime: new Date(Date.now() + 7 * 60 * 60 * 1000), status: 'queued', priority: 3 },
-  { id: '4', batchNumber: 'BN-2024-0850', productName: 'Amlodipine 5mg', startTime: new Date(Date.now() + 7.5 * 60 * 60 * 1000), endTime: new Date(Date.now() + 9.5 * 60 * 60 * 1000), status: 'queued', priority: 4 },
-  { id: '5', batchNumber: 'BN-2024-0851', productName: 'Atorvastatin 20mg', startTime: new Date(Date.now() + 10 * 60 * 60 * 1000), endTime: new Date(Date.now() + 12 * 60 * 60 * 1000), status: 'queued', priority: 5 },
+  { id: '1', batchNumber: 'BN-2024-0847', productName: 'Cardivex HCl 500mg', startTime: new Date(), endTime: new Date(Date.now() + 2 * 60 * 60 * 1000), status: 'in-progress', priority: 1 },
+  { id: '2', batchNumber: 'BN-2024-0848', productName: 'Renopril 10mg', startTime: new Date(Date.now() + 2.5 * 60 * 60 * 1000), endTime: new Date(Date.now() + 4.5 * 60 * 60 * 1000), status: 'queued', priority: 2 },
+  { id: '3', batchNumber: 'BN-2024-0849', productName: 'Gastrozol 20mg', startTime: new Date(Date.now() + 5 * 60 * 60 * 1000), endTime: new Date(Date.now() + 7 * 60 * 60 * 1000), status: 'queued', priority: 3 },
+  { id: '4', batchNumber: 'BN-2024-0850', productName: 'Pressovex 5mg', startTime: new Date(Date.now() + 7.5 * 60 * 60 * 1000), endTime: new Date(Date.now() + 9.5 * 60 * 60 * 1000), status: 'queued', priority: 4 },
+  { id: '5', batchNumber: 'BN-2024-0851', productName: 'Lipovex 20mg', startTime: new Date(Date.now() + 10 * 60 * 60 * 1000), endTime: new Date(Date.now() + 12 * 60 * 60 * 1000), status: 'queued', priority: 5 },
 ];
 
 const initialResources: Resource[] = [
@@ -107,7 +107,7 @@ const initialResources: Resource[] = [
   { id: '2', name: 'Operator: J. Smith', type: 'operator', available: true },
   { id: '3', name: 'Operator: M. Johnson', type: 'operator', available: false, nextAvailable: new Date(Date.now() + 4 * 60 * 60 * 1000) },
   { id: '4', name: 'Blending Room B-102', type: 'room', available: true },
-  { id: '5', name: 'Metformin HCl API', type: 'material', available: true },
+  { id: '5', name: 'Cardivex HCl API', type: 'material', available: true },
 ];
 
 export function useSimulation() {
@@ -282,21 +282,21 @@ export function useSimulation() {
         addAlert('Process Line', 'critical', `Equipment Failure: Compression on Line 1 - Batch diverted to Compression (Backup) after Blending`);
         break;
       case 'material_delay':
-        setResources(prev => prev.map(r => r.name === 'Metformin HCl API' ? { ...r, available: false, nextAvailable: new Date(Date.now() + 2 * 60 * 60 * 1000) } : r));
-        addAlert('Scheduling', 'warning', 'Material delivery delayed: Metformin HCl API');
+        setResources(prev => prev.map(r => r.name === 'Cardivex HCl API' ? { ...r, available: false, nextAvailable: new Date(Date.now() + 2 * 60 * 60 * 1000) } : r));
+        addAlert('Scheduling', 'warning', 'Material delivery delayed: Cardivex HCl API');
         break;
       case 'rush_order':
         const rushBatch: ScheduledBatch = {
           id: generateId(),
           batchNumber: 'BN-2024-RUSH',
-          productName: 'Urgent: Insulin Preparation',
+          productName: 'Urgent: Neurolex Preparation',
           startTime: new Date(Date.now() + 1 * 60 * 60 * 1000),
           endTime: new Date(Date.now() + 3 * 60 * 60 * 1000),
           status: 'queued',
           priority: 0,
         };
         setSchedule(prev => [rushBatch, ...prev]);
-        addAlert('Scheduling', 'warning', 'Rush order inserted: Insulin Preparation');
+        addAlert('Scheduling', 'warning', 'Rush order inserted: Neurolex Preparation');
         break;
       case 'quality_defect':
         const defect: QualityDetection = {
@@ -413,14 +413,14 @@ export function useSimulation() {
             batchCountRef.current = 2;
             tabletPressStartRef.current = null;
             const nextBatchNumber = 'BN-2024-0848';
-            const nextRecipe = availableRecipes[1]; // Lisinopril 10mg
+            const nextRecipe = availableRecipes[1]; // Renopril 10mg
             addAlert('Digital Twin', 'success', `Batch 1 tablet press complete. Starting Batch 2 (${nextBatchNumber})`);
             setParameters(p => ({ ...p, blendTime: 0, blendUniformity: 0, rotationSpeed: 0 }));
             return {
               ...prev,
               id: generateId(),
               batchNumber: nextBatchNumber,
-              productName: 'Lisinopril 10mg',
+              productName: 'Renopril 10mg',
               productId: nextRecipe.productId,
               recipeId: nextRecipe.id,
               recipeName: nextRecipe.name,

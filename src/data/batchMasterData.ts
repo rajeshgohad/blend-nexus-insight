@@ -1,5 +1,5 @@
 // Master Batch Data - Single source of truth for all batch information across the application
-export type DrugType = 'Metformin HCl' | 'Atorvastatin Calcium' | 'Lisinopril' | 'Omeprazole' | 'Amlodipine Besylate';
+export type DrugType = 'Cardivex HCl' | 'Lipovex Calcium' | 'Renopril' | 'Gastrozol' | 'Pressovex Besylate';
 export type DensityLevel = 'low' | 'medium' | 'high';
 export type CleaningRule = 'none' | 'partial' | 'full';
 export type TabletSize = '6mm' | '8mm' | '10mm' | '12mm';
@@ -34,9 +34,9 @@ export const BATCH_ORDERS: BatchOrder[] = [
   {
     id: 'batch-001',
     batchNumber: 'BN-2024-0847',
-    productName: 'Metformin 500mg',
-    productId: 'MET-500',
-    drug: 'Metformin HCl',
+    productName: 'Cardivex 500mg',
+    productId: 'CDX-500',
+    drug: 'Cardivex HCl',
     strength: '500mg',
     density: 'medium',
     cleaningRule: 'none',
@@ -55,9 +55,9 @@ export const BATCH_ORDERS: BatchOrder[] = [
   {
     id: 'batch-002',
     batchNumber: 'BN-2024-0848',
-    productName: 'Metformin 500mg',
-    productId: 'MET-500',
-    drug: 'Metformin HCl',
+    productName: 'Cardivex 500mg',
+    productId: 'CDX-500',
+    drug: 'Cardivex HCl',
     strength: '500mg',
     density: 'medium',
     cleaningRule: 'none',
@@ -76,9 +76,9 @@ export const BATCH_ORDERS: BatchOrder[] = [
   {
     id: 'batch-003',
     batchNumber: 'BN-2024-0849',
-    productName: 'Metformin 850mg',
-    productId: 'MET-850',
-    drug: 'Metformin HCl',
+    productName: 'Cardivex 850mg',
+    productId: 'CDX-850',
+    drug: 'Cardivex HCl',
     strength: '850mg',
     density: 'high',
     cleaningRule: 'partial',
@@ -98,9 +98,9 @@ export const BATCH_ORDERS: BatchOrder[] = [
   {
     id: 'batch-004',
     batchNumber: 'BN-2024-0850',
-    productName: 'Metformin 1000mg',
-    productId: 'MET-1000',
-    drug: 'Metformin HCl',
+    productName: 'Cardivex 1000mg',
+    productId: 'CDX-1000',
+    drug: 'Cardivex HCl',
     strength: '1000mg',
     density: 'low',
     cleaningRule: 'partial',
@@ -120,9 +120,9 @@ export const BATCH_ORDERS: BatchOrder[] = [
   {
     id: 'batch-005',
     batchNumber: 'BN-2024-0851',
-    productName: 'Atorvastatin 20mg',
-    productId: 'ATV-20',
-    drug: 'Atorvastatin Calcium',
+    productName: 'Lipovex 20mg',
+    productId: 'LPX-20',
+    drug: 'Lipovex Calcium',
     strength: '20mg',
     density: 'high',
     cleaningRule: 'full',
@@ -142,9 +142,9 @@ export const BATCH_ORDERS: BatchOrder[] = [
   {
     id: 'batch-006',
     batchNumber: 'BN-2024-0852',
-    productName: 'Atorvastatin 40mg',
-    productId: 'ATV-40',
-    drug: 'Atorvastatin Calcium',
+    productName: 'Lipovex 40mg',
+    productId: 'LPX-40',
+    drug: 'Lipovex Calcium',
     strength: '40mg',
     density: 'medium',
     cleaningRule: 'partial',
@@ -163,9 +163,9 @@ export const BATCH_ORDERS: BatchOrder[] = [
   {
     id: 'batch-007',
     batchNumber: 'BN-2024-0853',
-    productName: 'Lisinopril 10mg',
-    productId: 'LIS-10',
-    drug: 'Lisinopril',
+    productName: 'Renopril 10mg',
+    productId: 'RNP-10',
+    drug: 'Renopril',
     strength: '10mg',
     density: 'low',
     cleaningRule: 'full',
@@ -185,9 +185,9 @@ export const BATCH_ORDERS: BatchOrder[] = [
   {
     id: 'batch-008',
     batchNumber: 'BN-2024-0854',
-    productName: 'Omeprazole 20mg',
-    productId: 'OMP-20',
-    drug: 'Omeprazole',
+    productName: 'Gastrozol 20mg',
+    productId: 'GZL-20',
+    drug: 'Gastrozol',
     strength: '20mg',
     density: 'medium',
     cleaningRule: 'full',
@@ -207,9 +207,9 @@ export const BATCH_ORDERS: BatchOrder[] = [
   {
     id: 'batch-009',
     batchNumber: 'BN-2024-0855',
-    productName: 'Amlodipine 5mg',
-    productId: 'AML-5',
-    drug: 'Amlodipine Besylate',
+    productName: 'Pressovex 5mg',
+    productId: 'PVX-5',
+    drug: 'Pressovex Besylate',
     strength: '5mg',
     density: 'low',
     cleaningRule: 'full',
@@ -228,9 +228,9 @@ export const BATCH_ORDERS: BatchOrder[] = [
   {
     id: 'batch-010',
     batchNumber: 'BN-2024-0856',
-    productName: 'Amlodipine 10mg',
-    productId: 'AML-10',
-    drug: 'Amlodipine Besylate',
+    productName: 'Pressovex 10mg',
+    productId: 'PVX-10',
+    drug: 'Pressovex Besylate',
     strength: '10mg',
     density: 'medium',
     cleaningRule: 'partial',
