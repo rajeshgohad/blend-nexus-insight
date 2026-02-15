@@ -76,12 +76,12 @@ function KPICard({ label, value, icon, status = 'good', subtext }: {
   const colors = { good: 'text-success', warning: 'text-warning', critical: 'text-destructive' };
   return (
     <div className="bg-muted/30 rounded-lg p-3 border border-border/50">
-      <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
+      <div className="flex items-center gap-2 text-base text-muted-foreground mb-1">
         {icon}
         <span>{label}</span>
       </div>
-      <div className={`text-2xl font-bold ${colors[status]}`}>{value}</div>
-      {subtext && <div className="text-xs text-muted-foreground mt-0.5">{subtext}</div>}
+      <div className={`text-3xl font-bold ${colors[status]}`}>{value}</div>
+      {subtext && <div className="text-sm text-muted-foreground mt-0.5">{subtext}</div>}
     </div>
   );
 }
@@ -90,8 +90,8 @@ function OEEBar({ equipment }: { equipment: typeof equipmentOEE[0] }) {
   const color = equipment.oee >= 90 ? 'text-success' : equipment.oee >= 80 ? 'text-warning' : 'text-destructive';
   return (
     <div className="flex items-center gap-3 py-1.5">
-      <span className="text-sm w-24 truncate">{equipment.name}</span>
-      <div className="flex-1 h-3 bg-muted/50 rounded-full overflow-hidden">
+      <span className="text-base w-28 truncate">{equipment.name}</span>
+      <div className="flex-1 h-4 bg-muted/50 rounded-full overflow-hidden">
         <div
           className={cn(
             'h-full rounded-full transition-all',
@@ -100,7 +100,7 @@ function OEEBar({ equipment }: { equipment: typeof equipmentOEE[0] }) {
           style={{ width: `${equipment.oee}%` }}
         />
       </div>
-      <span className={`text-sm font-semibold w-14 text-right ${color}`}>{equipment.oee}%</span>
+      <span className={`text-base font-semibold w-16 text-right ${color}`}>{equipment.oee}%</span>
     </div>
   );
 }
@@ -148,8 +148,8 @@ export function LineOverview({
           <div className="flex items-center gap-3">
             <Factory className="w-6 h-6 text-primary" />
             <div>
-              <h3 className="text-base font-semibold">Production Line 1</h3>
-              <p className="text-sm text-muted-foreground">{currentBatchNumber} • {currentProductName}</p>
+              <h3 className="text-lg font-semibold">Production Line 1</h3>
+              <p className="text-base text-muted-foreground">{currentBatchNumber} • {currentProductName}</p>
             </div>
           </div>
           <Badge variant="default" className="text-xs">Active</Badge>
@@ -163,7 +163,7 @@ export function LineOverview({
                 getStatusColor(process.status)
               )}>
                 {getStatusIcon(process.status)}
-                <span className="text-sm font-medium mt-1">{process.name}</span>
+                <span className="text-base font-medium mt-1">{process.name}</span>
                 {process.status === 'active' && process.batchNumber && (
                   <span className="text-[10px] mt-0.5 text-emerald-400">{process.batchNumber}</span>
                 )}
@@ -198,14 +198,14 @@ export function LineOverview({
         <div className="bg-muted/20 rounded-lg border border-border/50 p-4 flex flex-col">
           <div className="flex items-center gap-2 mb-3">
             <Settings className="w-5 h-5 text-primary" />
-            <span className="text-base font-medium">Equipment OEE</span>
+            <span className="text-lg font-medium">Equipment OEE</span>
           </div>
           <div className="flex-1 space-y-1">
             {equipmentOEE.map((eq) => (
               <OEEBar key={eq.name} equipment={eq} />
             ))}
           </div>
-          <div className="flex items-center gap-4 mt-3 pt-3 border-t border-border/50 text-xs text-muted-foreground">
+          <div className="flex items-center gap-4 mt-3 pt-3 border-t border-border/50 text-sm text-muted-foreground">
             <span>Avg OEE: <strong className="text-success">90.9%</strong></span>
             <span>Target: <strong>≥85%</strong></span>
           </div>
@@ -215,18 +215,18 @@ export function LineOverview({
         <div className="bg-muted/20 rounded-lg border border-border/50 p-4 flex flex-col">
           <div className="flex items-center gap-2 mb-3">
             <Activity className="w-5 h-5 text-primary" />
-            <span className="text-base font-medium">Production Parameters</span>
+            <span className="text-lg font-medium">Production Parameters</span>
           </div>
           <div className="grid grid-cols-2 gap-2">
             {productionParams.map((p) => (
               <div key={p.label} className="bg-muted/30 rounded-lg p-2">
-                <div className="text-xs text-muted-foreground">{p.label}</div>
+                <div className="text-sm text-muted-foreground">{p.label}</div>
                 <div className={cn(
-                  "text-sm font-semibold",
+                  "text-base font-semibold",
                   p.status === 'normal' ? 'text-foreground' : 'text-warning'
                 )}>
                   {p.value}
-                  {p.status === 'warning' && <AlertTriangle className="w-3 h-3 inline ml-1 text-warning" />}
+                  {p.status === 'warning' && <AlertTriangle className="w-3.5 h-3.5 inline ml-1 text-warning" />}
                 </div>
               </div>
             ))}
@@ -237,17 +237,17 @@ export function LineOverview({
         <div className="bg-muted/20 rounded-lg border border-border/50 p-4 flex flex-col">
           <div className="flex items-center gap-2 mb-3">
             <Shield className="w-5 h-5 text-primary" />
-            <span className="text-base font-medium">Quality Parameters</span>
+            <span className="text-lg font-medium">Quality Parameters</span>
           </div>
           <div className="grid grid-cols-2 gap-2">
             {qualityParams.map((q) => (
               <div key={q.label} className="bg-muted/30 rounded-lg p-2">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs text-muted-foreground">{q.label}</span>
-                  <Badge variant="outline" className="text-[10px] text-success border-success h-4 px-1">PASS</Badge>
+                  <span className="text-sm text-muted-foreground">{q.label}</span>
+                  <Badge variant="outline" className="text-xs text-success border-success h-5 px-1.5">PASS</Badge>
                 </div>
-                <div className="text-sm font-semibold">{q.value}</div>
-                <div className="text-[10px] text-muted-foreground">Target: {q.target}</div>
+                <div className="text-base font-semibold">{q.value}</div>
+                <div className="text-xs text-muted-foreground">Target: {q.target}</div>
               </div>
             ))}
           </div>
