@@ -3,15 +3,17 @@ import {
   Calendar, Clock, Users, Package, Box, Zap, ArrowRight, 
   CheckCircle2, AlertTriangle, XCircle, Sparkles, Layers,
   Thermometer, Droplets, Wrench, Shield, ClipboardCheck,
-  Cpu, FlaskConical, Tablet, Paintbrush, Filter, Scale
+  Cpu, FlaskConical, Tablet, Paintbrush, Filter, Scale, ClipboardList
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Progress } from '@/components/ui/progress';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import type { ScheduledBatch, Resource } from '@/types/manufacturing';
 import { BATCH_ORDERS, groupBatchesForScheduling, type BatchOrder } from '@/data/batchMasterData';
 import { SchedulingAgent } from '@/backend/agents';
 import type { ProductionConditionInput, BatchOrderInput } from '@/backend/agents/types';
+import { BatchOrders } from './BatchOrders';
 
 export interface EquipmentFailure {
   lineId: string;
@@ -361,9 +363,23 @@ export function BatchScheduling({ schedule, resources, equipmentFailures = [] }:
   const productionUnits: ProductionUnit[] = ['sieving', 'dispensing', 'blending', 'compression', 'coating', 'polishing'];
 
   return (
-    <div className="h-full flex gap-4">
-      {/* Left Panel - Batch Grouping */}
-      <div className="flex-1 flex flex-col min-w-0">
+    <div className="h-full flex flex-col">
+      <Tabs defaultValue="scheduling" className="h-full flex flex-col">
+        <TabsList className="w-fit mb-4 bg-muted/50 p-1">
+          <TabsTrigger value="scheduling" className="flex items-center gap-2 px-4 py-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+            <Calendar className="w-4 h-4" />
+            Scheduling
+          </TabsTrigger>
+          <TabsTrigger value="batch-orders" className="flex items-center gap-2 px-4 py-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+            <ClipboardList className="w-4 h-4" />
+            Batch Orders
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="scheduling" className="flex-1 mt-0 overflow-hidden">
+          <div className="h-full flex gap-4">
+            {/* Left Panel - Batch Grouping */}
+            <div className="flex-1 flex flex-col min-w-0">
         {/* Equipment Failure Alert */}
         {equipmentFailures.length > 0 && (
           <div className="bg-destructive/10 border border-destructive/50 rounded-lg p-4 mb-4">
@@ -498,6 +514,13 @@ export function BatchScheduling({ schedule, resources, equipmentFailures = [] }:
           </div>
         </div>
       </div>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="batch-orders" className="flex-1 mt-0 overflow-hidden">
+          <BatchOrders />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
