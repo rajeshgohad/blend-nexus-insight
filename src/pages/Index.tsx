@@ -69,6 +69,7 @@ const Index = () => {
   } = useTabletPressYield(isTabletPressActive, simulation.isPaused);
 
   const isRunning = batch.state === 'blending' || batch.state === 'loading';
+  const activeStage = isTabletPressActive ? 'compression' : isRunning ? 'blending' : 'idle' as const;
 
   const useCases = [
     {
@@ -83,6 +84,7 @@ const Index = () => {
           currentBatchNumber={batch.batchNumber}
           currentProductName={batch.productName}
           equipmentFailures={equipmentFailures}
+          activeStage={activeStage}
         />
       ),
     },
