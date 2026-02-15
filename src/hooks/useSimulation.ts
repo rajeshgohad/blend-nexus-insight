@@ -438,6 +438,8 @@ export function useSimulation() {
               tabletPressStartRef.current = null;
               addAlert('Digital Twin', 'success', 'All 2 batches completed successfully');
               setSimulation(s => ({ ...s, isPaused: true }));
+              // Reset blending sequence so it doesn't show "Done" from previous batch
+              return { ...prev, blendingSequence: createInitialBlendingSequence() };
             }
           }
         }
