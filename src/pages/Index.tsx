@@ -1,3 +1,4 @@
+import { useCallback } from 'react';
 import { Cpu, Wrench, TrendingUp, Eye, Calendar, ClipboardList, GitBranch, LayoutDashboard } from 'lucide-react';
 import { Header } from '@/components/dashboard/Header';
 import { UseCaseCard } from '@/components/dashboard/UseCaseCard';
@@ -42,7 +43,14 @@ const Index = () => {
     maintenanceDecisions,
     maintenanceLogs,
     processMaintenanceDecision,
+    resetWorkflow,
   } = useMaintenanceWorkflow(components, schedule, anomalies);
+
+
+  const handleReset = useCallback(() => {
+    actions.resetSimulation();
+    resetWorkflow();
+  }, [actions, resetWorkflow]);
 
   // Check if tablet press is active (discharge completed)
   const dischargeStep = batch.blendingSequence.find(s => s.step === 'discharge');
@@ -212,7 +220,7 @@ const Index = () => {
     onSuspendBatch: actions.suspendBatch,
     onResumeBatch: actions.resumeBatch,
     onTogglePause: actions.togglePause,
-    onResetSimulation: actions.resetSimulation,
+    onResetSimulation: handleReset,
     onSetSpeed: actions.setSpeed,
   };
 
@@ -268,7 +276,7 @@ const Index = () => {
             simulation={simulation}
             onSpeedChange={actions.setSpeed}
             onTogglePause={actions.togglePause}
-            onReset={actions.resetSimulation}
+            onReset={handleReset}
             onInjectScenario={actions.injectScenario}
           />
         </div>
