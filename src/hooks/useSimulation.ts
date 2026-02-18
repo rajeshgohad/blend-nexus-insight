@@ -29,11 +29,11 @@ const availableRecipes: Recipe[] = [
     name: 'Product A 500mg Standard',
     productId: 'PRD-PRA-500',
     ingredients: [
-      { ingredient: 'Content 1', quantity: 250, unit: 'kg', added: false },
-      { ingredient: 'Content 2', quantity: 150, unit: 'kg', added: false },
-      { ingredient: 'Content 3', quantity: 50, unit: 'kg', added: false },
-      { ingredient: 'Content 4', quantity: 25, unit: 'kg', added: false },
-      { ingredient: 'Content 5', quantity: 25, unit: 'kg', added: false },
+      { ingredient: 'Comp.1', quantity: 250, unit: 'kg', added: false },
+      { ingredient: 'Comp.2', quantity: 150, unit: 'kg', added: false },
+      { ingredient: 'Comp.3', quantity: 50, unit: 'kg', added: false },
+      { ingredient: 'Comp.4', quantity: 25, unit: 'kg', added: false },
+      { ingredient: 'Comp.5', quantity: 25, unit: 'kg', added: false },
     ],
   },
   {
@@ -41,10 +41,10 @@ const availableRecipes: Recipe[] = [
     name: 'Product C 10mg Tablet',
     productId: 'PRD-PRC-010',
     ingredients: [
-      { ingredient: 'Content 1', quantity: 50, unit: 'kg', added: false },
-      { ingredient: 'Content 2', quantity: 200, unit: 'kg', added: false },
-      { ingredient: 'Content 3', quantity: 100, unit: 'kg', added: false },
-      { ingredient: 'Content 4', quantity: 15, unit: 'kg', added: false },
+      { ingredient: 'Comp.1', quantity: 50, unit: 'kg', added: false },
+      { ingredient: 'Comp.2', quantity: 200, unit: 'kg', added: false },
+      { ingredient: 'Comp.3', quantity: 100, unit: 'kg', added: false },
+      { ingredient: 'Comp.4', quantity: 15, unit: 'kg', added: false },
     ],
   },
   {
@@ -52,10 +52,10 @@ const availableRecipes: Recipe[] = [
     name: 'Product D 20mg Capsule',
     productId: 'PRD-PRD-020',
     ingredients: [
-      { ingredient: 'Content 1', quantity: 100, unit: 'kg', added: false },
-      { ingredient: 'Content 2', quantity: 180, unit: 'kg', added: false },
-      { ingredient: 'Content 3', quantity: 20, unit: 'kg', added: false },
-      { ingredient: 'Content 4', quantity: 50, unit: 'kg', added: false },
+      { ingredient: 'Comp.1', quantity: 100, unit: 'kg', added: false },
+      { ingredient: 'Comp.2', quantity: 180, unit: 'kg', added: false },
+      { ingredient: 'Comp.3', quantity: 20, unit: 'kg', added: false },
+      { ingredient: 'Comp.4', quantity: 50, unit: 'kg', added: false },
     ],
   },
 ];
