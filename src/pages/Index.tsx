@@ -150,8 +150,8 @@ const Index = () => {
       id: 'yield',
       label: 'Yield',
       icon: <TrendingUp className="w-4 h-4" />,
-      title: 'Adaptive Yield Optimization',
-      subtitle: 'Tablet Compression AI',
+      title: `Adaptive Yield Optimization — ${batch.batchNumber}`,
+      subtitle: `Tablet Compression AI · ${batch.productName}`,
       status: isTabletPressActive ? (driftDetections.length > 0 ? 'warning' : 'active') : 'idle',
       content: (
         <YieldOptimization

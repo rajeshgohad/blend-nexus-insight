@@ -38,6 +38,7 @@ export function Header({ productionLine, currentTime, batchState, isConnected, a
     switch (batchState) {
       case 'blending':
       case 'loading':
+      case 'complete':
         return 'bg-success animate-status-pulse';
       case 'emergency-stop':
         return 'bg-destructive animate-status-pulse';
@@ -57,7 +58,8 @@ export function Header({ productionLine, currentTime, batchState, isConnected, a
       case 'sampling': return 'SAMPLING';
       case 'discharge': return 'DISCHARGE';
       case 'cleaning': return 'CLEANING';
-      default: return 'UNKNOWN';
+      case 'complete': return 'RUNNING';
+      default: return 'IDLE';
     }
   };
 
