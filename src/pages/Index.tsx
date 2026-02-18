@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useRef, useEffect } from 'react';
 import { Cpu, Wrench, TrendingUp, Eye, Calendar, GitBranch, LayoutDashboard } from 'lucide-react';
 import { Header } from '@/components/dashboard/Header';
 import { UseCaseCard } from '@/components/dashboard/UseCaseCard';
@@ -47,14 +47,24 @@ const Index = () => {
   } = useMaintenanceWorkflow(components, schedule, anomalies);
 
 
+  const wasTabletPressActiveRef = useRef(false);
   const handleReset = useCallback(() => {
     actions.resetSimulation();
     resetWorkflow();
+    wasTabletPressActiveRef.current = false;
   }, [actions, resetWorkflow]);
 
   // Check if tablet press is active (discharge completed)
   const dischargeStep = batch.blendingSequence.find(s => s.step === 'discharge');
   const isTabletPressActive = dischargeStep?.status === 'completed';
+
+  // Track if tablet press was ever active so yield data persists after completion
+  useEffect(() => {
+    if (isTabletPressActive) {
+      wasTabletPressActiveRef.current = true;
+    }
+  }, [isTabletPressActive]);
+  const showYieldData = isTabletPressActive || wasTabletPressActiveRef.current;
 
   const {
     signals: yieldSignals,
@@ -152,7 +162,7 @@ const Index = () => {
           recommendations={yieldRecommendations}
           yieldHistory={yieldHistory}
           learningProgress={learningProgress}
-          isTabletPressActive={isTabletPressActive}
+          isTabletPressActive={showYieldData}
           parameterTrend={parameterTrend}
           onApproveRecommendation={approveYieldRecommendation}
         />
