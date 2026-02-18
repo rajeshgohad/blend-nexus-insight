@@ -32,7 +32,7 @@ export function ProcessLine({
   currentBatchNumber, 
   currentProductName,
   secondaryBatchNumber = 'BN-2024-0848',
-  secondaryProductName = 'Renopril 10mg',
+  secondaryProductName = 'Product C 10mg',
   equipmentFailures = [],
 }: ProcessLineProps) {
   const isProcessFailed = (lineId: string, processName: string) => 

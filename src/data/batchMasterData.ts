@@ -1,5 +1,5 @@
 // Master Batch Data - Single source of truth for all batch information across the application
-export type DrugType = 'Cardivex HCl' | 'Lipovex Calcium' | 'Renopril' | 'Gastrozol' | 'Pressovex Besylate';
+export type DrugType = 'Compound A' | 'Compound B' | 'Compound C' | 'Compound D' | 'Compound E';
 export type DensityLevel = 'low' | 'medium' | 'high';
 export type CleaningRule = 'none' | 'partial' | 'full';
 export type TabletSize = '6mm' | '8mm' | '10mm' | '12mm';
@@ -34,9 +34,9 @@ export const BATCH_ORDERS: BatchOrder[] = [
   {
     id: 'batch-001',
     batchNumber: 'BN-2024-0847',
-    productName: 'Cardivex 500mg',
-    productId: 'CDX-500',
-    drug: 'Cardivex HCl',
+    productName: 'Product A 500mg',
+    productId: 'PRA-500',
+    drug: 'Compound A',
     strength: '500mg',
     density: 'medium',
     cleaningRule: 'none',
@@ -55,9 +55,9 @@ export const BATCH_ORDERS: BatchOrder[] = [
   {
     id: 'batch-002',
     batchNumber: 'BN-2024-0848',
-    productName: 'Cardivex 500mg',
-    productId: 'CDX-500',
-    drug: 'Cardivex HCl',
+    productName: 'Product A 500mg',
+    productId: 'PRA-500',
+    drug: 'Compound A',
     strength: '500mg',
     density: 'medium',
     cleaningRule: 'none',
@@ -76,9 +76,9 @@ export const BATCH_ORDERS: BatchOrder[] = [
   {
     id: 'batch-003',
     batchNumber: 'BN-2024-0849',
-    productName: 'Cardivex 850mg',
-    productId: 'CDX-850',
-    drug: 'Cardivex HCl',
+    productName: 'Product A 850mg',
+    productId: 'PRA-850',
+    drug: 'Compound A',
     strength: '850mg',
     density: 'high',
     cleaningRule: 'partial',
@@ -98,9 +98,9 @@ export const BATCH_ORDERS: BatchOrder[] = [
   {
     id: 'batch-004',
     batchNumber: 'BN-2024-0850',
-    productName: 'Cardivex 1000mg',
-    productId: 'CDX-1000',
-    drug: 'Cardivex HCl',
+    productName: 'Product A 1000mg',
+    productId: 'PRA-1000',
+    drug: 'Compound A',
     strength: '1000mg',
     density: 'low',
     cleaningRule: 'partial',
@@ -120,9 +120,9 @@ export const BATCH_ORDERS: BatchOrder[] = [
   {
     id: 'batch-005',
     batchNumber: 'BN-2024-0851',
-    productName: 'Lipovex 20mg',
-    productId: 'LPX-20',
-    drug: 'Lipovex Calcium',
+    productName: 'Product B 20mg',
+    productId: 'PRB-20',
+    drug: 'Compound B',
     strength: '20mg',
     density: 'high',
     cleaningRule: 'full',
@@ -142,9 +142,9 @@ export const BATCH_ORDERS: BatchOrder[] = [
   {
     id: 'batch-006',
     batchNumber: 'BN-2024-0852',
-    productName: 'Lipovex 40mg',
-    productId: 'LPX-40',
-    drug: 'Lipovex Calcium',
+    productName: 'Product B 40mg',
+    productId: 'PRB-40',
+    drug: 'Compound B',
     strength: '40mg',
     density: 'medium',
     cleaningRule: 'partial',
@@ -163,9 +163,9 @@ export const BATCH_ORDERS: BatchOrder[] = [
   {
     id: 'batch-007',
     batchNumber: 'BN-2024-0853',
-    productName: 'Renopril 10mg',
-    productId: 'RNP-10',
-    drug: 'Renopril',
+    productName: 'Product C 10mg',
+    productId: 'PRC-10',
+    drug: 'Compound C',
     strength: '10mg',
     density: 'low',
     cleaningRule: 'full',
@@ -185,9 +185,9 @@ export const BATCH_ORDERS: BatchOrder[] = [
   {
     id: 'batch-008',
     batchNumber: 'BN-2024-0854',
-    productName: 'Gastrozol 20mg',
-    productId: 'GZL-20',
-    drug: 'Gastrozol',
+    productName: 'Product D 20mg',
+    productId: 'PRD-20',
+    drug: 'Compound D',
     strength: '20mg',
     density: 'medium',
     cleaningRule: 'full',
@@ -207,9 +207,9 @@ export const BATCH_ORDERS: BatchOrder[] = [
   {
     id: 'batch-009',
     batchNumber: 'BN-2024-0855',
-    productName: 'Pressovex 5mg',
-    productId: 'PVX-5',
-    drug: 'Pressovex Besylate',
+    productName: 'Product E 5mg',
+    productId: 'PRE-5',
+    drug: 'Compound E',
     strength: '5mg',
     density: 'low',
     cleaningRule: 'full',
@@ -228,9 +228,9 @@ export const BATCH_ORDERS: BatchOrder[] = [
   {
     id: 'batch-010',
     batchNumber: 'BN-2024-0856',
-    productName: 'Pressovex 10mg',
-    productId: 'PVX-10',
-    drug: 'Pressovex Besylate',
+    productName: 'Product E 10mg',
+    productId: 'PRE-10',
+    drug: 'Compound E',
     strength: '10mg',
     density: 'medium',
     cleaningRule: 'partial',
