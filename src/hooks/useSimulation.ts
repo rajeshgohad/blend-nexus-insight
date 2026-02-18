@@ -38,6 +38,51 @@ const availableRecipes: Recipe[] = [
   },
   {
     id: 'RCP-002',
+    name: 'Product A 850mg Tablet',
+    productId: 'PRD-PRA-850',
+    ingredients: [
+      { ingredient: 'Comp.1', quantity: 400, unit: 'kg', added: false },
+      { ingredient: 'Comp.2', quantity: 200, unit: 'kg', added: false },
+      { ingredient: 'Comp.3', quantity: 80, unit: 'kg', added: false },
+      { ingredient: 'Comp.4', quantity: 30, unit: 'kg', added: false },
+    ],
+  },
+  {
+    id: 'RCP-003',
+    name: 'Product A 1000mg Tablet',
+    productId: 'PRD-PRA-1000',
+    ingredients: [
+      { ingredient: 'Comp.1', quantity: 500, unit: 'kg', added: false },
+      { ingredient: 'Comp.2', quantity: 250, unit: 'kg', added: false },
+      { ingredient: 'Comp.3', quantity: 100, unit: 'kg', added: false },
+      { ingredient: 'Comp.4', quantity: 40, unit: 'kg', added: false },
+      { ingredient: 'Comp.5', quantity: 10, unit: 'kg', added: false },
+    ],
+  },
+  {
+    id: 'RCP-004',
+    name: 'Product B 20mg Tablet',
+    productId: 'PRD-PRB-020',
+    ingredients: [
+      { ingredient: 'Comp.1', quantity: 100, unit: 'kg', added: false },
+      { ingredient: 'Comp.2', quantity: 300, unit: 'kg', added: false },
+      { ingredient: 'Comp.3', quantity: 60, unit: 'kg', added: false },
+      { ingredient: 'Comp.4', quantity: 20, unit: 'kg', added: false },
+    ],
+  },
+  {
+    id: 'RCP-005',
+    name: 'Product B 40mg Tablet',
+    productId: 'PRD-PRB-040',
+    ingredients: [
+      { ingredient: 'Comp.1', quantity: 200, unit: 'kg', added: false },
+      { ingredient: 'Comp.2', quantity: 250, unit: 'kg', added: false },
+      { ingredient: 'Comp.3', quantity: 80, unit: 'kg', added: false },
+      { ingredient: 'Comp.4', quantity: 30, unit: 'kg', added: false },
+    ],
+  },
+  {
+    id: 'RCP-006',
     name: 'Product C 10mg Tablet',
     productId: 'PRD-PRC-010',
     ingredients: [
@@ -48,7 +93,7 @@ const availableRecipes: Recipe[] = [
     ],
   },
   {
-    id: 'RCP-003',
+    id: 'RCP-007',
     name: 'Product D 20mg Capsule',
     productId: 'PRD-PRD-020',
     ingredients: [
@@ -58,7 +103,44 @@ const availableRecipes: Recipe[] = [
       { ingredient: 'Comp.4', quantity: 50, unit: 'kg', added: false },
     ],
   },
+  {
+    id: 'RCP-008',
+    name: 'Product E 5mg Tablet',
+    productId: 'PRD-PRE-005',
+    ingredients: [
+      { ingredient: 'Comp.1', quantity: 25, unit: 'kg', added: false },
+      { ingredient: 'Comp.2', quantity: 350, unit: 'kg', added: false },
+      { ingredient: 'Comp.3', quantity: 75, unit: 'kg', added: false },
+    ],
+  },
+  {
+    id: 'RCP-009',
+    name: 'Product E 10mg Tablet',
+    productId: 'PRD-PRE-010',
+    ingredients: [
+      { ingredient: 'Comp.1', quantity: 50, unit: 'kg', added: false },
+      { ingredient: 'Comp.2', quantity: 320, unit: 'kg', added: false },
+      { ingredient: 'Comp.3', quantity: 80, unit: 'kg', added: false },
+      { ingredient: 'Comp.4', quantity: 10, unit: 'kg', added: false },
+    ],
+  },
 ];
+
+// Batch sequence: maps each batch to its recipe, in order of execution
+const BATCH_SEQUENCE = [
+  { batchNumber: 'BN-2024-0847', productName: 'Product A 500mg', recipeIndex: 0 },
+  { batchNumber: 'BN-2024-0848', productName: 'Product A 500mg', recipeIndex: 0 },
+  { batchNumber: 'BN-2024-0849', productName: 'Product A 850mg', recipeIndex: 1 },
+  { batchNumber: 'BN-2024-0850', productName: 'Product A 1000mg', recipeIndex: 2 },
+  { batchNumber: 'BN-2024-0851', productName: 'Product B 20mg', recipeIndex: 3 },
+  { batchNumber: 'BN-2024-0852', productName: 'Product B 40mg', recipeIndex: 4 },
+  { batchNumber: 'BN-2024-0853', productName: 'Product C 10mg', recipeIndex: 5 },
+  { batchNumber: 'BN-2024-0854', productName: 'Product D 20mg', recipeIndex: 6 },
+  { batchNumber: 'BN-2024-0855', productName: 'Product E 5mg', recipeIndex: 7 },
+  { batchNumber: 'BN-2024-0856', productName: 'Product E 10mg', recipeIndex: 8 },
+];
+
+const TOTAL_BATCHES = BATCH_SEQUENCE.length;
 
 const createInitialBlendingSequence = (): BlendingSequenceItem[] => [
   { step: 'start-delay', label: 'Start Delay', setPointMinutes: 2, actualMinutes: 0, status: 'pending' },
@@ -94,13 +176,15 @@ const initialComponents: ComponentHealth[] = [
   { name: 'Vibration Dampers', health: 88, rul: 2000, trend: 'stable', lastMaintenance: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000), failureProbability: 0.08, predictedFailureDate: new Date(Date.now() + 83 * 24 * 60 * 60 * 1000) },
 ];
 
-const initialSchedule: ScheduledBatch[] = [
-  { id: '1', batchNumber: 'BN-2024-0847', productName: 'Product A 500mg', startTime: new Date(), endTime: new Date(Date.now() + 2 * 60 * 60 * 1000), status: 'in-progress', priority: 1 },
-  { id: '2', batchNumber: 'BN-2024-0848', productName: 'Product C 10mg', startTime: new Date(Date.now() + 2.5 * 60 * 60 * 1000), endTime: new Date(Date.now() + 4.5 * 60 * 60 * 1000), status: 'queued', priority: 2 },
-  { id: '3', batchNumber: 'BN-2024-0849', productName: 'Product D 20mg', startTime: new Date(Date.now() + 5 * 60 * 60 * 1000), endTime: new Date(Date.now() + 7 * 60 * 60 * 1000), status: 'queued', priority: 3 },
-  { id: '4', batchNumber: 'BN-2024-0850', productName: 'Product E 5mg', startTime: new Date(Date.now() + 7.5 * 60 * 60 * 1000), endTime: new Date(Date.now() + 9.5 * 60 * 60 * 1000), status: 'queued', priority: 4 },
-  { id: '5', batchNumber: 'BN-2024-0851', productName: 'Product B 20mg', startTime: new Date(Date.now() + 10 * 60 * 60 * 1000), endTime: new Date(Date.now() + 12 * 60 * 60 * 1000), status: 'queued', priority: 5 },
-];
+const initialSchedule: ScheduledBatch[] = BATCH_SEQUENCE.map((b, i) => ({
+  id: String(i + 1),
+  batchNumber: b.batchNumber,
+  productName: b.productName,
+  startTime: new Date(Date.now() + i * 2.5 * 60 * 60 * 1000),
+  endTime: new Date(Date.now() + (i + 1) * 2.5 * 60 * 60 * 1000),
+  status: i === 0 ? 'in-progress' as const : 'queued' as const,
+  priority: i + 1,
+}));
 
 const initialResources: Resource[] = [
   { id: '1', name: 'V-Blender VB-500', type: 'equipment', available: true },
@@ -143,7 +227,7 @@ export function useSimulation() {
   const [equipmentFailures, setEquipmentFailures] = useState<{ lineId: string; processId: string; processName: string; timestamp: Date }[]>([]);
 
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
-  const batchCountRef = useRef(0); // Track which batch we're on (0 = not started, 1 = first, 2 = second)
+  const batchCountRef = useRef(0); // Track which batch we're on (0 = not started, 1..TOTAL_BATCHES)
   const tabletPressStartRef = useRef<number | null>(null); // Real timestamp when tablet press became active
 
   const addAlert = useCallback((source: string, type: Alert['type'], message: string) => {
@@ -170,7 +254,7 @@ export function useSimulation() {
       blendingSequence: createInitialBlendingSequence(),
     }));
     setParameters(prev => ({ ...prev, blendTime: 0, blendUniformity: 0 }));
-    addAlert('Digital Twin', 'info', `Batch ${batch.batchNumber} (${batchCountRef.current}/2) started - Loading materials`);
+    addAlert('Digital Twin', 'info', `Batch ${batch.batchNumber} (${batchCountRef.current}/${TOTAL_BATCHES}) started - Loading materials`);
   }, [batch.batchNumber, addAlert]);
 
   const stopBatch = useCallback(() => {
@@ -230,7 +314,7 @@ export function useSimulation() {
           if (currentBatch.state === 'idle') {
             batchCountRef.current = 1;
             tabletPressStartRef.current = null;
-            addAlert('Digital Twin', 'info', `Batch ${currentBatch.batchNumber} (1/2) started - Loading materials`);
+            addAlert('Digital Twin', 'info', `Batch ${currentBatch.batchNumber} (1/${TOTAL_BATCHES}) started - Loading materials`);
             return { 
               ...currentBatch, 
               state: 'loading', 
@@ -408,19 +492,20 @@ export function useSimulation() {
           
           const elapsed = (Date.now() - tabletPressStartRef.current) / 1000;
           
-          if (elapsed >= 30 && batchCountRef.current < 2) {
-            // Transition to batch 2
-            batchCountRef.current = 2;
+          if (elapsed >= 30 && batchCountRef.current < TOTAL_BATCHES) {
+            // Transition to next batch
+            const nextIndex = batchCountRef.current; // batchCountRef is 1-based, array is 0-based
+            const nextBatchInfo = BATCH_SEQUENCE[nextIndex];
+            const nextRecipe = availableRecipes[nextBatchInfo.recipeIndex];
+            batchCountRef.current = nextIndex + 1;
             tabletPressStartRef.current = null;
-            const nextBatchNumber = 'BN-2024-0848';
-            const nextRecipe = availableRecipes[1]; // Product C 10mg
-            addAlert('Digital Twin', 'success', `Batch 1 tablet press complete. Starting Batch 2 (${nextBatchNumber})`);
+            addAlert('Digital Twin', 'success', `Batch ${batchCountRef.current - 1}/${TOTAL_BATCHES} tablet press complete. Starting Batch ${batchCountRef.current}/${TOTAL_BATCHES} (${nextBatchInfo.batchNumber})`);
             setParameters(p => ({ ...p, blendTime: 0, blendUniformity: 0, rotationSpeed: 0 }));
             return {
               ...prev,
               id: generateId(),
-              batchNumber: nextBatchNumber,
-              productName: 'Product C 10mg',
+              batchNumber: nextBatchInfo.batchNumber,
+              productName: nextBatchInfo.productName,
               productId: nextRecipe.productId,
               recipeId: nextRecipe.id,
               recipeName: nextRecipe.name,
@@ -432,13 +517,12 @@ export function useSimulation() {
             };
           }
           
-          if (elapsed >= 30 && batchCountRef.current >= 2) {
-            // Batch 2 tablet press done — simulation complete
+          if (elapsed >= 30 && batchCountRef.current >= TOTAL_BATCHES) {
+            // Last batch tablet press done — simulation complete
             if (tabletPressStartRef.current !== null) {
               tabletPressStartRef.current = null;
-              addAlert('Digital Twin', 'success', 'All 2 batches completed successfully');
+              addAlert('Digital Twin', 'success', `All ${TOTAL_BATCHES} batches completed successfully`);
               setSimulation(s => ({ ...s, isPaused: true }));
-              // Reset blending sequence so it doesn't show "Done" from previous batch
               return { ...prev, blendingSequence: createInitialBlendingSequence() };
             }
           }
