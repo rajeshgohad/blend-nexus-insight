@@ -225,6 +225,7 @@ export function useSimulation() {
   const [learningProgress, setLearningProgress] = useState({ episodes: 1247, reward: 0.87 });
   const [parameterHistory, setParameterHistory] = useState<ParameterHistoryPoint[]>([]);
   const [equipmentFailures, setEquipmentFailures] = useState<{ lineId: string; processId: string; processName: string; timestamp: Date }[]>([]);
+  const [bufferCompression, setBufferCompression] = useState<{ isActive: boolean; remainingBatches: number; currentBatchDiverted: boolean }>({ isActive: false, remainingBatches: 0, currentBatchDiverted: false });
 
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const batchCountRef = useRef(0); // Track which batch we're on (0 = not started, 1..TOTAL_BATCHES)
@@ -342,6 +343,7 @@ export function useSimulation() {
     setAlerts([]);
     setSchedule(initialSchedule);
     setEquipmentFailures([]);
+    setBufferCompression({ isActive: false, remainingBatches: 0, currentBatchDiverted: false });
     batchCountRef.current = 0;
     tabletPressStartRef.current = null;
   }, []);
@@ -354,7 +356,7 @@ export function useSimulation() {
   const injectScenario = useCallback((scenario: string) => {
     switch (scenario) {
       case 'equipment_failure':
-        // Add equipment failure for Compression on Line 1 - batch diverts to Compression (Backup) after Blending
+        // Add equipment failure for Compression on Line 1 - batch diverts to buffer Compression
         const failure = {
           lineId: 'line-1',
           processId: 'l1-compression',
@@ -363,7 +365,9 @@ export function useSimulation() {
         };
         setEquipmentFailures(prev => [...prev, failure]);
         setComponents(prev => prev.map(c => c.name === 'Main Bearings' ? { ...c, health: 35, trend: 'critical' as const } : c));
-        addAlert('Process Line', 'critical', `Equipment Failure: Compression on Line 1 - Batch diverted to Compression (Backup) after Blending`);
+        // Activate buffer compression: current batch + next 2 batches use buffer
+        setBufferCompression({ isActive: true, remainingBatches: 3, currentBatchDiverted: true });
+        addAlert('Process Line', 'critical', `Equipment Failure: Compression on Line 1 - Batch diverted to Buffer Compression area`);
         break;
       case 'material_delay':
         setResources(prev => prev.map(r => r.name === 'Compound A API' ? { ...r, available: false, nextAvailable: new Date(Date.now() + 2 * 60 * 60 * 1000) } : r));
@@ -499,6 +503,18 @@ export function useSimulation() {
             const nextRecipe = availableRecipes[nextBatchInfo.recipeIndex];
             batchCountRef.current = nextIndex + 1;
             tabletPressStartRef.current = null;
+            // Decrement buffer compression remaining batches on batch transition
+            setBufferCompression(prev => {
+              if (prev.isActive && prev.remainingBatches > 0) {
+                const newRemaining = prev.remainingBatches - 1;
+                if (newRemaining <= 0) {
+                  addAlert('Process Line', 'success', 'Main Compression restored - Buffer Compression no longer needed');
+                  return { isActive: false, remainingBatches: 0, currentBatchDiverted: false };
+                }
+                return { ...prev, remainingBatches: newRemaining, currentBatchDiverted: true };
+              }
+              return prev;
+            });
             addAlert('Digital Twin', 'success', `Batch ${batchCountRef.current - 1}/${TOTAL_BATCHES} tablet press complete. Starting Batch ${batchCountRef.current}/${TOTAL_BATCHES} (${nextBatchInfo.batchNumber})`);
             setParameters(p => ({ ...p, blendTime: 0, blendUniformity: 0, rotationSpeed: 0 }));
             return {
@@ -696,6 +712,7 @@ export function useSimulation() {
     availableRecipes,
     parameterHistory,
     equipmentFailures,
+    bufferCompression,
     actions: {
       startBatch,
       stopBatch,

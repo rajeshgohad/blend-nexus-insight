@@ -16,6 +16,7 @@ interface LineOverviewProps {
   currentProductName: string;
   equipmentFailures?: EquipmentFailure[];
   activeStage?: 'blending' | 'compression' | 'idle';
+  bufferCompression?: { isActive: boolean; remainingBatches: number; currentBatchDiverted: boolean };
 }
 
 const processSteps = ['Sieving', 'Dispensing', 'Blending', 'Compression', 'Coating', 'Polishing', 'Packing'];
@@ -111,14 +112,25 @@ export function LineOverview({
   currentProductName,
   equipmentFailures = [],
   activeStage = 'idle',
+  bufferCompression = { isActive: false, remainingBatches: 0, currentBatchDiverted: false },
 }: LineOverviewProps) {
   const isProcessFailed = (processName: string) =>
     equipmentFailures.some(f => f.lineId === 'line-1' && f.processName === processName);
 
+  const isCompressionFailed = bufferCompression.isActive;
+
   const getProcessStatus = (step: string): ProcessBlock['status'] => {
-    if (isProcessFailed(step)) return 'error';
+    if (step === 'Compression' && isCompressionFailed) return 'error';
+    if (isProcessFailed(step) && step !== 'Compression') return 'error';
     if (activeStage === 'blending' && step === 'Blending') return 'active';
-    if (activeStage === 'compression' && step === 'Compression') return 'active';
+    if (activeStage === 'compression' && step === 'Compression' && !isCompressionFailed) return 'active';
+    return 'idle';
+  };
+
+  // Buffer compression status
+  const getBufferCompressionStatus = (): ProcessBlock['status'] => {
+    if (bufferCompression.isActive && activeStage === 'compression') return 'active';
+    if (bufferCompression.isActive) return 'idle';
     return 'idle';
   };
 
@@ -164,20 +176,50 @@ export function LineOverview({
           <Badge variant="default" className="text-xs">Active</Badge>
         </div>
 
+        {/* Main Process Flow */}
         <div className="flex items-center gap-1 overflow-x-auto pb-2">
           {processes.map((process, idx) => (
             <div key={process.id} className="flex items-center">
-              <div className={cn(
-                'relative flex flex-col items-center justify-center min-w-[100px] h-20 rounded-lg border-2 px-3 py-2 transition-all',
-                getStatusColor(process.status)
-              )}>
-                {getStatusIcon(process.status)}
-                <span className="text-base font-medium mt-1">{process.name}</span>
-                {process.status === 'active' && process.batchNumber && (
-                  <span className="text-[10px] mt-0.5 text-emerald-400">{process.batchNumber}</span>
-                )}
-                {process.status === 'error' && (
-                  <span className="text-[10px] mt-0.5 text-destructive">FAILED</span>
+              <div className="flex flex-col items-center gap-1">
+                {/* Main process block */}
+                <div className={cn(
+                  'relative flex flex-col items-center justify-center min-w-[100px] h-20 rounded-lg border-2 px-3 py-2 transition-all',
+                  getStatusColor(process.status)
+                )}>
+                  {getStatusIcon(process.status)}
+                  <span className="text-base font-medium mt-1">{process.name}</span>
+                  {process.status === 'active' && process.batchNumber && (
+                    <span className="text-[10px] mt-0.5 text-emerald-400">{process.batchNumber}</span>
+                  )}
+                  {process.status === 'error' && (
+                    <span className="text-[10px] mt-0.5 text-destructive">FAILED</span>
+                  )}
+                </div>
+
+                {/* Buffer area below Blending and Compression */}
+                {(process.name === 'Blending' || process.name === 'Compression') && (
+                  <div className={cn(
+                    'relative flex flex-col items-center justify-center min-w-[100px] h-20 rounded-lg border-2 px-3 py-2 transition-all border-dashed',
+                    process.name === 'Compression' && bufferCompression.isActive && activeStage === 'compression'
+                      ? 'bg-emerald-500/20 border-emerald-500 text-emerald-400'
+                      : process.name === 'Compression' && bufferCompression.isActive
+                        ? 'bg-amber-500/10 border-amber-500/50 text-amber-400'
+                        : 'bg-muted/30 border-border/50 text-muted-foreground'
+                  )}>
+                    {process.name === 'Compression' && bufferCompression.isActive && activeStage === 'compression' ? (
+                      <Zap className="w-4 h-4 text-emerald-400" />
+                    ) : (
+                      <Factory className="w-4 h-4 text-muted-foreground" />
+                    )}
+                    <span className="text-[11px] font-medium mt-1">{process.name}</span>
+                    <span className="text-[9px] text-muted-foreground">(Buffer)</span>
+                    {process.name === 'Compression' && bufferCompression.isActive && activeStage === 'compression' && (
+                      <span className="text-[10px] mt-0.5 text-emerald-400">{currentBatchNumber}</span>
+                    )}
+                    {process.name === 'Compression' && bufferCompression.isActive && bufferCompression.remainingBatches > 0 && activeStage !== 'compression' && (
+                      <span className="text-[9px] mt-0.5 text-amber-400">{bufferCompression.remainingBatches} batches left</span>
+                    )}
+                  </div>
                 )}
               </div>
               {idx < processes.length - 1 && (
