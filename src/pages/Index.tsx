@@ -32,6 +32,7 @@ const Index = () => {
     availableRecipes,
     parameterHistory,
     equipmentFailures,
+    bufferCompression,
     actions,
   } = useSimulation();
 
@@ -95,6 +96,7 @@ const Index = () => {
           currentProductName={batch.productName}
           equipmentFailures={equipmentFailures}
           activeStage={activeStage}
+          bufferCompression={bufferCompression}
         />
       ),
     },
