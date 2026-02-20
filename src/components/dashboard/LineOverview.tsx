@@ -3,11 +3,12 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
 import type { EquipmentFailure } from './ProcessLine';
+import { useMemo } from 'react';
 
 interface ProcessBlock {
   id: string;
   name: string;
-  status: 'idle' | 'active' | 'warning' | 'error' | 'maintenance';
+  status: 'idle' | 'active' | 'warning' | 'error' | 'maintenance' | 'restoring';
   batchNumber?: string;
 }
 
@@ -21,15 +22,200 @@ interface LineOverviewProps {
 
 const processSteps = ['Sieving', 'Dispensing', 'Blending', 'Compression', 'Coating', 'Polishing', 'Packing'];
 
-// Simulated KPI data
-const lineEfficiencyKPIs = {
-  overallEfficiency: 87.4,
-  availability: 92.1,
-  performance: 94.8,
-  utilization: 89.3,
-  throughput: '1,240 tablets/hr',
-  cycleTime: '2.9s',
-};
+// Product-specific parameter profiles
+function getProductParameters(productName: string) {
+  const name = productName.toLowerCase();
+
+  // Base profiles keyed by product
+  if (name.includes('product a 500mg')) {
+    return {
+      efficiency: { overallEfficiency: 87.4, availability: 92.1, performance: 94.8, utilization: 89.3, throughput: '1,240 tablets/hr', cycleTime: '2.9s' },
+      production: [
+        { label: 'Batch Size', value: '100,000 tablets', status: 'normal' as const },
+        { label: 'Turret Speed', value: '45 RPM', status: 'normal' as const },
+        { label: 'Compression Force', value: '18.5 kN', status: 'normal' as const },
+        { label: 'Coating Temp', value: '42°C', status: 'normal' as const },
+        { label: 'Blend Time', value: '22 min', status: 'normal' as const },
+        { label: 'Drying Temp', value: '55°C', status: 'normal' as const },
+      ],
+      quality: [
+        { label: 'Weight Variation', value: '±1.2%', target: '±2.0%', status: 'pass' as const },
+        { label: 'Hardness', value: '8.2 kP', target: '7-10 kP', status: 'pass' as const },
+        { label: 'Thickness', value: '4.1 mm', target: '3.9-4.3 mm', status: 'pass' as const },
+        { label: 'Friability', value: '0.3%', target: '<1.0%', status: 'pass' as const },
+        { label: 'Dissolution', value: '95.2%', target: '>85%', status: 'pass' as const },
+        { label: 'Content Uniformity', value: '99.1%', target: '95-105%', status: 'pass' as const },
+      ],
+    };
+  }
+  if (name.includes('product a 850mg')) {
+    return {
+      efficiency: { overallEfficiency: 85.1, availability: 90.5, performance: 93.2, utilization: 87.8, throughput: '1,050 tablets/hr', cycleTime: '3.4s' },
+      production: [
+        { label: 'Batch Size', value: '80,000 tablets', status: 'normal' as const },
+        { label: 'Turret Speed', value: '38 RPM', status: 'normal' as const },
+        { label: 'Compression Force', value: '22.0 kN', status: 'normal' as const },
+        { label: 'Coating Temp', value: '44°C', status: 'warning' as const },
+        { label: 'Blend Time', value: '25 min', status: 'normal' as const },
+        { label: 'Drying Temp', value: '58°C', status: 'normal' as const },
+      ],
+      quality: [
+        { label: 'Weight Variation', value: '±1.5%', target: '±2.5%', status: 'pass' as const },
+        { label: 'Hardness', value: '9.1 kP', target: '8-11 kP', status: 'pass' as const },
+        { label: 'Thickness', value: '5.2 mm', target: '5.0-5.5 mm', status: 'pass' as const },
+        { label: 'Friability', value: '0.4%', target: '<1.0%', status: 'pass' as const },
+        { label: 'Dissolution', value: '93.8%', target: '>85%', status: 'pass' as const },
+        { label: 'Content Uniformity', value: '98.7%', target: '95-105%', status: 'pass' as const },
+      ],
+    };
+  }
+  if (name.includes('product a 1000mg')) {
+    return {
+      efficiency: { overallEfficiency: 82.6, availability: 88.3, performance: 91.5, utilization: 85.9, throughput: '920 tablets/hr', cycleTime: '3.9s' },
+      production: [
+        { label: 'Batch Size', value: '60,000 tablets', status: 'normal' as const },
+        { label: 'Turret Speed', value: '32 RPM', status: 'normal' as const },
+        { label: 'Compression Force', value: '25.0 kN', status: 'warning' as const },
+        { label: 'Coating Temp', value: '46°C', status: 'normal' as const },
+        { label: 'Blend Time', value: '28 min', status: 'normal' as const },
+        { label: 'Drying Temp', value: '60°C', status: 'normal' as const },
+      ],
+      quality: [
+        { label: 'Weight Variation', value: '±1.8%', target: '±3.0%', status: 'pass' as const },
+        { label: 'Hardness', value: '10.5 kP', target: '9-12 kP', status: 'pass' as const },
+        { label: 'Thickness', value: '6.0 mm', target: '5.8-6.3 mm', status: 'pass' as const },
+        { label: 'Friability', value: '0.5%', target: '<1.0%', status: 'pass' as const },
+        { label: 'Dissolution', value: '91.5%', target: '>85%', status: 'pass' as const },
+        { label: 'Content Uniformity', value: '98.2%', target: '95-105%', status: 'pass' as const },
+      ],
+    };
+  }
+  if (name.includes('product b 20mg')) {
+    return {
+      efficiency: { overallEfficiency: 89.2, availability: 93.5, performance: 95.1, utilization: 90.8, throughput: '1,580 tablets/hr', cycleTime: '2.3s' },
+      production: [
+        { label: 'Batch Size', value: '120,000 tablets', status: 'normal' as const },
+        { label: 'Turret Speed', value: '52 RPM', status: 'normal' as const },
+        { label: 'Compression Force', value: '12.0 kN', status: 'normal' as const },
+        { label: 'Coating Temp', value: '40°C', status: 'normal' as const },
+        { label: 'Blend Time', value: '18 min', status: 'normal' as const },
+        { label: 'Drying Temp', value: '50°C', status: 'normal' as const },
+      ],
+      quality: [
+        { label: 'Weight Variation', value: '±0.8%', target: '±2.0%', status: 'pass' as const },
+        { label: 'Hardness', value: '6.5 kP', target: '5-8 kP', status: 'pass' as const },
+        { label: 'Thickness', value: '3.2 mm', target: '3.0-3.5 mm', status: 'pass' as const },
+        { label: 'Friability', value: '0.2%', target: '<1.0%', status: 'pass' as const },
+        { label: 'Dissolution', value: '97.1%', target: '>85%', status: 'pass' as const },
+        { label: 'Content Uniformity', value: '99.5%', target: '95-105%', status: 'pass' as const },
+      ],
+    };
+  }
+  if (name.includes('product b 40mg')) {
+    return {
+      efficiency: { overallEfficiency: 88.0, availability: 92.8, performance: 94.5, utilization: 89.9, throughput: '1,420 tablets/hr', cycleTime: '2.5s' },
+      production: [
+        { label: 'Batch Size', value: '90,000 tablets', status: 'normal' as const },
+        { label: 'Turret Speed', value: '48 RPM', status: 'normal' as const },
+        { label: 'Compression Force', value: '14.5 kN', status: 'normal' as const },
+        { label: 'Coating Temp', value: '41°C', status: 'normal' as const },
+        { label: 'Blend Time', value: '20 min', status: 'normal' as const },
+        { label: 'Drying Temp', value: '52°C', status: 'normal' as const },
+      ],
+      quality: [
+        { label: 'Weight Variation', value: '±1.0%', target: '±2.0%', status: 'pass' as const },
+        { label: 'Hardness', value: '7.3 kP', target: '6-9 kP', status: 'pass' as const },
+        { label: 'Thickness', value: '3.8 mm', target: '3.5-4.1 mm', status: 'pass' as const },
+        { label: 'Friability', value: '0.3%', target: '<1.0%', status: 'pass' as const },
+        { label: 'Dissolution', value: '96.0%', target: '>85%', status: 'pass' as const },
+        { label: 'Content Uniformity', value: '99.3%', target: '95-105%', status: 'pass' as const },
+      ],
+    };
+  }
+  if (name.includes('product c')) {
+    return {
+      efficiency: { overallEfficiency: 91.0, availability: 95.2, performance: 96.0, utilization: 92.1, throughput: '1,800 tablets/hr', cycleTime: '2.0s' },
+      production: [
+        { label: 'Batch Size', value: '150,000 tablets', status: 'normal' as const },
+        { label: 'Turret Speed', value: '58 RPM', status: 'normal' as const },
+        { label: 'Compression Force', value: '10.0 kN', status: 'normal' as const },
+        { label: 'Coating Temp', value: '38°C', status: 'normal' as const },
+        { label: 'Blend Time', value: '15 min', status: 'normal' as const },
+        { label: 'Drying Temp', value: '48°C', status: 'normal' as const },
+      ],
+      quality: [
+        { label: 'Weight Variation', value: '±0.6%', target: '±1.5%', status: 'pass' as const },
+        { label: 'Hardness', value: '5.8 kP', target: '4-7 kP', status: 'pass' as const },
+        { label: 'Thickness', value: '2.8 mm', target: '2.5-3.1 mm', status: 'pass' as const },
+        { label: 'Friability', value: '0.2%', target: '<1.0%', status: 'pass' as const },
+        { label: 'Dissolution', value: '98.0%', target: '>85%', status: 'pass' as const },
+        { label: 'Content Uniformity', value: '99.7%', target: '95-105%', status: 'pass' as const },
+      ],
+    };
+  }
+  if (name.includes('product d')) {
+    return {
+      efficiency: { overallEfficiency: 84.5, availability: 89.8, performance: 92.3, utilization: 86.7, throughput: '980 capsules/hr', cycleTime: '3.7s' },
+      production: [
+        { label: 'Batch Size', value: '100,000 capsules', status: 'normal' as const },
+        { label: 'Turret Speed', value: '35 RPM', status: 'normal' as const },
+        { label: 'Fill Weight', value: '350 mg', status: 'normal' as const },
+        { label: 'Sealing Temp', value: '52°C', status: 'normal' as const },
+        { label: 'Blend Time', value: '24 min', status: 'normal' as const },
+        { label: 'Drying Temp', value: '45°C', status: 'warning' as const },
+      ],
+      quality: [
+        { label: 'Weight Variation', value: '±1.4%', target: '±2.5%', status: 'pass' as const },
+        { label: 'Disintegration', value: '12 min', target: '<15 min', status: 'pass' as const },
+        { label: 'Cap Seal', value: 'Pass', target: 'No leak', status: 'pass' as const },
+        { label: 'Moisture', value: '2.1%', target: '<3.0%', status: 'pass' as const },
+        { label: 'Dissolution', value: '94.5%', target: '>85%', status: 'pass' as const },
+        { label: 'Content Uniformity', value: '98.9%', target: '95-105%', status: 'pass' as const },
+      ],
+    };
+  }
+  if (name.includes('product e 5mg')) {
+    return {
+      efficiency: { overallEfficiency: 90.3, availability: 94.0, performance: 95.5, utilization: 91.5, throughput: '1,650 tablets/hr', cycleTime: '2.2s' },
+      production: [
+        { label: 'Batch Size', value: '200,000 tablets', status: 'normal' as const },
+        { label: 'Turret Speed', value: '55 RPM', status: 'normal' as const },
+        { label: 'Compression Force', value: '9.0 kN', status: 'normal' as const },
+        { label: 'Coating Temp', value: '39°C', status: 'normal' as const },
+        { label: 'Blend Time', value: '16 min', status: 'normal' as const },
+        { label: 'Drying Temp', value: '50°C', status: 'normal' as const },
+      ],
+      quality: [
+        { label: 'Weight Variation', value: '±0.7%', target: '±1.5%', status: 'pass' as const },
+        { label: 'Hardness', value: '5.5 kP', target: '4-7 kP', status: 'pass' as const },
+        { label: 'Thickness', value: '2.6 mm', target: '2.4-2.9 mm', status: 'pass' as const },
+        { label: 'Friability', value: '0.2%', target: '<1.0%', status: 'pass' as const },
+        { label: 'Dissolution', value: '97.8%', target: '>85%', status: 'pass' as const },
+        { label: 'Content Uniformity', value: '99.6%', target: '95-105%', status: 'pass' as const },
+      ],
+    };
+  }
+  // Product E 10mg or fallback
+  return {
+    efficiency: { overallEfficiency: 89.5, availability: 93.2, performance: 95.0, utilization: 90.5, throughput: '1,500 tablets/hr', cycleTime: '2.4s' },
+    production: [
+      { label: 'Batch Size', value: '180,000 tablets', status: 'normal' as const },
+      { label: 'Turret Speed', value: '50 RPM', status: 'normal' as const },
+      { label: 'Compression Force', value: '11.0 kN', status: 'normal' as const },
+      { label: 'Coating Temp', value: '40°C', status: 'normal' as const },
+      { label: 'Blend Time', value: '18 min', status: 'normal' as const },
+      { label: 'Drying Temp', value: '52°C', status: 'normal' as const },
+    ],
+    quality: [
+      { label: 'Weight Variation', value: '±0.9%', target: '±2.0%', status: 'pass' as const },
+      { label: 'Hardness', value: '6.0 kP', target: '5-8 kP', status: 'pass' as const },
+      { label: 'Thickness', value: '3.0 mm', target: '2.8-3.3 mm', status: 'pass' as const },
+      { label: 'Friability', value: '0.3%', target: '<1.0%', status: 'pass' as const },
+      { label: 'Dissolution', value: '96.5%', target: '>85%', status: 'pass' as const },
+      { label: 'Content Uniformity', value: '99.4%', target: '95-105%', status: 'pass' as const },
+    ],
+  };
+}
 
 const equipmentOEE = [
   { name: 'Sieving', oee: 94.2, availability: 97.1, performance: 96.8, quality: 100 },
@@ -39,24 +225,6 @@ const equipmentOEE = [
   { name: 'Coating', oee: 90.1, availability: 93.8, performance: 96.0, quality: 100 },
   { name: 'Polishing', oee: 92.8, availability: 96.2, performance: 96.5, quality: 100 },
   { name: 'Packing', oee: 93.6, availability: 97.0, performance: 96.5, quality: 100 },
-];
-
-const productionParams = [
-  { label: 'Batch Size', value: '50,000 tablets', status: 'normal' as const },
-  { label: 'Turret Speed', value: '45 RPM', status: 'normal' as const },
-  { label: 'Compression Force', value: '18.5 kN', status: 'normal' as const },
-  { label: 'Coating Temp', value: '42°C', status: 'warning' as const },
-  { label: 'Blend Time', value: '22 min', status: 'normal' as const },
-  { label: 'Drying Temp', value: '55°C', status: 'normal' as const },
-];
-
-const qualityParams = [
-  { label: 'Weight Variation', value: '±1.2%', target: '±2.0%', status: 'pass' as const },
-  { label: 'Hardness', value: '8.2 kP', target: '7-10 kP', status: 'pass' as const },
-  { label: 'Thickness', value: '4.1 mm', target: '3.9-4.3 mm', status: 'pass' as const },
-  { label: 'Friability', value: '0.3%', target: '<1.0%', status: 'pass' as const },
-  { label: 'Dissolution', value: '95.2%', target: '>85%', status: 'pass' as const },
-  { label: 'Content Uniformity', value: '99.1%', target: '95-105%', status: 'pass' as const },
 ];
 
 const maintenanceParams = [
@@ -118,19 +286,16 @@ export function LineOverview({
     equipmentFailures.some(f => f.lineId === 'line-1' && f.processName === processName);
 
   const isCompressionFailed = bufferCompression.isActive;
+  // When only 1 batch remains in buffer, main compression is being restored
+  const isCompressionRestoring = bufferCompression.isActive && bufferCompression.remainingBatches <= 1;
 
   const getProcessStatus = (step: string): ProcessBlock['status'] => {
-    if (step === 'Compression' && isCompressionFailed) return 'error';
+    if (step === 'Compression' && isCompressionFailed) {
+      return isCompressionRestoring ? 'restoring' : 'error';
+    }
     if (isProcessFailed(step) && step !== 'Compression') return 'error';
     if (activeStage === 'blending' && step === 'Blending') return 'active';
     if (activeStage === 'compression' && step === 'Compression' && !isCompressionFailed) return 'active';
-    return 'idle';
-  };
-
-  // Buffer compression status
-  const getBufferCompressionStatus = (): ProcessBlock['status'] => {
-    if (bufferCompression.isActive && activeStage === 'compression') return 'active';
-    if (bufferCompression.isActive) return 'idle';
     return 'idle';
   };
 
@@ -146,6 +311,7 @@ export function LineOverview({
       case 'active': return 'bg-emerald-500/20 border-emerald-500 text-emerald-400';
       case 'warning': return 'bg-amber-500/20 border-amber-500 text-amber-400';
       case 'error': return 'bg-red-500/20 border-red-500 text-red-400';
+      case 'restoring': return 'bg-blue-500/20 border-blue-500 text-blue-400';
       case 'maintenance': return 'bg-blue-500/20 border-blue-500 text-blue-400';
       default: return 'bg-muted/50 border-border text-muted-foreground';
     }
@@ -156,10 +322,14 @@ export function LineOverview({
       case 'active': return <Zap className="w-4 h-4 text-emerald-400" />;
       case 'warning': return <AlertTriangle className="w-4 h-4 text-amber-400" />;
       case 'error': return <XCircle className="w-4 h-4 text-red-400" />;
+      case 'restoring': return <Wrench className="w-4 h-4 text-blue-400" />;
       case 'maintenance': return <Factory className="w-4 h-4 text-blue-400" />;
       default: return <CheckCircle2 className="w-4 h-4 text-muted-foreground" />;
     }
   };
+
+  // Dynamic parameters based on current product
+  const productParams = useMemo(() => getProductParameters(currentProductName), [currentProductName]);
 
   return (
     <div className="h-full flex flex-col gap-4 overflow-auto p-2">
@@ -193,6 +363,9 @@ export function LineOverview({
                   )}
                   {process.status === 'error' && (
                     <span className="text-[10px] mt-0.5 text-destructive">FAILED</span>
+                  )}
+                  {process.status === 'restoring' && (
+                    <span className="text-[10px] mt-0.5 text-blue-400 font-semibold animate-pulse">READY SOON</span>
                   )}
                 </div>
 
@@ -235,12 +408,12 @@ export function LineOverview({
 
       {/* KPI Summary Row */}
       <div className="grid grid-cols-6 gap-3">
-        <KPICard label="Line Efficiency" value={`${lineEfficiencyKPIs.overallEfficiency}%`} icon={<Gauge className="w-4 h-4" />} status={lineEfficiencyKPIs.overallEfficiency >= 85 ? 'good' : 'warning'} />
-        <KPICard label="Availability" value={`${lineEfficiencyKPIs.availability}%`} icon={<Activity className="w-4 h-4" />} status="good" />
-        <KPICard label="Performance" value={`${lineEfficiencyKPIs.performance}%`} icon={<TrendingUp className="w-4 h-4" />} status="good" />
-        <KPICard label="Utilization" value={`${lineEfficiencyKPIs.utilization}%`} icon={<BarChart3 className="w-4 h-4" />} status="good" />
-        <KPICard label="Throughput" value={lineEfficiencyKPIs.throughput} icon={<Zap className="w-4 h-4" />} status="good" subtext="tablets/hour" />
-        <KPICard label="Cycle Time" value={lineEfficiencyKPIs.cycleTime} icon={<Clock className="w-4 h-4" />} status="good" subtext="per tablet" />
+        <KPICard label="Line Efficiency" value={`${productParams.efficiency.overallEfficiency}%`} icon={<Gauge className="w-4 h-4" />} status={productParams.efficiency.overallEfficiency >= 85 ? 'good' : 'warning'} />
+        <KPICard label="Availability" value={`${productParams.efficiency.availability}%`} icon={<Activity className="w-4 h-4" />} status="good" />
+        <KPICard label="Performance" value={`${productParams.efficiency.performance}%`} icon={<TrendingUp className="w-4 h-4" />} status="good" />
+        <KPICard label="Utilization" value={`${productParams.efficiency.utilization}%`} icon={<BarChart3 className="w-4 h-4" />} status="good" />
+        <KPICard label="Throughput" value={productParams.efficiency.throughput} icon={<Zap className="w-4 h-4" />} status="good" subtext="per hour" />
+        <KPICard label="Cycle Time" value={productParams.efficiency.cycleTime} icon={<Clock className="w-4 h-4" />} status="good" subtext="per tablet" />
       </div>
 
       {/* Three KPI Panels */}
@@ -269,7 +442,7 @@ export function LineOverview({
             <span className="text-lg font-medium">Production Parameters</span>
           </div>
           <div className="grid grid-cols-2 gap-2">
-            {productionParams.map((p) => (
+            {productParams.production.map((p) => (
               <div key={p.label} className="bg-muted/30 rounded-lg p-2">
                 <div className="text-sm text-muted-foreground">{p.label}</div>
                 <div className={cn(
@@ -291,7 +464,7 @@ export function LineOverview({
             <span className="text-lg font-medium">Quality Parameters</span>
           </div>
           <div className="grid grid-cols-2 gap-2">
-            {qualityParams.map((q) => (
+            {productParams.quality.map((q) => (
               <div key={q.label} className="bg-muted/30 rounded-lg p-2">
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-muted-foreground">{q.label}</span>
