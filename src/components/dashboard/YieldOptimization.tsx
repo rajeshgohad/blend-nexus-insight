@@ -284,17 +284,17 @@ export function YieldOptimization({
         <div>
           <div className="flex items-center gap-2 mb-3">
             <Activity className="w-5 h-5 text-primary" />
-            <span className="text-sm font-medium">Real-time Tablet Press Signals</span>
+            <span className="text-sm font-medium">Real-time Tablet Critical Parameters</span>
           </div>
           <div className="grid grid-cols-4 gap-3">
-            <SignalCard label="Weight" value={signals.weight} unit="mg" icon={Scale} />
-            <SignalCard label="Thickness" value={signals.thickness} unit="mm" icon={Gauge} />
-            <SignalCard label="Hardness" value={signals.hardness} unit="kP" icon={Zap} />
-            <SignalCard label="Turret" value={signals.turretSpeed} unit="rpm" icon={Activity} />
-            <SignalCard label="Feeder" value={signals.feederSpeed} unit="rpm" icon={Wind} />
+            <SignalCard label="Tablet Weight" value={signals.weight} unit="mg" icon={Scale} />
+            <SignalCard label="Tablet Thickness" value={signals.thickness} unit="mm" icon={Gauge} />
+            <SignalCard label="Tablet Hardness" value={signals.hardness} unit="kP" icon={Zap} />
+            <SignalCard label="Turret Speed" value={signals.turretSpeed} unit="rpm" icon={Activity} />
+            <SignalCard label="Feeder Speed" value={signals.feederSpeed} unit="rpm" icon={Wind} />
             <SignalCard label="Vacuum" value={signals.vacuum} unit="mbar" icon={Wind} />
-            <SignalCard label="Pre-Comp" value={signals.preCompressionForce} unit="kN" icon={Target} />
-            <SignalCard label="Main-Comp" value={signals.mainCompressionForce} unit="kN" icon={Target} />
+            <SignalCard label="Pre-Comp Force" value={signals.preCompressionForce} unit="kN" icon={Target} />
+            <SignalCard label="Main Comp Force" value={signals.mainCompressionForce} unit="kN" icon={Target} />
           </div>
         </div>
 
@@ -307,7 +307,7 @@ export function YieldOptimization({
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <div className="text-xs text-muted-foreground">Avg Weight</div>
+                <div className="text-xs text-muted-foreground">Avg. Tablet Weight</div>
                 <div className="text-lg font-bold">{batchProfile.avgWeight.toFixed(1)} mg</div>
               </div>
               <div>
@@ -324,7 +324,7 @@ export function YieldOptimization({
               </div>
               <div>
                 <div className="text-xs text-muted-foreground">Rejects/min</div>
-                <div className={`text-lg font-bold ${batchProfile.rejectRate > 5 ? 'text-destructive' : batchProfile.rejectRate > 2 ? 'text-warning' : 'text-foreground'}`}>
+                <div className={`text-lg font-bold ${batchProfile.rejectRate > 3 ? 'text-destructive' : batchProfile.rejectRate > 1.5 ? 'text-warning' : 'text-foreground'}`}>
                   {batchProfile.rejectRate.toFixed(1)}
                 </div>
               </div>
@@ -335,7 +335,7 @@ export function YieldOptimization({
                 <span className="font-mono font-medium">{batchProfile.tabletsProduced.toLocaleString()}</span>
               </div>
               <div className="flex justify-between text-sm mt-1">
-                <span className="text-muted-foreground">Rate</span>
+                <span className="text-muted-foreground">Tablet Production Rate</span>
                 <span className="font-mono font-medium">{batchProfile.tabletsPerMinute.toLocaleString()}/min</span>
               </div>
             </div>
@@ -345,7 +345,7 @@ export function YieldOptimization({
           <Card className="p-4 bg-primary/5 border-primary/20">
             <div className="flex items-center gap-2 mb-3">
               <Brain className="w-5 h-5 text-primary" />
-              <span className="text-sm font-medium">AI Outcome Prediction</span>
+              <span className="text-sm font-medium">AI Yield Optimization Prediction</span>
               <Badge variant="outline" className="text-xs px-2 py-0.5 ml-auto">
                 {(prediction.confidenceLevel * 100).toFixed(0)}% conf
               </Badge>
@@ -358,7 +358,7 @@ export function YieldOptimization({
                 </span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">With corrections</span>
+                <span className="text-sm text-muted-foreground">With adjustments</span>
                 <span className="text-xl font-bold text-success">
                   {prediction.correctedYield.toFixed(1)}% yield
                 </span>
@@ -380,7 +380,7 @@ export function YieldOptimization({
         <div>
           <div className="flex items-center gap-2 mb-3">
             <Zap className="w-5 h-5 text-primary" />
-            <span className="text-sm font-medium">AI Micro-Adjustments</span>
+            <span className="text-sm font-medium">AI Parameter Adjustments</span>
             {pendingRecommendations.length > 0 && (
               <Badge variant="default" className="text-xs px-2 py-0.5">
                 {pendingRecommendations.length} pending
