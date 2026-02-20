@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
+import { Textarea } from '@/components/ui/textarea';
 import { ShieldCheck, UserCog, Lock, AlertTriangle } from 'lucide-react';
 
 export type ApprovalRole = 'supervisor' | 'recipe_manager';
@@ -23,14 +24,14 @@ interface ApprovalDialogProps {
 const ROLE_CONFIG = {
   supervisor: {
     title: 'Supervisor Approval Required',
-    description: 'This adjustment requires supervisor authorization due to the variation magnitude.',
+    description: 'This adjustment requires supervisor authorization due to the variation magnitude within tolerance limits',
     icon: ShieldCheck,
     color: 'text-primary',
     badgeVariant: 'default' as const,
   },
   recipe_manager: {
     title: 'Recipe Manager Approval Required',
-    description: 'This significant adjustment requires Recipe Manager authorization for compliance.',
+    description: "This adjustment requires Recipe Manager's authorization due to the variation magnitude outside tolerance limits",
     icon: UserCog,
     color: 'text-warning',
     badgeVariant: 'destructive' as const,
@@ -56,6 +57,7 @@ export function ApprovalDialog({
 }: ApprovalDialogProps) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [comments, setComments] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
@@ -76,6 +78,7 @@ export function ApprovalDialog({
       onOpenChange(false);
       setUsername('');
       setPassword('');
+      setComments('');
     } else {
       setError(`Invalid ${requiredRole === 'supervisor' ? 'Supervisor' : 'Recipe Manager'} credentials`);
     }
@@ -86,6 +89,7 @@ export function ApprovalDialog({
     onOpenChange(false);
     setUsername('');
     setPassword('');
+    setComments('');
     setError('');
   };
 
@@ -147,6 +151,18 @@ export function ApprovalDialog({
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 disabled={isLoading}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="comments">Comments (optional)</Label>
+              <Textarea
+                id="comments"
+                placeholder="Add any comments or justification..."
+                value={comments}
+                onChange={(e) => setComments(e.target.value)}
+                disabled={isLoading}
+                className="min-h-[60px] text-sm"
               />
             </div>
 
