@@ -199,9 +199,9 @@ function RecommendationCard({
       
       <div className="flex items-center justify-between">
         <p className="text-xs text-muted-foreground flex-1">{rec.reasoning}</p>
-        <div className="flex items-center gap-1.5 ml-3">
-          <TrendingUp className="w-4 h-4 text-success" />
-          <span className="text-sm font-medium text-success">+{rec.expectedImprovement.toFixed(2)}%</span>
+        <div className="flex items-center gap-2 ml-3 bg-success/15 rounded-lg px-3 py-1.5 border border-success/30">
+          <TrendingUp className="w-5 h-5 text-success" />
+          <span className="text-base font-bold text-success">+{rec.expectedImprovement.toFixed(2)}%</span>
         </div>
       </div>
       
@@ -366,35 +366,15 @@ export function YieldOptimization({
               <div className="h-px bg-border my-2" />
               <div className="flex items-center justify-between text-sm">
                 <span className="text-muted-foreground">Potential improvement</span>
-                <Badge variant="secondary" className="text-success text-sm px-2 py-0.5">
-                  +{(prediction.correctedYield - prediction.currentYield).toFixed(2)}%
+                <Badge variant="secondary" className="text-success font-bold text-base px-3 py-1">
+                  +{recommendations.reduce((sum, r) => sum + r.expectedImprovement, 0).toFixed(2)}%
                 </Badge>
               </div>
             </div>
           </Card>
         </div>
 
-        {/* Drift Detection */}
-        {driftDetections.length > 0 && (
-          <div>
-            <div className="flex items-center gap-2 mb-3">
-              <AlertTriangle className="w-5 h-5 text-warning" />
-              <span className="text-sm font-medium">Early Drift Detection</span>
-              <Badge variant="outline" className="text-xs px-2 py-0.5">
-                {driftDetections.length} active
-              </Badge>
-            </div>
-          <div className="grid gap-2">
-              {driftDetections.slice(0, 3).map((drift) => (
-                <DriftAlert 
-                  key={drift.id} 
-                  drift={drift} 
-                  onSeeTrend={() => handleSeeTrend(drift)}
-                />
-              ))}
-            </div>
-          </div>
-        )}
+        {/* Drift Detection - Hidden per user request */}
 
         {/* AI Recommendations */}
         <div>
@@ -418,44 +398,7 @@ export function YieldOptimization({
           </div>
         </div>
 
-        {/* Yield History */}
-        <div>
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-sm text-muted-foreground">Yield Trend (Last 12 Batches)</span>
-            <div className="flex items-center gap-3">
-              <div className="flex items-center gap-1.5">
-                <div className="w-3 h-3 bg-primary rounded" />
-                <span className="text-xs text-muted-foreground">Actual</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <div className="w-3 h-3 bg-primary/30 rounded" />
-                <span className="text-xs text-muted-foreground">Predicted</span>
-              </div>
-            </div>
-          </div>
-          <MiniYieldChart data={yieldHistory} />
-        </div>
-
-        {/* RL Model Status */}
-        <Card className="p-4 bg-muted/30 border-0">
-          <div className="flex items-center gap-2 mb-3">
-            <Brain className="w-5 h-5 text-primary" />
-            <span className="text-sm font-medium">RL Model Status</span>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <div className="text-xs text-muted-foreground">Training Episodes</div>
-              <div className="text-base font-mono">{learningProgress.episodes.toLocaleString()}</div>
-            </div>
-            <div>
-              <div className="text-xs text-muted-foreground">Reward Score</div>
-              <div className="flex items-center gap-2">
-                <Progress value={learningProgress.reward * 100} className="h-2 flex-1" />
-                <span className="text-sm font-mono">{(learningProgress.reward * 100).toFixed(0)}%</span>
-              </div>
-            </div>
-          </div>
-        </Card>
+        {/* Yield History & RL Model Status - Hidden per user request */}
 
         {/* Data input indicator */}
         <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground pb-4">
